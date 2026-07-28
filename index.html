@@ -1,0 +1,2741 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Everything Budgeted — daily spend checklist &amp; monthly breakdown</title>
+  <meta name="description"
+    content="Track daily spending as a checklist and see exactly where your money goes each pay cycle. Simple, private, and yours.">
+  <meta name="theme-color" content="#f7f5ef">
+  <link rel="canonical" href="https://everythingbudgeted.com/">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Everything Budgeted">
+  <meta property="og:description"
+    content="Track daily spending as a checklist and see exactly where your money goes each pay cycle.">
+  <meta property="og:url" content="https://everythingbudgeted.com/">
+  <meta name="twitter:card" content="summary">
+
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%2317181a'/%3E%3Ctext x='50' y='68' font-size='58' font-family='monospace' font-weight='700' fill='%2317c99a' text-anchor='middle'%3E%3E%3C/text%3E%3C/svg%3E">
+  <link rel="icon"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%2317181a'/%3E%3Ctext x='50' y='68' font-size='58' font-family='monospace' font-weight='700' fill='%2317c99a' text-anchor='middle'%3E%3E%3C/text%3E%3C/svg%3E">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Everything Budgeted">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f7f5ef;
+      --bg-card: #ffffff;
+      --ink: #17181a;
+      --ink-soft: #6f6d66;
+      --ink-faint: #a6a39a;
+      --line: #e7e3d8;
+      --line-soft: #f0ede4;
+      --accent: #17c99a;
+      --accent-ink: #0b7a5c;
+      --accent-wash: rgba(23, 201, 154, 0.14);
+      --accent-wash-strong: rgba(23, 201, 154, 0.28);
+      --danger: #e2584a;
+      --amber: #d99a2b;
+      --radius: 14px;
+      --font-display: 'Space Grotesk', sans-serif;
+      --font-body: 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--font-body);
+    }
+
+    body {
+      background-image:
+        linear-gradient(var(--line-soft) 1px, transparent 1px),
+        linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+      background-size: 28px 28px;
+      background-position: -1px -1px;
+      min-height: 100vh;
+      padding: 28px 20px 80px;
+    }
+
+    ::selection {
+      background: var(--accent-wash-strong);
+      color: var(--ink);
+    }
+
+    a {
+      color: inherit;
+    }
+
+    button {
+      font-family: inherit;
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--accent-ink);
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+
+    #appRoot {
+      display: none;
+    }
+
+    #appRoot.ready {
+      display: block;
+    }
+
+    #bootLoader {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity .3s ease;
+    }
+
+    #bootLoader.hide {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .boot-mark {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 17px;
+      color: var(--ink-faint);
+    }
+
+    .boot-mark b {
+      color: var(--accent-ink);
+    }
+
+    .boot-mark .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 1s ease-in-out infinite;
+    }
+
+    .wrap {
+      max-width: 760px;
+      margin: 0 auto;
+    }
+
+    /* ---------- Header ---------- */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 4px 20px;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 22px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: baseline;
+      gap: 9px;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: clamp(14.5px, 4.2vw, 18px);
+      letter-spacing: 0.01em;
+      white-space: nowrap;
+    }
+
+    .brand b {
+      color: var(--accent-ink);
+    }
+
+    .brand .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-wash);
+      animation: pulse 2.4s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        box-shadow: 0 0 0 4px var(--accent-wash);
+      }
+
+      50% {
+        box-shadow: 0 0 0 7px transparent;
+      }
+    }
+
+    .clockbox {
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      color: var(--ink-soft);
+      text-align: right;
+      line-height: 1.5;
+    }
+
+    .clockbox .time {
+      color: var(--ink);
+      font-weight: 500;
+    }
+
+    .clockbox .cursor {
+      display: inline-block;
+      width: 7px;
+      height: 1em;
+      background: var(--accent);
+      margin-left: 2px;
+      vertical-align: -2px;
+      animation: blink 1s step-end infinite;
+    }
+
+    @keyframes blink {
+      50% {
+        opacity: 0;
+      }
+    }
+
+    /* ---------- Tabs ---------- */
+    .tabs {
+      display: inline-flex;
+      flex-wrap: wrap;
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 4px;
+      gap: 2px;
+      margin-bottom: 26px;
+    }
+
+    .tab-btn {
+      border: none;
+      background: transparent;
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.03em;
+      color: var(--ink-soft);
+      cursor: pointer;
+      transition: color .2s ease;
+      position: relative;
+      white-space: nowrap;
+    }
+
+    .tab-btn.active {
+      color: var(--ink);
+    }
+
+    .tab-btn .pill-bg {
+      position: absolute;
+      inset: 0;
+      background: var(--accent-wash);
+      border-radius: 999px;
+      z-index: -1;
+      opacity: 0;
+      transform: scale(0.9);
+      transition: opacity .2s ease, transform .2s ease;
+    }
+
+    .tab-btn.active .pill-bg {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* ---------- Section headings w/ highlight ---------- */
+    .section-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 4px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    h2.hl {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 700;
+      margin: 0;
+      letter-spacing: 0.01em;
+    }
+
+    h2.hl span {
+      background: linear-gradient(to bottom, transparent 62%, var(--accent-wash-strong) 62%);
+      padding: 0 3px;
+    }
+
+    .sub-note {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--ink-faint);
+      margin: 0 0 18px;
+    }
+
+    .panel {
+      display: none;
+      animation: fadeUp .35s ease;
+    }
+
+    .panel.active {
+      display: block;
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ---------- Cards ---------- */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 18px;
+    }
+
+    .field-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--ink-faint);
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    /* ---------- Progress ---------- */
+    .progress-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 4px;
+    }
+
+    .progress-track {
+      flex: 1;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--line-soft);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent-ink), var(--accent));
+      width: 0%;
+      transition: width .5s cubic-bezier(.4, 0, .2, 1);
+      position: relative;
+    }
+
+    .progress-fill::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(110deg, transparent 20%, rgba(255, 255, 255, .55) 45%, transparent 70%);
+      background-size: 200% 100%;
+      animation: scan 2.6s linear infinite;
+    }
+
+    @keyframes scan {
+      from {
+        background-position: 160% 0;
+      }
+
+      to {
+        background-position: -60% 0;
+      }
+    }
+
+    .progress-label {
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      color: var(--ink-soft);
+      white-space: nowrap;
+    }
+
+    .progress-label b {
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    /* ---------- Add rows / inputs ---------- */
+    .add-row {
+      display: grid;
+      grid-template-columns: 1fr 1.3fr 100px 42px;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .add-row.analytics {
+      grid-template-columns: 1fr 1fr;
+      margin-top: 16px;
+    }
+
+    .add-row-2 {
+      display: grid;
+      grid-template-columns: 140px 1fr 42px;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    input[type="email"],
+    input[type="password"],
+    select {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      padding: 9px 10px;
+      font-family: var(--font-body);
+      font-size: 13.5px;
+      color: var(--ink);
+      transition: border-color .15s ease, background .15s ease;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--accent);
+      background: #fff;
+    }
+
+    input[type="number"],
+    input[type="date"] {
+      font-family: var(--font-mono);
+    }
+
+    select {
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0l5 6 5-6z' fill='%236f6d66'/></svg>");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      padding-right: 26px;
+    }
+
+    .btn-add {
+      background: var(--ink);
+      color: #fff;
+      border: none;
+      border-radius: 9px;
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background .15s ease, transform .1s ease;
+    }
+
+    .btn-add:hover {
+      background: var(--accent-ink);
+    }
+
+    .btn-add:active {
+      transform: scale(.94);
+    }
+
+    .btn-add:disabled {
+      background: var(--ink-faint);
+      cursor: not-allowed;
+    }
+
+    .btn-text {
+      background: none;
+      border: 1px solid var(--line);
+      color: var(--ink);
+      border-radius: 9px;
+      padding: 9px 16px;
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      cursor: pointer;
+      transition: border-color .15s ease, background .15s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-text:hover {
+      border-color: var(--ink);
+    }
+
+    .btn-text.primary {
+      background: var(--ink);
+      color: #fff;
+      border-color: var(--ink);
+    }
+
+    .btn-text.primary:hover {
+      background: var(--accent-ink);
+      border-color: var(--accent-ink);
+    }
+
+    .btn-text.danger:hover {
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+
+    .new-cat-row {
+      display: none;
+      grid-template-columns: 1fr 42px;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .new-cat-row.show {
+      display: grid;
+    }
+
+    /* ---------- Ledger list ---------- */
+    .ledger {
+      margin-top: 18px;
+      border-top: 1px dashed var(--line);
+    }
+
+    .ledger-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 2px;
+      border-bottom: 1px dashed var(--line);
+      animation: rowIn .3s ease;
+    }
+
+    @keyframes rowIn {
+      from {
+        opacity: 0;
+        transform: translateX(-4px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .ledger-row .prompt {
+      font-family: var(--font-mono);
+      color: var(--ink-faint);
+      font-size: 13px;
+      width: 12px;
+    }
+
+    .checkbox {
+      width: 20px;
+      height: 20px;
+      border-radius: 6px;
+      border: 1.5px solid var(--line);
+      background: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: border-color .15s ease, background .15s ease;
+    }
+
+    .checkbox.checked {
+      background: var(--ink);
+      border-color: var(--ink);
+    }
+
+    .checkbox svg {
+      width: 12px;
+      height: 12px;
+      stroke: #fff;
+      stroke-width: 3;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .checkbox svg path {
+      stroke-dasharray: 20;
+      stroke-dashoffset: 20;
+    }
+
+    .checkbox.checked svg path {
+      animation: draw .25s ease forwards;
+    }
+
+    @keyframes draw {
+      to {
+        stroke-dashoffset: 0;
+      }
+    }
+
+    .row-main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .row-label {
+      font-size: 14px;
+      font-weight: 500;
+      display: block;
+      transition: color .2s ease, opacity .2s ease;
+    }
+
+    .ledger-row.done .row-label {
+      color: var(--ink-faint);
+      text-decoration: line-through;
+      text-decoration-color: var(--ink-faint);
+      opacity: .75;
+    }
+
+    .tag-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      padding: 2px 8px 2px 6px;
+      border-radius: 999px;
+      margin-top: 3px;
+      color: var(--ink);
+      background: var(--chip-bg, #eee);
+    }
+
+    .tag-chip .sw {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--chip-color, #999);
+    }
+
+    .row-price {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      font-weight: 500;
+      min-width: 78px;
+      text-align: right;
+      cursor: text;
+      border-bottom: 1px dashed transparent;
+      padding: 2px 2px;
+    }
+
+    .row-price:hover {
+      border-bottom-color: var(--ink-faint);
+    }
+
+    .row-price input {
+      width: 78px;
+      text-align: right;
+      border: none;
+      background: var(--accent-wash);
+      border-radius: 5px;
+      font-family: var(--font-mono);
+      font-size: 14px;
+      padding: 2px 4px;
+    }
+
+    .row-del {
+      background: none;
+      border: none;
+      color: var(--ink-faint);
+      cursor: pointer;
+      font-size: 15px;
+      opacity: 0;
+      transition: opacity .15s ease, color .15s ease;
+      width: 20px;
+    }
+
+    .ledger-row:hover .row-del {
+      opacity: 1;
+    }
+
+    .row-del:hover {
+      color: var(--danger);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 34px 10px 18px;
+      color: var(--ink-faint);
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+    }
+
+    .empty-state .glyph {
+      font-size: 22px;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    /* ---------- Cycle nav ---------- */
+    .cycle-nav {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .cycle-nav button {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: 1px solid var(--line);
+      background: var(--bg-card);
+      cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color .15s ease, background .15s ease;
+    }
+
+    .cycle-nav button:hover:not(:disabled) {
+      border-color: var(--ink);
+    }
+
+    .cycle-nav button:disabled {
+      opacity: .35;
+      cursor: not-allowed;
+    }
+
+    .cycle-nav .lbl {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 500;
+      text-align: center;
+      min-width: 190px;
+    }
+
+    .cycle-nav .lbl .badge {
+      display: block;
+      font-size: 9.5px;
+      color: var(--accent-ink);
+      letter-spacing: .06em;
+      margin-top: 2px;
+      text-transform: uppercase;
+    }
+
+    /* ---------- Analytics ---------- */
+    .stat-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .stat-box {
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px 14px 12px;
+    }
+
+    .stat-box .k {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      color: var(--ink-faint);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-bottom: 6px;
+    }
+
+    .stat-box .v {
+      font-family: var(--font-mono);
+      font-size: 19px;
+      font-weight: 700;
+    }
+
+    .stat-box input {
+      font-family: var(--font-mono);
+      font-size: 19px;
+      font-weight: 700;
+      border: none;
+      background: transparent;
+      padding: 0;
+      width: 100%;
+    }
+
+    .stat-box.warn .v {
+      color: var(--danger);
+    }
+
+    .stat-box.good .v {
+      color: var(--accent-ink);
+    }
+
+    .donut-wrap {
+      display: flex;
+      gap: 26px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .donut-svg-box {
+      position: relative;
+      width: 190px;
+      height: 190px;
+      flex-shrink: 0;
+    }
+
+    .donut-center {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .donut-center .amt {
+      font-family: var(--font-mono);
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .donut-center .lbl {
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      color: var(--ink-faint);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-top: 2px;
+    }
+
+    .legend {
+      flex: 1;
+      min-width: 180px;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+
+    .legend-row {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 13px;
+    }
+
+    .legend-row .sw {
+      width: 9px;
+      height: 9px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+
+    .legend-row .name {
+      flex: 1;
+    }
+
+    .legend-row .pct {
+      font-family: var(--font-mono);
+      color: var(--ink-faint);
+      font-size: 11.5px;
+      width: 38px;
+      text-align: right;
+    }
+
+    .legend-row .amt {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      width: 74px;
+      text-align: right;
+    }
+
+    .spend-log {
+      margin-top: 4px;
+    }
+
+    .spend-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 2px;
+      border-bottom: 1px dashed var(--line);
+      font-size: 13px;
+    }
+
+    .spend-item .sw {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .spend-item .lab {
+      flex: 1;
+    }
+
+    .spend-item .date {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      color: var(--ink-faint);
+    }
+
+    .spend-item .amt {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      min-width: 70px;
+      text-align: right;
+    }
+
+    .spend-item .row-del {
+      opacity: 0;
+    }
+
+    .spend-item:hover .row-del {
+      opacity: 1;
+    }
+
+    .src-badge {
+      font-family: var(--font-mono);
+      font-size: 8.5px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: var(--accent-ink);
+      background: var(--accent-wash);
+      border-radius: 5px;
+      padding: 1px 5px;
+      margin-right: 6px;
+    }
+
+    /* ---------- History ---------- */
+    .history-card {
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: border-color .15s ease, transform .1s ease;
+    }
+
+    .history-card:hover {
+      border-color: var(--accent);
+    }
+
+    .history-card:active {
+      transform: scale(.995);
+    }
+
+    .history-card .hleft .lbl {
+      font-family: var(--font-mono);
+      font-size: 13.5px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .history-card .hleft .sub {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--ink-faint);
+      margin-top: 3px;
+    }
+
+    .history-card .hright {
+      text-align: right;
+    }
+
+    .history-card .hright .amt {
+      font-family: var(--font-mono);
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .history-card .hright .go {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      color: var(--accent-ink);
+      margin-top: 2px;
+    }
+
+    .cur-badge {
+      font-size: 9px;
+      font-family: var(--font-mono);
+      background: var(--accent-wash);
+      color: var(--accent-ink);
+      padding: 1px 7px;
+      border-radius: 999px;
+      letter-spacing: .04em;
+    }
+
+    /* ---------- Settings ---------- */
+    .settings-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .settings-row+.settings-row {
+      margin-top: 16px;
+    }
+
+    .helper-text {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--ink-faint);
+      margin-top: 8px;
+      line-height: 1.6;
+    }
+
+    .sync-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--ink-soft);
+    }
+
+    .sync-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--ink-faint);
+      flex-shrink: 0;
+    }
+
+    .sync-dot.on {
+      background: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-wash);
+    }
+
+    .sync-dot.pending {
+      background: var(--amber);
+      animation: blink 1s step-end infinite;
+    }
+
+    .account-email {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .swatch-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 11px;
+    }
+
+    .swatch {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+      box-shadow: 0 0 0 1px var(--line) inset;
+      transition: transform .12s ease, box-shadow .15s ease;
+      padding: 0;
+    }
+
+    .swatch:hover {
+      transform: scale(1.1);
+    }
+
+    .swatch.active {
+      box-shadow: 0 0 0 2px #fff inset, 0 0 0 4px var(--ink);
+    }
+
+    /* ---------- Trial / billing banner ---------- */
+    .trial-banner {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: var(--accent-wash);
+      border: 1px solid var(--accent-wash-strong);
+      border-radius: 12px;
+      padding: 10px 14px;
+      margin-bottom: 18px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      flex-wrap: wrap;
+    }
+
+    .trial-banner.show {
+      display: flex;
+    }
+
+    .trial-banner.urgent {
+      background: rgba(226, 88, 74, 0.09);
+      border-color: rgba(226, 88, 74, 0.3);
+      color: var(--danger);
+    }
+
+    .trial-banner .btn-text {
+      padding: 6px 14px;
+      font-size: 11.5px;
+    }
+
+    .plan-box {
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+
+    .plan-box .plan-name {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .plan-box .plan-sub {
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      color: var(--ink-faint);
+      margin-top: 4px;
+    }
+
+    .plan-badge {
+      font-size: 9px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      letter-spacing: .04em;
+      font-family: var(--font-mono);
+    }
+
+    .plan-badge.trial {
+      background: var(--accent-wash);
+      color: var(--accent-ink);
+    }
+
+    .plan-badge.pro {
+      background: var(--ink);
+      color: #fff;
+    }
+
+    .plan-badge.ended {
+      background: rgba(226, 88, 74, 0.12);
+      color: var(--danger);
+    }
+
+    .plan-actions {
+      margin-top: 12px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    /* ---------- Billing lock overlay ---------- */
+    #billingLock {
+      position: fixed;
+      inset: 0;
+      z-index: 90;
+      background: var(--bg);
+      background-image: linear-gradient(var(--line-soft) 1px, transparent 1px), linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+      background-size: 28px 28px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    #billingLock.show {
+      display: flex;
+    }
+
+    .lock-card {
+      width: 100%;
+      max-width: 360px;
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 30px 26px;
+      text-align: center;
+      animation: fadeUp .35s ease;
+    }
+
+    .lock-card .glyph {
+      font-size: 26px;
+      margin-bottom: 10px;
+    }
+
+    .lock-card h3 {
+      font-family: var(--font-display);
+      font-size: 19px;
+      margin: 0 0 8px;
+    }
+
+    .lock-card p {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--ink-soft);
+      line-height: 1.6;
+      margin: 0 0 20px;
+    }
+
+    .lock-price {
+      font-family: var(--font-mono);
+      font-size: 26px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .lock-price span {
+      font-size: 12px;
+      color: var(--ink-faint);
+      font-weight: 500;
+    }
+
+    /* ---------- Quick-start tag chips ---------- */
+    .quick-tags {
+      display: none;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .quick-tags.show {
+      display: flex;
+    }
+
+    .quick-tag-chip {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 5px 11px;
+      border-radius: 999px;
+      background: var(--bg);
+      border: 1px dashed var(--line);
+      cursor: pointer;
+      color: var(--ink-soft);
+      transition: border-color .15s ease, color .15s ease, background .15s ease;
+    }
+
+    .quick-tag-chip:hover {
+      border-color: var(--accent);
+      color: var(--ink);
+      background: var(--accent-wash);
+    }
+
+    /* ---------- Hint banner ---------- */
+    .hint-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: var(--bg);
+      border: 1px dashed var(--line);
+      border-radius: 10px;
+      padding: 8px 12px;
+      margin-bottom: 14px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--ink-soft);
+    }
+
+    .hint-banner button {
+      background: none;
+      border: none;
+      color: var(--ink-faint);
+      cursor: pointer;
+      font-size: 13px;
+      padding: 0 2px;
+    }
+
+    .empty-state .cta {
+      display: inline-block;
+      margin-top: 10px;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      color: var(--accent-ink);
+      border: 1px dashed var(--accent-wash-strong);
+      border-radius: 999px;
+      padding: 6px 14px;
+      cursor: pointer;
+      background: var(--accent-wash);
+    }
+
+    .empty-state .cta:hover {
+      border-style: solid;
+    }
+
+    .pw-field {
+      position: relative;
+    }
+
+    .pw-toggle {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--ink-faint);
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+    }
+
+    @media (hover: none) {
+      .row-del {
+        opacity: 1 !important;
+      }
+    }
+
+    /* ---------- Toast ---------- */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--ink);
+      color: #fff;
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      padding: 10px 18px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .25s ease, transform .25s ease;
+      z-index: 50;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .toast .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    .toast .undo-btn {
+      background: none;
+      border: none;
+      color: var(--accent);
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      cursor: pointer;
+      text-decoration: underline;
+      padding: 0;
+      margin-left: 4px;
+    }
+
+    footer.tip {
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--ink-faint);
+      margin-top: 30px;
+      letter-spacing: .02em;
+    }
+
+    /* ---------- Auth gate ---------- */
+    #authGate {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: var(--bg);
+      background-image: linear-gradient(var(--line-soft) 1px, transparent 1px), linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+      background-size: 28px 28px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    #authGate.show {
+      display: flex;
+    }
+
+    .auth-card {
+      width: 100%;
+      max-width: 340px;
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 28px 26px;
+      animation: fadeUp .35s ease;
+    }
+
+    .auth-brand {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 18px;
+      margin-bottom: 4px;
+    }
+
+    .auth-brand b {
+      color: var(--accent-ink);
+    }
+
+    .auth-brand .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-wash);
+    }
+
+    .auth-sub {
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      color: var(--ink-faint);
+      margin: 0 0 20px;
+    }
+
+    .auth-field {
+      margin-bottom: 12px;
+    }
+
+    .auth-field label {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: var(--ink-faint);
+      margin-bottom: 6px;
+    }
+
+    .auth-error {
+      display: none;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      color: var(--danger);
+      background: rgba(226, 88, 74, 0.08);
+      border: 1px solid rgba(226, 88, 74, 0.25);
+      border-radius: 8px;
+      padding: 8px 10px;
+      margin-bottom: 12px;
+    }
+
+    .auth-error.show {
+      display: block;
+    }
+
+    .auth-submit {
+      width: 100%;
+      margin-top: 6px;
+      padding: 11px;
+    }
+
+    .auth-toggle {
+      text-align: center;
+      margin-top: 14px;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      color: var(--ink-faint);
+    }
+
+    .auth-toggle button {
+      background: none;
+      border: none;
+      color: var(--accent-ink);
+      cursor: pointer;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      text-decoration: underline;
+      padding: 0;
+    }
+
+    @media (max-width: 520px) {
+
+      .add-row,
+      .add-row.analytics {
+        grid-template-columns: 1fr;
+      }
+
+      .add-row-2 {
+        grid-template-columns: 1fr 1fr 42px;
+      }
+
+      .stat-strip {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .stat-strip .stat-box:nth-child(3) {
+        grid-column: 1 / -1;
+      }
+
+      .settings-row {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .trial-banner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .trial-banner .btn-text {
+        width: 100%;
+        text-align: center;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+
+      *,
+      *::before,
+      *::after {
+        animation-duration: .001ms !important;
+        transition-duration: .001ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ===================== BOOT LOADER ===================== -->
+  <div id="bootLoader">
+    <div class="boot-mark"><span class="dot"></span>Everything<b>Budgeted</b></div>
+  </div>
+
+  <!-- ===================== AUTH GATE ===================== -->
+  <div id="authGate">
+    <div class="auth-card">
+      <div class="auth-brand"><span class="dot"></span>Everything<b>Budgeted</b></div>
+      <p class="auth-sub" id="authSub">&gt; sign in to sync your data across devices</p>
+      <div class="auth-error" id="authError"></div>
+      <div class="auth-field">
+        <label>Email</label>
+        <input type="email" id="authEmail" placeholder="you@example.com" autocomplete="email">
+      </div>
+      <div class="auth-field">
+        <label>Password</label>
+        <div class="pw-field">
+          <input type="password" id="authPassword" placeholder="••••••••" autocomplete="current-password">
+          <button type="button" class="pw-toggle" id="pwToggleBtn">show</button>
+        </div>
+      </div>
+      <button class="btn-text primary auth-submit" id="authSubmitBtn">Sign in</button>
+      <div class="auth-toggle">
+        <span id="authToggleText">Don't have an account?</span>
+        <button id="authToggleBtn">Create one</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== BILLING LOCK ===================== -->
+  <div id="billingLock">
+    <div class="lock-card">
+      <div class="glyph">⏳</div>
+      <h3>Your free trial has ended</h3>
+      <p>Your data is safe and still syncing — you just need Pro to keep using Everything Budgeted.</p>
+      <div class="lock-price">$5<span>USD / month</span></div>
+      <div class="plan-actions" style="justify-content:center;">
+        <a class="btn-text primary" id="lockUpgradeBtn" target="_blank" rel="noopener">Upgrade to Pro</a>
+        <button class="btn-text" id="lockRecheckBtn">I've subscribed</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== APP ===================== -->
+  <div id="appRoot">
+    <div class="wrap">
+
+      <div class="topbar">
+        <div class="brand"><span class="dot"></span>Everything<b>Budgeted</b></div>
+        <div class="clockbox">
+          <div class="time" id="clockTime">--:--:--<span class="cursor"></span></div>
+          <div id="clockDate">---</div>
+        </div>
+      </div>
+
+      <div class="trial-banner" id="trialBanner">
+        <span id="trialBannerText"></span>
+        <a class="btn-text primary" id="trialBannerBtn" target="_blank" rel="noopener">Upgrade — $5/mo</a>
+      </div>
+
+      <div class="tabs" role="tablist">
+        <button class="tab-btn active" data-tab="checklist" role="tab"><span class="pill-bg"></span>CHECKLIST</button>
+        <button class="tab-btn" data-tab="analytics" role="tab"><span class="pill-bg"></span>ANALYTICS</button>
+        <button class="tab-btn" data-tab="history" role="tab"><span class="pill-bg"></span>HISTORY</button>
+        <button class="tab-btn" data-tab="settings" role="tab"><span class="pill-bg"></span>SETTINGS</button>
+      </div>
+
+      <!-- CHECKLIST PANEL -->
+      <section class="panel active" id="panel-checklist">
+        <div class="section-head">
+          <h2 class="hl"><span>Today's Ledger</span></h2>
+        </div>
+        <p class="sub-note" id="todayStr">loading date…</p>
+
+        <div class="card">
+          <div class="hint-banner" id="priceHint">
+            <span>tip: checking an item off logs it as real spending in Analytics — tap any price to edit it</span>
+            <button id="dismissHint" title="dismiss">✕</button>
+          </div>
+
+          <div class="progress-row">
+            <div class="progress-track">
+              <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-label" id="progressLabel"><b>0</b>/0 logged</div>
+          </div>
+          <div class="progress-label" id="spentTodayLabel" style="margin-top:6px;">Spent today: <b>$0.00</b></div>
+
+          <div class="add-row">
+            <select id="itemCategory"></select>
+            <input type="text" id="itemLabel" placeholder="e.g. groceries, gym, coffee…" maxlength="40">
+            <input type="number" id="itemPrice" placeholder="0.00" step="0.01" min="0">
+            <button class="btn-add" id="addItemBtn" title="Add item">+</button>
+          </div>
+          <div class="new-cat-row" id="newCatRowChecklist">
+            <input type="text" id="newCatNameChecklist" placeholder="new tag name…" maxlength="20">
+            <button class="btn-add" id="confirmNewCatChecklist">✓</button>
+          </div>
+          <div class="quick-tags" id="quickTags"></div>
+
+          <div class="ledger" id="ledgerList"></div>
+        </div>
+      </section>
+
+      <!-- ANALYTICS PANEL -->
+      <section class="panel" id="panel-analytics">
+        <div class="section-head">
+          <h2 class="hl"><span>Spending Breakdown</span></h2>
+        </div>
+        <p class="sub-note" id="cycleSubNote">loading cycle…</p>
+
+        <div class="cycle-nav">
+          <button id="cyclePrev" title="previous cycle">‹</button>
+          <div class="lbl" id="cycleLabelBox">—<span class="badge" id="cycleBadge"></span></div>
+          <button id="cycleNext" title="next cycle">›</button>
+        </div>
+
+        <div class="stat-strip">
+          <div class="stat-box">
+            <div class="k">Monthly Salary</div>
+            <input type="number" id="salaryInput" placeholder="0.00" min="0" step="1">
+          </div>
+          <div class="stat-box">
+            <div class="k">Spent This Cycle</div>
+            <div class="v" id="totalSpentStat">$0.00</div>
+          </div>
+          <div class="stat-box good" id="remainingBox">
+            <div class="k">Remaining</div>
+            <div class="v" id="remainingStat">$0.00</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="donut-wrap">
+            <div class="donut-svg-box">
+              <svg viewBox="0 0 190 190" width="190" height="190" id="donutSvg"></svg>
+              <div class="donut-center">
+                <div class="amt" id="donutCenterAmt">$0</div>
+                <div class="lbl" id="donutCenterLbl">this cycle</div>
+              </div>
+            </div>
+            <div class="legend" id="legendBox"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <span class="field-label">Log a spend</span>
+          <div class="add-row analytics">
+            <select id="spendCategory"></select>
+            <input type="text" id="spendNote" placeholder="note (optional)" maxlength="40">
+          </div>
+          <div class="new-cat-row" id="newCatRowSpend">
+            <input type="text" id="newCatNameSpend" placeholder="new label name…" maxlength="20">
+            <button class="btn-add" id="confirmNewCatSpend">✓</button>
+          </div>
+          <div class="add-row-2">
+            <input type="date" id="spendDate">
+            <input type="number" id="spendAmount" placeholder="0.00" step="0.01" min="0">
+            <button class="btn-add" id="addSpendBtn" title="Add spending">+</button>
+          </div>
+
+          <div class="spend-log" id="spendLog"></div>
+        </div>
+      </section>
+
+      <!-- HISTORY PANEL -->
+      <section class="panel" id="panel-history">
+        <div class="section-head">
+          <h2 class="hl"><span>History</span></h2>
+        </div>
+        <p class="sub-note">&gt; browse previous pay cycles — tap one to view and edit it</p>
+        <div id="historyList"></div>
+      </section>
+
+      <!-- SETTINGS PANEL -->
+      <section class="panel" id="panel-settings">
+        <div class="section-head">
+          <h2 class="hl"><span>Settings</span></h2>
+        </div>
+        <p class="sub-note">&gt; configure currency, pay cycle, and cloud sync</p>
+
+        <div class="card">
+          <span class="field-label">Currency</span>
+          <select id="currencySelect"></select>
+        </div>
+
+        <div class="card">
+          <span class="field-label">Salary / cycle start day</span>
+          <input type="number" id="salaryDayInput" min="1" max="31" step="1">
+          <p class="helper-text">Your budgeting "month" runs from this day of the month to the day before it next
+            occurs. e.g. day 28 → Jun 28 – Jul 27. This only affects Analytics &amp; History — the daily checklist
+            always resets at midnight.</p>
+        </div>
+
+        <div class="card">
+          <span class="field-label">Highlight color</span>
+          <div class="swatch-row" id="swatchRow"></div>
+          <p class="helper-text">Changes the accent used for highlights, progress, and charts throughout the app.</p>
+        </div>
+
+        <div class="card" id="accountCard">
+          <span class="field-label">Account &amp; cloud sync</span>
+          <p class="helper-text" id="accountBody">checking configuration…</p>
+        </div>
+
+        <div class="card" id="billingCard" style="display:none;">
+          <span class="field-label">Plan</span>
+          <div class="plan-box" id="planBox"></div>
+        </div>
+      </section>
+
+      <footer class="tip" id="footerTip">stored locally in this browser · nothing leaves your device</footer>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"><span class="dot"></span><span id="toastMsg"></span></div>
+
+  <!-- Firebase (compat) — only used if you fill in firebaseConfig below -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+  <script>
+    (function () {
+      "use strict";
+
+      /* =========================================================
+         FIREBASE CONFIG — paste your project's config below.
+         Get this from Firebase Console → Project settings → General
+         → "Your apps" → SDK setup and configuration.
+         Leave the placeholders untouched to run in local-only mode.
+      ========================================================= */
+      var firebaseConfig = {
+        apiKey: "AIzaSyCwVEqlcko0XEOhxpz3ieT88qR4oSwKQ9Q",
+        authDomain: "everythingbudgeted.firebaseapp.com",
+        projectId: "everythingbudgeted",
+        storageBucket: "everythingbudgeted.firebasestorage.app",
+        messagingSenderId: "1011954928338",
+        appId: "1:1011954928338:web:b9d3a4803e1ebe7e31bb0b",
+        measurementId: "G-5QBHPS6DZF"
+      };
+      /* Also remember to enable "Email/Password" under
+         Firebase Console → Authentication → Sign-in method,
+         and create a Firestore database (production or test mode). */
+
+      /* =========================================================
+         STRIPE CONFIG — paste your Payment Link URL below.
+         See README.md for the full step-by-step setup, including
+         the 7-day free trial and (optional) webhook for real
+         server-side enforcement.
+      ========================================================= */
+      var STRIPE_PAYMENT_LINK = "https://buy.stripe.com/test_eVq6oBddY7D0dSXand48001";
+      var TRIAL_DAYS = 7;
+
+      var STORE_KEY = "budget_os_state_v2";
+      var PALETTE = ["#17c99a", "#5a55f2", "#f2a93b", "#f2685a", "#3ba7f2", "#b15af2", "#8fd92a", "#f25aa0"];
+      var CURRENCIES = [
+        { code: "USD", symbol: "$", decimals: 2, after: false },
+        { code: "EUR", symbol: "€", decimals: 2, after: false },
+        { code: "GBP", symbol: "£", decimals: 2, after: false },
+        { code: "JPY", symbol: "¥", decimals: 0, after: false },
+        { code: "INR", symbol: "₹", decimals: 2, after: false },
+        { code: "KWD", symbol: "KD", decimals: 3, after: true },
+        { code: "BHD", symbol: "BD", decimals: 3, after: true },
+        { code: "OMR", symbol: "OMR", decimals: 3, after: true },
+        { code: "SAR", symbol: "SR", decimals: 2, after: true },
+        { code: "AED", symbol: "AED", decimals: 2, after: true },
+        { code: "QAR", symbol: "QR", decimals: 2, after: true },
+        { code: "EGP", symbol: "EGP", decimals: 2, after: true }
+      ];
+
+      /* ---------- date / cycle helpers ---------- */
+      function pad(n) { return String(n).padStart(2, "0"); }
+      function isoOfDate(d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
+      function dateFromISO(s) { return new Date(s + "T00:00:00"); }
+      function todayISO() { return isoOfDate(new Date()); }
+      function daysInMonth(y, m) { return new Date(y, m + 1, 0).getDate(); }
+
+      function cycleStartForDate(dateObj, salaryDay) {
+        var y = dateObj.getFullYear(), m = dateObj.getMonth();
+        var cand = new Date(y, m, Math.min(salaryDay, daysInMonth(y, m)));
+        cand.setHours(0, 0, 0, 0);
+        var d0 = new Date(dateObj); d0.setHours(0, 0, 0, 0);
+        if (d0.getTime() >= cand.getTime()) return cand;
+        var pm = m - 1, py = y; if (pm < 0) { pm = 11; py = y - 1; }
+        var pcand = new Date(py, pm, Math.min(salaryDay, daysInMonth(py, pm)));
+        pcand.setHours(0, 0, 0, 0);
+        return pcand;
+      }
+      function cycleEndForStart(startDate, salaryDay) {
+        var nm = startDate.getMonth() + 1, ny = startDate.getFullYear();
+        if (nm > 11) { nm = 0; ny++; }
+        var nstart = new Date(ny, nm, Math.min(salaryDay, daysInMonth(ny, nm)));
+        var end = new Date(nstart); end.setDate(end.getDate() - 1);
+        end.setHours(0, 0, 0, 0);
+        return end;
+      }
+      function prevCycleStart(start, salaryDay) {
+        var d = new Date(start); d.setDate(d.getDate() - 1);
+        return cycleStartForDate(d, salaryDay);
+      }
+      function nextCycleStart(start, salaryDay) {
+        var end = cycleEndForStart(start, salaryDay);
+        var d = new Date(end); d.setDate(d.getDate() + 1);
+        return cycleStartForDate(d, salaryDay);
+      }
+      var MO = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      function cycleLabel(start, end) {
+        return MO[start.getMonth()] + " " + start.getDate() + " – " + MO[end.getMonth()] + " " + end.getDate() + ", " + end.getFullYear();
+      }
+
+      var uid = function () { return Math.random().toString(36).slice(2, 10) + Date.now().toString(36); };
+
+      /* ---------- state ---------- */
+      var state = null;
+
+      function defaultState() {
+        return {
+          currency: CURRENCIES[0],
+          salaryDay: 1,
+          accentColor: "#17c99a",
+          categories: [],
+          checklist: [],
+          spendings: [],
+          salary: null,
+          lastReset: todayISO(),
+          trialStart: null,
+          subscribed: false
+        };
+      }
+
+      function normalizeState(raw) {
+        var s = defaultState();
+        if (raw && typeof raw === "object") {
+          s.currency = raw.currency && raw.currency.symbol ? raw.currency : s.currency;
+          s.salaryDay = raw.salaryDay || s.salaryDay;
+          s.accentColor = raw.accentColor || s.accentColor;
+          s.categories = raw.categories || [];
+          s.checklist = (raw.checklist || []).map(function (it) {
+            it.linkedSpendId = it.linkedSpendId || null;
+            return it;
+          });
+          s.spendings = raw.spendings || [];
+          s.salary = (typeof raw.salary === "undefined") ? null : raw.salary;
+          s.lastReset = raw.lastReset || s.lastReset;
+          s.trialStart = raw.trialStart || null;
+          s.subscribed = !!raw.subscribed;
+        }
+        return s;
+      }
+
+      function loadLocalState() {
+        var raw;
+        try { raw = JSON.parse(localStorage.getItem(STORE_KEY)); } catch (e) { raw = null; }
+        return normalizeState(raw);
+      }
+
+      function saveLocal() {
+        localStorage.setItem(STORE_KEY, JSON.stringify(state));
+      }
+
+      var cloudSyncTimer = null;
+      function save() {
+        saveLocal();
+        if (cloudEnabled && currentUser) {
+          setSyncDot("pending");
+          clearTimeout(cloudSyncTimer);
+          cloudSyncTimer = setTimeout(function () {
+            db.collection("users").doc(currentUser.uid).set(state)
+              .then(function () { setSyncDot("on"); })
+              .catch(function (err) { console.error(err); setSyncDot("off"); toast("cloud sync failed — saved locally"); });
+          }, 800);
+        }
+      }
+
+      function ensureDailyReset() {
+        var t = todayISO();
+        if (state.lastReset !== t) {
+          state.checklist.forEach(function (it) { it.checked = false; it.linkedSpendId = null; });
+          state.lastReset = t;
+          save();
+        }
+      }
+
+      function categoryById(id) { return state.categories.find(function (c) { return c.id === id; }); }
+      function addCategory(name) {
+        name = name.trim();
+        if (!name) return null;
+        var existing = state.categories.find(function (c) { return c.name.toLowerCase() === name.toLowerCase(); });
+        if (existing) return existing.id;
+        var color = PALETTE[state.categories.length % PALETTE.length];
+        var cat = { id: uid(), name: name, color: color };
+        state.categories.push(cat);
+        save();
+        return cat.id;
+      }
+
+      function money(n) {
+        var c = (state && state.currency) || CURRENCIES[0];
+        var rounded = Math.round((n + Number.EPSILON) * Math.pow(10, c.decimals)) / Math.pow(10, c.decimals);
+        var v = rounded.toLocaleString(undefined, { minimumFractionDigits: c.decimals, maximumFractionDigits: c.decimals });
+        return c.after ? (v + " " + c.symbol) : (c.symbol + v);
+      }
+
+      function hexToRgba(hex, alpha) {
+        var r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+        return "rgba(" + r + "," + g + "," + b + "," + alpha + ")";
+      }
+      function shadeColor(hex, percent) {
+        var f = parseInt(hex.slice(1), 16), t = percent < 0 ? 0 : 255, p = percent < 0 ? percent * -1 : percent;
+        var R = f >> 16, G = f >> 8 & 0x00FF, B = f & 0x0000FF;
+        return "#" + (0x1000000 + (Math.round((t - R) * p) + R) * 0x10000 + (Math.round((t - G) * p) + G) * 0x100 + (Math.round((t - B) * p) + B)).toString(16).slice(1);
+      }
+      function applyAccentColor(hex) {
+        var root = document.documentElement.style;
+        root.setProperty("--accent", hex);
+        root.setProperty("--accent-ink", shadeColor(hex, -0.4));
+        root.setProperty("--accent-wash", hexToRgba(hex, 0.14));
+        root.setProperty("--accent-wash-strong", hexToRgba(hex, 0.28));
+      }
+
+      /* ---------- toast ---------- */
+      var toastEl = document.getElementById("toast");
+      var toastMsgEl = document.getElementById("toastMsg");
+      var toastTimer = null;
+      var toastUndoBtn = null;
+      function toast(msg, undoFn) {
+        toastMsgEl.textContent = msg;
+        if (toastUndoBtn) { toastUndoBtn.remove(); toastUndoBtn = null; }
+        if (undoFn) {
+          toastUndoBtn = document.createElement("button");
+          toastUndoBtn.className = "undo-btn";
+          toastUndoBtn.textContent = "undo";
+          toastUndoBtn.addEventListener("click", function () {
+            undoFn();
+            toastEl.classList.remove("show");
+          });
+          toastEl.appendChild(toastUndoBtn);
+        }
+        toastEl.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () { toastEl.classList.remove("show"); }, undoFn ? 4000 : 2200);
+      }
+
+      function animateNumber(el, from, to, formatter, duration) {
+        duration = duration || 500;
+        var start = null;
+        formatter = formatter || function (v) { return money(v); };
+        function step(ts) {
+          if (!start) start = ts;
+          var p = Math.min(1, (ts - start) / duration);
+          var eased = 1 - Math.pow(1 - p, 3);
+          el.textContent = formatter(from + (to - from) * eased);
+          if (p < 1) requestAnimationFrame(step); else el.textContent = formatter(to);
+        }
+        requestAnimationFrame(step);
+      }
+
+      function escapeHtml(s) { var d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
+      function hexToWash(hex) { return hexToRgba(hex, 0.14); }
+
+      /* ---------- tabs ---------- */
+      var tabBtns = document.querySelectorAll(".tab-btn");
+      var panels = {
+        checklist: document.getElementById("panel-checklist"),
+        analytics: document.getElementById("panel-analytics"),
+        history: document.getElementById("panel-history"),
+        settings: document.getElementById("panel-settings")
+      };
+      tabBtns.forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          tabBtns.forEach(function (b) { b.classList.remove("active"); });
+          btn.classList.add("active");
+          Object.keys(panels).forEach(function (k) { panels[k].classList.remove("active"); });
+          panels[btn.dataset.tab].classList.add("active");
+          if (btn.dataset.tab === "analytics") renderAnalytics(true);
+          if (btn.dataset.tab === "history") renderHistory();
+        });
+      });
+      function goToAnalyticsCycle(startDate) {
+        viewingCycleStart = startDate;
+        tabBtns.forEach(function (b) { b.classList.toggle("active", b.dataset.tab === "analytics"); });
+        Object.keys(panels).forEach(function (k) { panels[k].classList.toggle("active", k === "analytics"); });
+        renderAnalytics(true);
+      }
+
+      /* ---------- clock ---------- */
+      var clockTime = document.getElementById("clockTime");
+      var clockDate = document.getElementById("clockDate");
+      var todayStrEl = document.getElementById("todayStr");
+      function tickClock() {
+        var now = new Date();
+        clockTime.innerHTML = pad(now.getHours()) + ":" + pad(now.getMinutes()) + ":" + pad(now.getSeconds()) + '<span class="cursor"></span>';
+        clockDate.textContent = now.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+      }
+      tickClock();
+      setInterval(tickClock, 1000);
+
+      /* ---------- category selects ---------- */
+      function fillCategorySelect(sel) {
+        var cur = sel.value;
+        sel.innerHTML = "";
+        if (state.categories.length === 0) {
+          var opt0 = document.createElement("option");
+          opt0.value = ""; opt0.textContent = "no tags yet";
+          sel.appendChild(opt0);
+        }
+        state.categories.forEach(function (c) {
+          var opt = document.createElement("option");
+          opt.value = c.id; opt.textContent = c.name;
+          sel.appendChild(opt);
+        });
+        var optNew = document.createElement("option");
+        optNew.value = "__new__"; optNew.textContent = "+ new tag";
+        sel.appendChild(optNew);
+        if (cur && [...sel.options].some(function (o) { return o.value === cur; })) sel.value = cur;
+      }
+      var itemCategorySel = document.getElementById("itemCategory");
+      var spendCategorySel = document.getElementById("spendCategory");
+      var quickTagsBox = document.getElementById("quickTags");
+      var QUICK_TAGS = ["Food", "Transport", "Rent", "Bills", "Fun", "Health"];
+      function refreshAllCategorySelects() {
+        fillCategorySelect(itemCategorySel);
+        fillCategorySelect(spendCategorySel);
+        renderQuickTags();
+      }
+      function renderQuickTags() {
+        if (state.categories.length > 0) { quickTagsBox.classList.remove("show"); return; }
+        quickTagsBox.innerHTML = "";
+        QUICK_TAGS.forEach(function (name) {
+          var chip = document.createElement("button");
+          chip.className = "quick-tag-chip";
+          chip.type = "button";
+          chip.textContent = "+ " + name;
+          chip.addEventListener("click", function () {
+            var id = addCategory(name);
+            refreshAllCategorySelects();
+            itemCategorySel.value = id;
+            document.getElementById("itemLabel").focus();
+          });
+          quickTagsBox.appendChild(chip);
+        });
+        quickTagsBox.classList.add("show");
+      }
+
+      var priceHint = document.getElementById("priceHint");
+      if (localStorage.getItem("budget_os_hint_dismissed")) priceHint.style.display = "none";
+      document.getElementById("dismissHint").addEventListener("click", function () {
+        priceHint.style.display = "none";
+        localStorage.setItem("budget_os_hint_dismissed", "1");
+      });
+
+      var newCatRowChecklist = document.getElementById("newCatRowChecklist");
+      var newCatNameChecklist = document.getElementById("newCatNameChecklist");
+      itemCategorySel.addEventListener("change", function () {
+        if (itemCategorySel.value === "__new__") { newCatRowChecklist.classList.add("show"); newCatNameChecklist.focus(); }
+        else newCatRowChecklist.classList.remove("show");
+      });
+      function confirmNewCat(input, select, rowEl, focusNext) {
+        var id = addCategory(input.value);
+        input.value = "";
+        rowEl.classList.remove("show");
+        refreshAllCategorySelects();
+        if (id) select.value = id;
+        if (focusNext) focusNext.focus();
+      }
+      document.getElementById("confirmNewCatChecklist").addEventListener("click", function () { confirmNewCat(newCatNameChecklist, itemCategorySel, newCatRowChecklist, document.getElementById("itemLabel")); });
+      newCatNameChecklist.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); confirmNewCat(newCatNameChecklist, itemCategorySel, newCatRowChecklist, document.getElementById("itemLabel")); } });
+
+      var newCatRowSpend = document.getElementById("newCatRowSpend");
+      var newCatNameSpend = document.getElementById("newCatNameSpend");
+      spendCategorySel.addEventListener("change", function () {
+        if (spendCategorySel.value === "__new__") { newCatRowSpend.classList.add("show"); newCatNameSpend.focus(); }
+        else newCatRowSpend.classList.remove("show");
+      });
+      document.getElementById("confirmNewCatSpend").addEventListener("click", function () { confirmNewCat(newCatNameSpend, spendCategorySel, newCatRowSpend, document.getElementById("spendNote")); });
+      newCatNameSpend.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); confirmNewCat(newCatNameSpend, spendCategorySel, newCatRowSpend, document.getElementById("spendNote")); } });
+
+      /* ---------- checklist ---------- */
+      var ledgerList = document.getElementById("ledgerList");
+      var progressFill = document.getElementById("progressFill");
+      var progressLabel = document.getElementById("progressLabel");
+      var spentTodayLabel = document.getElementById("spentTodayLabel");
+
+      function renderChecklist() {
+        ledgerList.innerHTML = "";
+        if (state.checklist.length === 0) {
+          var empty = document.createElement("div");
+          empty.className = "empty-state";
+          empty.innerHTML = '<span class="glyph">◌</span>no items yet — add your first recurring expense above<br><span class="cta" id="emptyChecklistCta">+ add an item</span>';
+          ledgerList.appendChild(empty);
+          document.getElementById("emptyChecklistCta").addEventListener("click", function () { document.getElementById("itemLabel").focus(); });
+        } else {
+          var ordered = state.checklist.slice().sort(function (a, b) { return (a.checked === b.checked) ? 0 : (a.checked ? 1 : -1); });
+          ordered.forEach(function (item) {
+            var cat = categoryById(item.categoryId);
+            var row = document.createElement("div");
+            row.className = "ledger-row" + (item.checked ? " done" : "");
+            var chipHtml = cat
+              ? '<span class="tag-chip" style="--chip-bg:' + hexToWash(cat.color) + '; --chip-color:' + cat.color + '"><span class="sw"></span>' + escapeHtml(cat.name) + '</span>'
+              : '';
+            row.innerHTML =
+              '<span class="prompt">&gt;</span>' +
+              '<button class="checkbox' + (item.checked ? ' checked' : '') + '" aria-label="toggle done"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-6"/></svg></button>' +
+              '<div class="row-main"><span class="row-label">' + escapeHtml(item.label) + '</span>' + chipHtml + '</div>' +
+              '<div class="row-price" data-price="' + item.price + '">' + money(item.price) + '</div>' +
+              '<button class="row-del" title="remove">✕</button>';
+            ledgerList.appendChild(row);
+
+            row.querySelector(".checkbox").addEventListener("click", function () {
+              item.checked = !item.checked;
+              if (item.checked) {
+                var spend = { id: uid(), categoryId: item.categoryId, amount: item.price, note: item.label, date: todayISO(), createdAt: Date.now(), fromChecklist: true };
+                state.spendings.push(spend);
+                item.linkedSpendId = spend.id;
+              } else if (item.linkedSpendId) {
+                state.spendings = state.spendings.filter(function (s) { return s.id !== item.linkedSpendId; });
+                item.linkedSpendId = null;
+              }
+              save();
+              renderChecklist();
+              renderAnalytics(false);
+              renderHistory();
+              if (item.checked && state.checklist.every(function (i) { return i.checked; })) toast("all logged for today ✓");
+            });
+            row.querySelector(".row-del").addEventListener("click", function () {
+              var idx = state.checklist.indexOf(item);
+              state.checklist = state.checklist.filter(function (i) { return i.id !== item.id; });
+              save();
+              renderChecklist();
+              toast("\u201c" + item.label + "\u201d removed", function () {
+                state.checklist.splice(Math.min(idx, state.checklist.length), 0, item);
+                save();
+                renderChecklist();
+              });
+            });
+            var priceEl = row.querySelector(".row-price");
+            priceEl.addEventListener("click", function () {
+              var input = document.createElement("input");
+              input.type = "number"; input.step = "0.01"; input.min = "0"; input.value = item.price;
+              priceEl.textContent = ""; priceEl.appendChild(input);
+              input.focus(); input.select();
+              function commit() {
+                var val = parseFloat(input.value);
+                if (!isNaN(val) && val >= 0) {
+                  item.price = val;
+                  if (item.checked && item.linkedSpendId) {
+                    var linked = state.spendings.find(function (s) { return s.id === item.linkedSpendId; });
+                    if (linked) linked.amount = val;
+                  }
+                }
+                save(); renderChecklist(); renderAnalytics(false); renderHistory();
+              }
+              input.addEventListener("blur", commit);
+              input.addEventListener("keydown", function (e) { if (e.key === "Enter") input.blur(); if (e.key === "Escape") renderChecklist(); });
+            });
+          });
+        }
+        var total = state.checklist.length;
+        var done = state.checklist.filter(function (i) { return i.checked; }).length;
+        var pct = total ? Math.round((done / total) * 100) : 0;
+        progressFill.style.width = pct + "%";
+        progressLabel.innerHTML = "<b>" + done + "</b>/" + total + " logged";
+        var spentToday = state.checklist.filter(function (i) { return i.checked; }).reduce(function (s, i) { return s + i.price; }, 0);
+        spentTodayLabel.innerHTML = "Spent today: <b>" + money(spentToday) + "</b>";
+      }
+
+      document.getElementById("addItemBtn").addEventListener("click", function () {
+        var labelInput = document.getElementById("itemLabel");
+        var priceInput = document.getElementById("itemPrice");
+        var label = labelInput.value.trim();
+        var price = parseFloat(priceInput.value);
+        var catId = itemCategorySel.value;
+        if (catId === "__new__" || !catId) { toast("give this item a tag first"); return; }
+        if (!label) { toast("give it a short name"); labelInput.focus(); return; }
+        if (isNaN(price) || price < 0) { toast("enter a valid price"); priceInput.focus(); return; }
+        state.checklist.push({ id: uid(), categoryId: catId, label: label, price: price, checked: false });
+        save();
+        labelInput.value = ""; priceInput.value = ""; labelInput.focus();
+        renderChecklist();
+      });
+      [document.getElementById("itemLabel"), document.getElementById("itemPrice")].forEach(function (el) {
+        el.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); document.getElementById("addItemBtn").click(); } });
+      });
+
+      /* ---------- analytics (cycle based) ---------- */
+      var viewingCycleStart = null;
+
+      var salaryInput = document.getElementById("salaryInput");
+      var totalSpentStat = document.getElementById("totalSpentStat");
+      var remainingStat = document.getElementById("remainingStat");
+      var remainingBox = document.getElementById("remainingBox");
+      var donutSvg = document.getElementById("donutSvg");
+      var donutCenterAmt = document.getElementById("donutCenterAmt");
+      var donutCenterLbl = document.getElementById("donutCenterLbl");
+      var legendBox = document.getElementById("legendBox");
+      var spendLog = document.getElementById("spendLog");
+      var cycleLabelBox = document.getElementById("cycleLabelBox");
+      var cycleBadge = document.getElementById("cycleBadge");
+      var cycleSubNote = document.getElementById("cycleSubNote");
+      var spendDateInput = document.getElementById("spendDate");
+      var cyclePrevBtn = document.getElementById("cyclePrev");
+      var cycleNextBtn = document.getElementById("cycleNext");
+
+      salaryInput.addEventListener("input", function () {
+        var v = parseFloat(salaryInput.value);
+        state.salary = isNaN(v) ? null : v;
+        save();
+        renderAnalytics(false);
+      });
+
+      cyclePrevBtn.addEventListener("click", function () { viewingCycleStart = prevCycleStart(viewingCycleStart, state.salaryDay); renderAnalytics(true); });
+      cycleNextBtn.addEventListener("click", function () { viewingCycleStart = nextCycleStart(viewingCycleStart, state.salaryDay); renderAnalytics(true); });
+
+      var lastDonutTotal = 0;
+
+      function renderAnalytics(animate) {
+        var start = viewingCycleStart;
+        var end = cycleEndForStart(start, state.salaryDay);
+        var curStart = cycleStartForDate(new Date(), state.salaryDay);
+        var isCurrent = isoOfDate(start) === isoOfDate(curStart);
+
+        cycleLabelBox.childNodes[0].nodeValue = cycleLabel(start, end);
+        cycleBadge.textContent = isCurrent ? "current cycle" : "";
+        cycleNextBtn.disabled = isCurrent;
+        cycleSubNote.textContent = "\u203a " + cycleLabel(start, end).toLowerCase() + (isCurrent ? " — your active cycle" : " — viewing history, still editable");
+
+        salaryInput.value = state.salary === null ? "" : state.salary;
+
+        var minISO = isoOfDate(start), maxISO = isoOfDate(end);
+        spendDateInput.min = minISO; spendDateInput.max = maxISO;
+        var t = todayISO();
+        spendDateInput.value = (t >= minISO && t <= maxISO) ? t : maxISO;
+
+        var inCycle = state.spendings.filter(function (s) { return s.date >= minISO && s.date <= maxISO; });
+
+        var totalsByCat = {};
+        inCycle.forEach(function (s) { totalsByCat[s.categoryId] = (totalsByCat[s.categoryId] || 0) + s.amount; });
+        var total = inCycle.reduce(function (s, x) { return s + x.amount; }, 0);
+
+        totalSpentStat.textContent = money(total);
+        if (state.salary !== null && state.salary > 0) {
+          var remaining = state.salary - total;
+          remainingStat.textContent = money(remaining);
+          remainingBox.classList.toggle("warn", remaining < 0);
+          remainingBox.classList.toggle("good", remaining >= 0);
+        } else {
+          remainingStat.textContent = "—";
+          remainingBox.classList.remove("warn"); remainingBox.classList.remove("good");
+        }
+
+        var r = 78, cx = 95, cy = 95, circ = 2 * Math.PI * r;
+        var entries = Object.keys(totalsByCat).map(function (id) {
+          var cat = categoryById(id);
+          return { id: id, name: cat ? cat.name : "unknown", color: cat ? cat.color : "#999", amount: totalsByCat[id] };
+        }).sort(function (a, b) { return b.amount - a.amount; });
+
+        var svgParts = ['<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="#f0ede4" stroke-width="20"/>'];
+        var offsetAcc = 0;
+        entries.forEach(function (e) {
+          var frac = total > 0 ? e.amount / total : 0;
+          var len = frac * circ;
+          svgParts.push('<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="' + e.color + '" stroke-width="20" stroke-dasharray="' + len.toFixed(2) + ' ' + (circ - len).toFixed(2) + '" stroke-dashoffset="' + (-offsetAcc).toFixed(2) + '" transform="rotate(-90 ' + cx + ' ' + cy + ')" stroke-linecap="butt" style="transition: stroke-dasharray .6s cubic-bezier(.4,0,.2,1);"/>');
+          offsetAcc += len;
+        });
+        donutSvg.innerHTML = svgParts.join("");
+
+        if (animate) animateNumber(donutCenterAmt, lastDonutTotal, total, function (v) { return money(v); }, 600);
+        else donutCenterAmt.textContent = money(total);
+        lastDonutTotal = total;
+        donutCenterLbl.textContent = isCurrent ? "this cycle" : cycleLabel(start, end);
+
+        legendBox.innerHTML = "";
+        if (entries.length === 0) legendBox.innerHTML = '<div class="empty-state" style="padding:6px 0;">◌ no spending logged this cycle yet</div>';
+        entries.forEach(function (e) {
+          var pct = total > 0 ? Math.round((e.amount / total) * 100) : 0;
+          var row = document.createElement("div");
+          row.className = "legend-row";
+          row.innerHTML = '<span class="sw" style="background:' + e.color + '"></span><span class="name">' + escapeHtml(e.name) + '</span><span class="pct">' + pct + '%</span><span class="amt">' + money(e.amount) + '</span>';
+          legendBox.appendChild(row);
+        });
+
+        spendLog.innerHTML = "";
+        var sorted = inCycle.slice().sort(function (a, b) { return b.createdAt - a.createdAt; });
+        if (sorted.length === 0) spendLog.innerHTML = '<div class="empty-state" style="padding:6px 0;">nothing logged yet — add a spend below</div>';
+        sorted.forEach(function (s) {
+          var cat = categoryById(s.categoryId);
+          var row = document.createElement("div");
+          row.className = "spend-item";
+          var d = dateFromISO(s.date);
+          var sourceBadge = s.fromChecklist ? '<span class="src-badge" title="logged from today\u2019s ledger">ledger</span>' : '';
+          row.innerHTML =
+            '<span class="sw" style="background:' + (cat ? cat.color : "#999") + '"></span>' +
+            '<span class="lab">' + sourceBadge + escapeHtml(cat ? cat.name : "unknown") + (s.note ? ' <span style="color:var(--ink-faint)">— ' + escapeHtml(s.note) + '</span>' : '') + '</span>' +
+            '<span class="date">' + d.toLocaleDateString(undefined, { month: "short", day: "numeric" }) + '</span>' +
+            '<span class="amt">' + money(s.amount) + '</span>' +
+            '<button class="row-del" title="remove">✕</button>';
+          row.querySelector(".row-del").addEventListener("click", function () {
+            var idx = state.spendings.indexOf(s);
+            state.spendings = state.spendings.filter(function (x) { return x.id !== s.id; });
+            var linkedItem = s.fromChecklist ? state.checklist.find(function (i) { return i.linkedSpendId === s.id; }) : null;
+            if (linkedItem) { linkedItem.checked = false; linkedItem.linkedSpendId = null; }
+            save();
+            renderAnalytics(false);
+            renderHistory();
+            renderChecklist();
+            toast("spend removed", function () {
+              state.spendings.splice(Math.min(idx, state.spendings.length), 0, s);
+              if (linkedItem) { linkedItem.checked = true; linkedItem.linkedSpendId = s.id; }
+              save();
+              renderAnalytics(false);
+              renderHistory();
+              renderChecklist();
+            });
+          });
+          spendLog.appendChild(row);
+        });
+      }
+
+      document.getElementById("addSpendBtn").addEventListener("click", function () {
+        var noteInput = document.getElementById("spendNote");
+        var amountInput = document.getElementById("spendAmount");
+        var amount = parseFloat(amountInput.value);
+        var catId = spendCategorySel.value;
+        var dateVal = spendDateInput.value;
+
+        if (catId === "__new__" || !catId) { toast("give this spend a label first"); return; }
+        if (isNaN(amount) || amount <= 0) { toast("enter a valid amount"); amountInput.focus(); return; }
+        if (!dateVal) { toast("pick a date"); return; }
+
+        state.spendings.push({ id: uid(), categoryId: catId, amount: amount, note: noteInput.value.trim(), date: dateVal, createdAt: Date.now() });
+        save();
+        noteInput.value = ""; amountInput.value = "";
+        renderAnalytics(true);
+        renderHistory();
+      });
+      [document.getElementById("spendNote"), document.getElementById("spendAmount")].forEach(function (el) {
+        el.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); document.getElementById("addSpendBtn").click(); } });
+      });
+
+      /* ---------- history ---------- */
+      var historyList = document.getElementById("historyList");
+      function renderHistory() {
+        var byId = {};
+        var curStart = cycleStartForDate(new Date(), state.salaryDay);
+        byId[isoOfDate(curStart)] = { start: curStart, total: 0, count: 0 };
+        state.spendings.forEach(function (s) {
+          var st = cycleStartForDate(dateFromISO(s.date), state.salaryDay);
+          var key = isoOfDate(st);
+          if (!byId[key]) byId[key] = { start: st, total: 0, count: 0 };
+          byId[key].total += s.amount;
+          byId[key].count += 1;
+        });
+        var list = Object.keys(byId).map(function (k) { return byId[k]; }).sort(function (a, b) { return b.start - a.start; });
+
+        historyList.innerHTML = "";
+        list.forEach(function (entry) {
+          var end = cycleEndForStart(entry.start, state.salaryDay);
+          var isCurrent = isoOfDate(entry.start) === isoOfDate(curStart);
+          var card = document.createElement("div");
+          card.className = "history-card";
+          card.innerHTML =
+            '<div class="hleft"><div class="lbl">' + cycleLabel(entry.start, end) + (isCurrent ? ' <span class="cur-badge">current</span>' : '') + '</div>' +
+            '<div class="sub">' + entry.count + ' ' + (entry.count === 1 ? "entry" : "entries") + ' logged</div></div>' +
+            '<div class="hright"><div class="amt">' + money(entry.total) + '</div><div class="go">view / edit →</div></div>';
+          card.addEventListener("click", function () { goToAnalyticsCycle(entry.start); });
+          historyList.appendChild(card);
+        });
+      }
+
+      /* ---------- settings ---------- */
+      var currencySelect = document.getElementById("currencySelect");
+      CURRENCIES.forEach(function (c) {
+        var opt = document.createElement("option");
+        opt.value = c.code; opt.textContent = c.code + "  ·  " + c.symbol;
+        currencySelect.appendChild(opt);
+      });
+      currencySelect.addEventListener("change", function () {
+        var c = CURRENCIES.find(function (x) { return x.code === currencySelect.value; });
+        if (c) { state.currency = c; save(); renderChecklist(); renderAnalytics(false); renderHistory(); }
+      });
+
+      var salaryDayInput = document.getElementById("salaryDayInput");
+      salaryDayInput.addEventListener("change", function () {
+        var v = parseInt(salaryDayInput.value, 10);
+        if (isNaN(v) || v < 1 || v > 31) { salaryDayInput.value = state.salaryDay; return; }
+        state.salaryDay = v;
+        viewingCycleStart = cycleStartForDate(new Date(), state.salaryDay);
+        save();
+        renderAnalytics(false);
+        renderHistory();
+        toast("cycle updated");
+      });
+
+      var swatchRow = document.getElementById("swatchRow");
+      function renderSwatches() {
+        swatchRow.innerHTML = "";
+        PALETTE.forEach(function (hex) {
+          var btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "swatch" + (state.accentColor === hex ? " active" : "");
+          btn.style.background = hex;
+          btn.title = hex;
+          btn.addEventListener("click", function () {
+            state.accentColor = hex;
+            applyAccentColor(hex);
+            save();
+            renderSwatches();
+            toast("highlight color updated");
+          });
+          swatchRow.appendChild(btn);
+        });
+      }
+
+      /* ---------- account / cloud sync ---------- */
+      var accountBody = document.getElementById("accountCard").querySelector("#accountBody") || document.getElementById("accountBody");
+      var footerTip = document.getElementById("footerTip");
+      var cloudEnabled = false;
+      var currentUser = null;
+      var fbApp, auth, db;
+
+      function isConfigFilled() {
+        return firebaseConfig.apiKey && firebaseConfig.apiKey.indexOf("YOUR_") !== 0 &&
+          firebaseConfig.projectId && firebaseConfig.projectId.indexOf("YOUR_") !== 0;
+      }
+
+      function setSyncDot(status) {
+        var dot = document.getElementById("syncDotEl");
+        var txt = document.getElementById("syncTxtEl");
+        if (!dot || !txt) return;
+        dot.className = "sync-dot" + (status === "on" ? " on" : status === "pending" ? " pending" : "");
+        txt.textContent = status === "on" ? "Synced to cloud" : status === "pending" ? "Syncing…" : "Sync paused";
+      }
+
+      function renderAccountCard() {
+        var accountCard = document.getElementById("accountCard");
+        if (!cloudEnabled) {
+          accountCard.innerHTML =
+            '<span class="field-label">Account &amp; cloud sync</span>' +
+            '<p class="helper-text">Cloud sync isn\'t configured yet. Open this file and fill in <code>firebaseConfig</code> near the top of the script with your Firebase project\'s keys, and enable Email/Password sign-in + Firestore in your Firebase console. Until then, everything just saves in this browser.</p>';
+          return;
+        }
+        accountCard.innerHTML =
+          '<span class="field-label">Account &amp; cloud sync</span>' +
+          '<div class="settings-row"><span class="account-email" id="accountEmail">' + (currentUser ? escapeHtml(currentUser.email) : "—") + '</span>' +
+          '<button class="btn-text danger" id="signOutBtn">Sign out</button></div>' +
+          '<div class="settings-row"><div class="sync-row"><span class="sync-dot" id="syncDotEl"></span><span id="syncTxtEl">Synced to cloud</span></div></div>';
+        var so = document.getElementById("signOutBtn");
+        if (so) so.addEventListener("click", function () { auth.signOut(); });
+        setSyncDot("on");
+      }
+
+      /* ---------- billing / trial ---------- */
+      var trialBanner = document.getElementById("trialBanner");
+      var trialBannerText = document.getElementById("trialBannerText");
+      var trialBannerBtn = document.getElementById("trialBannerBtn");
+      var billingLock = document.getElementById("billingLock");
+      var lockUpgradeBtn = document.getElementById("lockUpgradeBtn");
+      var lockRecheckBtn = document.getElementById("lockRecheckBtn");
+      var billingCard = document.getElementById("billingCard");
+      var planBox = document.getElementById("planBox");
+
+      function upgradeUrl() {
+        var url = STRIPE_PAYMENT_LINK;
+        var params = [];
+        if (currentUser) {
+          params.push("client_reference_id=" + encodeURIComponent(currentUser.uid));
+          if (currentUser.email) params.push("prefilled_email=" + encodeURIComponent(currentUser.email));
+        }
+        return params.length ? (url + "?" + params.join("&")) : url;
+      }
+
+      function trialDaysLeft() {
+        if (!state.trialStart) return 0;
+        var elapsed = Date.now() - state.trialStart;
+        var left = TRIAL_DAYS - Math.floor(elapsed / 86400000);
+        return Math.max(0, left);
+      }
+
+      function isLocked() {
+        return cloudEnabled && !!currentUser && !state.subscribed && trialDaysLeft() <= 0;
+      }
+
+      function renderBilling() {
+        if (!cloudEnabled) {
+          billingCard.style.display = "none";
+          trialBanner.classList.remove("show");
+          billingLock.classList.remove("show");
+          return;
+        }
+        billingCard.style.display = "block";
+        lockUpgradeBtn.href = upgradeUrl();
+        trialBannerBtn.href = upgradeUrl();
+
+        var daysLeft = trialDaysLeft();
+        var locked = isLocked();
+
+        // top banner
+        if (state.subscribed) {
+          trialBanner.classList.remove("show");
+        } else if (locked) {
+          trialBanner.classList.remove("show");
+        } else {
+          trialBanner.classList.add("show");
+          trialBanner.classList.toggle("urgent", daysLeft <= 2);
+          trialBannerText.textContent = daysLeft > 0
+            ? ("free trial — " + daysLeft + " day" + (daysLeft === 1 ? "" : "s") + " left")
+            : "your trial ends today";
+        }
+
+        // full lock
+        billingLock.classList.toggle("show", locked);
+
+        // settings plan card
+        var badge, name, sub;
+        if (state.subscribed) {
+          badge = '<span class="plan-badge pro">PRO</span>'; name = "Everything Budgeted Pro";
+          sub = "$5 USD/month · thanks for supporting the project";
+        } else if (daysLeft > 0) {
+          badge = '<span class="plan-badge trial">TRIAL</span>'; name = "Free trial";
+          sub = daysLeft + " day" + (daysLeft === 1 ? "" : "s") + " left · then $5 USD/month";
+        } else {
+          badge = '<span class="plan-badge ended">ENDED</span>'; name = "Trial ended";
+          sub = "subscribe to keep syncing your data";
+        }
+        planBox.innerHTML =
+          '<div class="plan-name">' + name + badge + '</div>' +
+          '<div class="plan-sub">' + sub + '</div>' +
+          '<div class="plan-actions">' +
+          (state.subscribed ? '' : '<a class="btn-text primary" href="' + upgradeUrl() + '" target="_blank" rel="noopener">Upgrade — $5/mo</a>') +
+          '<button class="btn-text" id="recheckSubBtn">Refresh status</button>' +
+          '</div>';
+        var rb = document.getElementById("recheckSubBtn");
+        if (rb) rb.addEventListener("click", recheckSubscription);
+      }
+
+      function recheckSubscription() {
+        if (!cloudEnabled || !currentUser) return;
+        toast("checking subscription status…");
+        db.collection("users").doc(currentUser.uid).get().then(function (doc) {
+          if (doc.exists) {
+            var fresh = normalizeState(doc.data());
+            state.subscribed = fresh.subscribed;
+            save();
+            renderBilling();
+            toast(state.subscribed ? "you're on Pro — thank you!" : "still on trial/free — webhooks can take a minute after payment");
+          }
+        }).catch(function () { toast("couldn't check right now, try again shortly"); });
+      }
+      lockRecheckBtn.addEventListener("click", recheckSubscription);
+      var authGate = document.getElementById("authGate");
+      var authEmail = document.getElementById("authEmail");
+      var authPassword = document.getElementById("authPassword");
+      var authError = document.getElementById("authError");
+      var authSubmitBtn = document.getElementById("authSubmitBtn");
+      var authToggleBtn = document.getElementById("authToggleBtn");
+      var authToggleText = document.getElementById("authToggleText");
+      var authSub = document.getElementById("authSub");
+      var authMode = "signin";
+
+      function setAuthMode(mode) {
+        authMode = mode;
+        authError.classList.remove("show");
+        if (mode === "signin") {
+          authSubmitBtn.textContent = "Sign in";
+          authToggleText.textContent = "Don't have an account?";
+          authToggleBtn.textContent = "Create one";
+          authSub.textContent = "\u203a sign in to sync your data across devices";
+        } else {
+          authSubmitBtn.textContent = "Create account";
+          authToggleText.textContent = "Already have an account?";
+          authToggleBtn.textContent = "Sign in";
+          authSub.textContent = "\u203a create an account to start syncing";
+        }
+      }
+      authToggleBtn.addEventListener("click", function () { setAuthMode(authMode === "signin" ? "signup" : "signin"); });
+
+      var pwToggleBtn = document.getElementById("pwToggleBtn");
+      pwToggleBtn.addEventListener("click", function () {
+        var showing = authPassword.type === "text";
+        authPassword.type = showing ? "password" : "text";
+        pwToggleBtn.textContent = showing ? "show" : "hide";
+      });
+
+      function showAuthError(msg) { authError.textContent = msg; authError.classList.add("show"); }
+
+      var AUTH_ERROR_MAP = {
+        "auth/invalid-email": "that email address doesn't look right",
+        "auth/user-not-found": "no account with that email — try creating one",
+        "auth/wrong-password": "wrong password — try again",
+        "auth/invalid-login-credentials": "email or password didn't match",
+        "auth/invalid-credential": "email or password didn't match",
+        "auth/email-already-in-use": "an account already exists — try signing in instead",
+        "auth/weak-password": "use at least 6 characters for your password",
+        "auth/network-request-failed": "can't reach the network — check your connection",
+        "auth/too-many-requests": "too many attempts — wait a moment and try again"
+      };
+      function friendlyAuthError(err) { return AUTH_ERROR_MAP[err.code] || err.message || "something went wrong"; }
+
+      authSubmitBtn.addEventListener("click", function () {
+        var email = authEmail.value.trim();
+        var pass = authPassword.value;
+        if (!email || !pass) { showAuthError("enter both email and password"); return; }
+        authSubmitBtn.disabled = true;
+        var origText = authSubmitBtn.textContent;
+        authSubmitBtn.textContent = "…";
+        var done = function () { authSubmitBtn.disabled = false; authSubmitBtn.textContent = origText; };
+        var action = authMode === "signin"
+          ? auth.signInWithEmailAndPassword(email, pass)
+          : auth.createUserWithEmailAndPassword(email, pass);
+        action.then(function () { done(); }).catch(function (err) { done(); showAuthError(friendlyAuthError(err)); });
+      });
+      [authEmail, authPassword].forEach(function (el) {
+        el.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); authSubmitBtn.click(); } });
+      });
+
+      /* ---------- app init ---------- */
+      var appRoot = document.getElementById("appRoot");
+
+      function hideBootLoader() {
+        var bl = document.getElementById("bootLoader");
+        if (bl) bl.classList.add("hide");
+      }
+
+      function initAppUI() {
+        ensureDailyReset();
+        viewingCycleStart = cycleStartForDate(new Date(), state.salaryDay);
+        todayStrEl.textContent = "\u203a " + new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }).toLowerCase() + " — checks reset every new day";
+        currencySelect.value = state.currency.code;
+        salaryDayInput.value = state.salaryDay;
+        applyAccentColor(state.accentColor);
+        renderSwatches();
+        refreshAllCategorySelects();
+        renderChecklist();
+        renderAnalytics(false);
+        renderHistory();
+        renderAccountCard();
+        renderBilling();
+        footerTip.textContent = cloudEnabled
+          ? (currentUser ? "synced to your account · also cached locally" : "stored locally in this browser")
+          : "stored locally in this browser · nothing leaves your device";
+        appRoot.classList.add("ready");
+        authGate.classList.remove("show");
+        hideBootLoader();
+      }
+
+      function startLocalOnly() {
+        cloudEnabled = false;
+        state = loadLocalState();
+        initAppUI();
+      }
+
+      function startCloud() {
+        cloudEnabled = true;
+        try {
+          fbApp = firebase.initializeApp(firebaseConfig);
+          auth = firebase.auth();
+          db = firebase.firestore();
+        } catch (e) {
+          console.error("Firebase init failed, falling back to local-only", e);
+          startLocalOnly();
+          return;
+        }
+        setAuthMode("signin");
+        auth.onAuthStateChanged(function (user) {
+          if (user) {
+            currentUser = user;
+            authGate.classList.remove("show");
+            db.collection("users").doc(user.uid).get().then(function (doc) {
+              if (doc.exists) {
+                state = normalizeState(doc.data());
+                if (!state.trialStart) { state.trialStart = Date.now(); save(); }
+              } else {
+                state = loadLocalState();
+                state.trialStart = Date.now();
+                state.subscribed = false;
+                db.collection("users").doc(user.uid).set(state);
+              }
+              initAppUI();
+            }).catch(function (err) {
+              console.error(err);
+              toast("couldn't reach the cloud — using local copy");
+              state = loadLocalState();
+              initAppUI();
+            });
+          } else {
+            currentUser = null;
+            appRoot.classList.remove("ready");
+            authGate.classList.add("show");
+            billingLock.classList.remove("show");
+            trialBanner.classList.remove("show");
+            authEmail.value = ""; authPassword.value = "";
+            hideBootLoader();
+          }
+        });
+      }
+
+      if (isConfigFilled() && typeof firebase !== "undefined") {
+        startCloud();
+      } else {
+        startLocalOnly();
+      }
+
+    })();
+  </script>
+</body>
+
+</html>
