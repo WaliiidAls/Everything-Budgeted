@@ -1525,6 +1525,384 @@
         transition-duration: .001ms !important;
       }
     }
+
+    /* ---------- Modal ---------- */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 120;
+      background: rgba(23, 24, 26, 0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-overlay.show {
+      display: flex;
+    }
+
+    .modal-card {
+      width: 100%;
+      max-width: 420px;
+      max-height: 88vh;
+      overflow-y: auto;
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 22px 22px 20px;
+      animation: fadeUp .25s ease;
+    }
+
+    .modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      gap: 10px;
+    }
+
+    .modal-head h3 {
+      font-family: var(--font-display);
+      font-size: 17px;
+      margin: 0;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--ink-faint);
+      font-size: 20px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 2px 4px;
+      flex-shrink: 0;
+    }
+
+    .modal-close:hover {
+      color: var(--ink);
+    }
+
+    .modal-field {
+      margin-bottom: 12px;
+    }
+
+    .modal-field label {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: var(--ink-faint);
+      margin-bottom: 6px;
+    }
+
+    .modal-error {
+      display: none;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      color: var(--danger);
+      background: rgba(226, 88, 74, 0.08);
+      border: 1px solid rgba(226, 88, 74, 0.25);
+      border-radius: 8px;
+      padding: 8px 10px;
+      margin-bottom: 12px;
+    }
+
+    .modal-error.show {
+      display: block;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+
+    .modal-actions .btn-text {
+      flex: 1;
+      text-align: center;
+    }
+
+    .modal-sub {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--ink-soft);
+      line-height: 1.6;
+      margin: -6px 0 16px;
+    }
+
+    .add-trigger-btn {
+      width: 100%;
+      background: none;
+      border: 1.5px dashed var(--line);
+      color: var(--ink-soft);
+      border-radius: 10px;
+      padding: 12px;
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      cursor: pointer;
+      transition: border-color .15s ease, color .15s ease, background .15s ease;
+    }
+
+    .add-trigger-btn:hover {
+      border-color: var(--accent);
+      color: var(--ink);
+      background: var(--accent-wash);
+      border-style: solid;
+    }
+
+    /* ---------- edit affordance ---------- */
+    .row-edit {
+      background: none;
+      border: none;
+      color: var(--ink-faint);
+      cursor: pointer;
+      font-size: 13px;
+      opacity: 0;
+      transition: opacity .15s ease, color .15s ease;
+      width: 20px;
+      flex-shrink: 0;
+    }
+
+    .ledger-row:hover .row-edit,
+    .spend-item:hover .row-edit {
+      opacity: 1;
+    }
+
+    .row-edit:hover {
+      color: var(--accent-ink);
+    }
+
+    @media (hover: none) {
+      .row-edit {
+        opacity: 1 !important;
+      }
+    }
+
+    /* ---------- sort controls ---------- */
+    .sort-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 16px 0 2px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--ink-faint);
+      flex-wrap: wrap;
+    }
+
+    .sort-btn {
+      background: none;
+      border: 1px solid var(--line);
+      color: var(--ink-soft);
+      border-radius: 999px;
+      padding: 5px 12px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: border-color .15s ease, color .15s ease, background .15s ease;
+    }
+
+    .sort-btn:hover {
+      border-color: var(--ink);
+      color: var(--ink);
+    }
+
+    .sort-btn.active {
+      background: var(--ink);
+      color: #fff;
+      border-color: var(--ink);
+    }
+
+    /* ---------- Wish list ---------- */
+    .wish-card {
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      animation: rowIn .3s ease;
+    }
+
+    .wish-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .wish-name {
+      font-weight: 600;
+      font-size: 14.5px;
+    }
+
+    .wish-price {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 15px;
+      white-space: nowrap;
+    }
+
+    .wish-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+
+    .wish-actions .btn-text {
+      padding: 6px 12px;
+      font-size: 11px;
+    }
+
+    .wish-decision {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 9px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      line-height: 1.55;
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+    }
+
+    .wish-decision.plan {
+      background: var(--accent-wash);
+      color: var(--accent-ink);
+    }
+
+    .wish-decision.nice {
+      background: rgba(217, 154, 43, 0.12);
+      color: var(--amber);
+    }
+
+    .wish-decision .g {
+      flex-shrink: 0;
+    }
+
+    /* ---------- Reports ---------- */
+    .filter-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+
+    .filter-row select {
+      width: auto;
+      min-width: 140px;
+    }
+
+    .chart-card {
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 18px;
+    }
+
+    .chart-card h4 {
+      font-family: var(--font-display);
+      font-size: 14.5px;
+      margin: 0 0 16px;
+    }
+
+    .bar-chart {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      height: 170px;
+      padding-top: 10px;
+    }
+
+    .bar-chart .bar-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      height: 100%;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .bar-chart .bar-group {
+      width: 100%;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 3px;
+      flex: 1;
+      position: relative;
+    }
+
+    .bar-chart .bar {
+      width: 100%;
+      max-width: 22px;
+      border-radius: 4px 4px 2px 2px;
+      min-height: 3px;
+      transition: height .5s cubic-bezier(.4, 0, .2, 1);
+      cursor: default;
+    }
+
+    .bar-chart .bar-label {
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      color: var(--ink-faint);
+      white-space: nowrap;
+      text-align: center;
+    }
+
+    .chart-legend {
+      display: flex;
+      gap: 16px;
+      margin-top: 16px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--ink-soft);
+      flex-wrap: wrap;
+    }
+
+    .chart-legend .item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .chart-legend .sw {
+      width: 9px;
+      height: 9px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+
+    .report-stat-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    @media (max-width: 520px) {
+      .report-stat-strip {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .report-stat-strip .stat-box:nth-child(3) {
+        grid-column: 1 / -1;
+      }
+
+      .filter-row select {
+        flex: 1;
+        min-width: 0;
+      }
+    }
   </style>
 </head>
 
@@ -1594,6 +1972,8 @@
       <div class="tabs" role="tablist">
         <button class="tab-btn active" data-tab="checklist" role="tab"><span class="pill-bg"></span>CHECKLIST</button>
         <button class="tab-btn" data-tab="analytics" role="tab"><span class="pill-bg"></span>ANALYTICS</button>
+        <button class="tab-btn" data-tab="wishlist" role="tab"><span class="pill-bg"></span>WISH LIST</button>
+        <button class="tab-btn" data-tab="reports" role="tab"><span class="pill-bg"></span>REPORTS</button>
         <button class="tab-btn" data-tab="history" role="tab"><span class="pill-bg"></span>HISTORY</button>
         <button class="tab-btn" data-tab="settings" role="tab"><span class="pill-bg"></span>SETTINGS</button>
       </div>
@@ -1619,17 +1999,7 @@
           </div>
           <div class="progress-label" id="spentTodayLabel" style="margin-top:6px;">Spent today: <b>$0.00</b></div>
 
-          <div class="add-row">
-            <select id="itemCategory"></select>
-            <input type="text" id="itemLabel" placeholder="e.g. groceries, gym, coffee…" maxlength="40">
-            <input type="number" id="itemPrice" placeholder="0.00" step="0.01" min="0">
-            <button class="btn-add" id="addItemBtn" title="Add item">+</button>
-          </div>
-          <div class="new-cat-row" id="newCatRowChecklist">
-            <input type="text" id="newCatNameChecklist" placeholder="new tag name…" maxlength="20">
-            <button class="btn-add" id="confirmNewCatChecklist">✓</button>
-          </div>
-          <div class="quick-tags" id="quickTags"></div>
+          <button class="add-trigger-btn" id="openAddItemBtn" type="button">+ log a recurring item</button>
 
           <div class="ledger" id="ledgerList"></div>
         </div>
@@ -1677,22 +2047,94 @@
         </div>
 
         <div class="card">
-          <span class="field-label">Log a spend</span>
-          <div class="add-row analytics">
-            <select id="spendCategory"></select>
-            <input type="text" id="spendNote" placeholder="note (optional)" maxlength="40">
-          </div>
-          <div class="new-cat-row" id="newCatRowSpend">
-            <input type="text" id="newCatNameSpend" placeholder="new label name…" maxlength="20">
-            <button class="btn-add" id="confirmNewCatSpend">✓</button>
-          </div>
-          <div class="add-row-2">
-            <input type="date" id="spendDate">
-            <input type="number" id="spendAmount" placeholder="0.00" step="0.01" min="0">
-            <button class="btn-add" id="addSpendBtn" title="Add spending">+</button>
+          <span class="field-label">Spending log</span>
+          <button class="add-trigger-btn" id="openAddSpendBtn" type="button">+ log a spend</button>
+
+          <div class="sort-row" id="spendSortRow">
+            <span>sort:</span>
+            <button class="sort-btn" id="sortByDateBtn" type="button" data-dir="desc">date <span class="arrow"></span></button>
+            <button class="sort-btn" id="sortByPriceBtn" type="button" data-dir="desc">price <span class="arrow"></span></button>
           </div>
 
           <div class="spend-log" id="spendLog"></div>
+        </div>
+      </section>
+
+      <!-- WISH LIST PANEL -->
+      <section class="panel" id="panel-wishlist">
+        <div class="section-head">
+          <h2 class="hl"><span>Wish List</span></h2>
+        </div>
+        <p class="sub-note">&gt; save up for things you actually want — we'll tell you the smart way to get them</p>
+
+        <div class="card">
+          <button class="add-trigger-btn" id="openAddWishBtn" type="button">+ add something you want</button>
+        </div>
+
+        <div id="wishList"></div>
+      </section>
+
+      <!-- REPORTS PANEL -->
+      <section class="panel" id="panel-reports">
+        <div class="section-head">
+          <h2 class="hl"><span>Reports</span></h2>
+        </div>
+        <p class="sub-note">&gt; a wider view of your spending, filtered your way</p>
+
+        <div class="filter-row">
+          <select id="reportRange">
+            <option value="1">This cycle</option>
+            <option value="3">Last 3 cycles</option>
+            <option value="6">Last 6 cycles</option>
+            <option value="12">Last 12 cycles</option>
+            <option value="all">All time</option>
+          </select>
+          <select id="reportCategory">
+            <option value="all">All tags</option>
+          </select>
+        </div>
+
+        <div class="report-stat-strip">
+          <div class="stat-box">
+            <div class="k">Total Spent</div>
+            <div class="v" id="reportTotalStat">$0.00</div>
+          </div>
+          <div class="stat-box">
+            <div class="k">Avg / Cycle</div>
+            <div class="v" id="reportAvgStat">$0.00</div>
+          </div>
+          <div class="stat-box" id="reportSavedBox">
+            <div class="k">Avg Saved / Cycle</div>
+            <div class="v" id="reportSavedStat">—</div>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <h4>Spend by cycle</h4>
+          <div class="bar-chart" id="cycleBarChart"></div>
+        </div>
+
+        <div class="chart-card" id="salaryChartCard">
+          <h4>Salary vs. spent</h4>
+          <div class="bar-chart" id="salarySpendChart"></div>
+          <div class="chart-legend">
+            <span class="item"><span class="sw" style="background:var(--ink-faint)"></span>Salary</span>
+            <span class="item"><span class="sw" style="background:var(--accent)"></span>Spent</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <span class="field-label">By tag</span>
+          <div class="donut-wrap">
+            <div class="donut-svg-box">
+              <svg viewBox="0 0 190 190" width="190" height="190" id="reportDonutSvg"></svg>
+              <div class="donut-center">
+                <div class="amt" id="reportDonutAmt">$0</div>
+                <div class="lbl">filtered</div>
+              </div>
+            </div>
+            <div class="legend" id="reportLegendBox"></div>
+          </div>
         </div>
       </section>
 
@@ -1747,6 +2189,11 @@
   </div>
 
   <div class="toast" id="toast"><span class="dot"></span><span id="toastMsg"></span></div>
+
+  <!-- ===================== GENERIC MODAL ===================== -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-card" id="modalCard"></div>
+  </div>
 
   <!-- Firebase (compat) — only used if you fill in firebaseConfig below -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -1855,7 +2302,8 @@
           categories: [],
           checklist: [],
           spendings: [],
-          salary: null,
+          salaryByCycle: {},
+          wishlist: [],
           lastReset: todayISO(),
           trialStart: null,
           subscribed: false
@@ -1874,7 +2322,13 @@
             return it;
           });
           s.spendings = raw.spendings || [];
-          s.salary = (typeof raw.salary === "undefined") ? null : raw.salary;
+          s.salaryByCycle = (raw.salaryByCycle && typeof raw.salaryByCycle === "object") ? raw.salaryByCycle : {};
+          // migrate legacy single fixed "salary" field into the current cycle, once
+          if (typeof raw.salary === "number" && Object.keys(s.salaryByCycle).length === 0) {
+            var curCycleKey = isoOfDate(cycleStartForDate(new Date(), s.salaryDay));
+            s.salaryByCycle[curCycleKey] = raw.salary;
+          }
+          s.wishlist = raw.wishlist || [];
           s.lastReset = raw.lastReset || s.lastReset;
           s.trialStart = raw.trialStart || null;
           s.subscribed = !!raw.subscribed;
@@ -1992,11 +2446,121 @@
       function escapeHtml(s) { var d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
       function hexToWash(hex) { return hexToRgba(hex, 0.14); }
 
+      /* ---------- validation (nothing unreasonable gets logged) ---------- */
+      var MAX_LOG_AMOUNT = 999999; // sanity ceiling — catches fat-finger typos, not real purchases
+      function sanitizeAmount(raw, opts) {
+        opts = opts || {};
+        var v = parseFloat(raw);
+        if (isNaN(v) || !isFinite(v)) return null;
+        if (v < 0) return null;
+        if (!opts.allowZero && v <= 0) return null;
+        if (v > MAX_LOG_AMOUNT) return null;
+        var c = (state && state.currency) || CURRENCIES[0];
+        var f = Math.pow(10, c.decimals);
+        return Math.round((v + Number.EPSILON) * f) / f;
+      }
+      function sanitizeLabel(raw, maxLen) {
+        maxLen = maxLen || 60;
+        var s = (raw || "").replace(/\s+/g, " ").trim();
+        if (!s) return null;
+        if (s.length > maxLen) s = s.slice(0, maxLen);
+        return s;
+      }
+      function sanitizeDateInRange(raw, minISO, maxISO) {
+        if (!raw || typeof raw !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(raw)) return null;
+        if (minISO && raw < minISO) return null;
+        if (maxISO && raw > maxISO) return null;
+        return raw;
+      }
+
+      /* ---------- generic modal ---------- */
+      var modalOverlay = document.getElementById("modalOverlay");
+      var modalCard = document.getElementById("modalCard");
+      function closeModal() {
+        modalOverlay.classList.remove("show");
+        modalCard.innerHTML = "";
+        document.body.style.overflow = "";
+      }
+      function openModal(html) {
+        modalCard.innerHTML = html;
+        modalOverlay.classList.add("show");
+        document.body.style.overflow = "hidden";
+        var closeBtn = modalCard.querySelector(".modal-close");
+        if (closeBtn) closeBtn.addEventListener("click", closeModal);
+        var cancelBtn = modalCard.querySelector("[data-modal-cancel]");
+        if (cancelBtn) cancelBtn.addEventListener("click", closeModal);
+        var firstInput = modalCard.querySelector("input, select, textarea");
+        if (firstInput) setTimeout(function () { firstInput.focus(); }, 40);
+      }
+      modalOverlay.addEventListener("click", function (e) { if (e.target === modalOverlay) closeModal(); });
+      document.addEventListener("keydown", function (e) { if (e.key === "Escape" && modalOverlay.classList.contains("show")) closeModal(); });
+      function showModalError(msg) {
+        var err = modalCard.querySelector(".modal-error");
+        if (!err) return;
+        err.textContent = msg;
+        err.classList.add("show");
+      }
+
+      /* ---------- reusable category <select> + "new tag" wiring for modals ---------- */
+      function categoryOptionsHTML(selectedId) {
+        var html = "";
+        if (state.categories.length === 0) html += '<option value="">no tags yet</option>';
+        state.categories.forEach(function (c) {
+          html += '<option value="' + c.id + '"' + (c.id === selectedId ? " selected" : "") + '>' + escapeHtml(c.name) + '</option>';
+        });
+        html += '<option value="__new__">+ new tag</option>';
+        return html;
+      }
+      function wireModalCategorySelect(selectEl, newRowEl, newInputEl) {
+        selectEl.addEventListener("change", function () {
+          if (selectEl.value === "__new__") { newRowEl.classList.add("show"); newInputEl.focus(); }
+          else newRowEl.classList.remove("show");
+        });
+        function confirmNew() {
+          var id = addCategory(newInputEl.value);
+          if (!id) return;
+          newInputEl.value = "";
+          newRowEl.classList.remove("show");
+          var opt = document.createElement("option");
+          opt.value = id; opt.textContent = categoryById(id).name;
+          selectEl.insertBefore(opt, selectEl.lastElementChild);
+          selectEl.value = id;
+        }
+        var confirmBtn = newRowEl.querySelector("button");
+        if (confirmBtn) confirmBtn.addEventListener("click", confirmNew);
+        newInputEl.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); confirmNew(); } });
+      }
+      var QUICK_TAGS = ["Food", "Transport", "Rent", "Bills", "Fun", "Health"];
+      function quickTagsHTML() {
+        if (state.categories.length > 0) return "";
+        var html = '<div class="quick-tags show" id="mQuickTags">';
+        QUICK_TAGS.forEach(function (name) { html += '<button type="button" class="quick-tag-chip" data-quick-tag="' + escapeHtml(name) + '">+ ' + escapeHtml(name) + '</button>'; });
+        html += '</div>';
+        return html;
+      }
+      function wireQuickTags(selectEl, focusNextEl) {
+        var box = modalCard.querySelector("#mQuickTags");
+        if (!box) return;
+        box.querySelectorAll(".quick-tag-chip").forEach(function (chip) {
+          chip.addEventListener("click", function () {
+            var id = addCategory(chip.dataset.quickTag);
+            var opt = document.createElement("option");
+            opt.value = id; opt.textContent = categoryById(id).name;
+            selectEl.insertBefore(opt, selectEl.lastElementChild);
+            selectEl.value = id;
+            box.classList.remove("show");
+            if (focusNextEl) focusNextEl.focus();
+          });
+        });
+      }
+
       /* ---------- tabs ---------- */
       var tabBtns = document.querySelectorAll(".tab-btn");
       var panels = {
         checklist: document.getElementById("panel-checklist"),
         analytics: document.getElementById("panel-analytics"),
+        wishlist: document.getElementById("panel-wishlist"),
+        reports: document.getElementById("panel-reports"),
         history: document.getElementById("panel-history"),
         settings: document.getElementById("panel-settings")
       };
@@ -2008,6 +2572,8 @@
           panels[btn.dataset.tab].classList.add("active");
           if (btn.dataset.tab === "analytics") renderAnalytics(true);
           if (btn.dataset.tab === "history") renderHistory();
+          if (btn.dataset.tab === "wishlist") renderWishlist();
+          if (btn.dataset.tab === "reports") { renderReportCategoryOptions(); renderReports(); }
         });
       });
       function goToAnalyticsCycle(startDate) {
@@ -2029,85 +2595,12 @@
       tickClock();
       setInterval(tickClock, 1000);
 
-      /* ---------- category selects ---------- */
-      function fillCategorySelect(sel) {
-        var cur = sel.value;
-        sel.innerHTML = "";
-        if (state.categories.length === 0) {
-          var opt0 = document.createElement("option");
-          opt0.value = ""; opt0.textContent = "no tags yet";
-          sel.appendChild(opt0);
-        }
-        state.categories.forEach(function (c) {
-          var opt = document.createElement("option");
-          opt.value = c.id; opt.textContent = c.name;
-          sel.appendChild(opt);
-        });
-        var optNew = document.createElement("option");
-        optNew.value = "__new__"; optNew.textContent = "+ new tag";
-        sel.appendChild(optNew);
-        if (cur && [...sel.options].some(function (o) { return o.value === cur; })) sel.value = cur;
-      }
-      var itemCategorySel = document.getElementById("itemCategory");
-      var spendCategorySel = document.getElementById("spendCategory");
-      var quickTagsBox = document.getElementById("quickTags");
-      var QUICK_TAGS = ["Food", "Transport", "Rent", "Bills", "Fun", "Health"];
-      function refreshAllCategorySelects() {
-        fillCategorySelect(itemCategorySel);
-        fillCategorySelect(spendCategorySel);
-        renderQuickTags();
-      }
-      function renderQuickTags() {
-        if (state.categories.length > 0) { quickTagsBox.classList.remove("show"); return; }
-        quickTagsBox.innerHTML = "";
-        QUICK_TAGS.forEach(function (name) {
-          var chip = document.createElement("button");
-          chip.className = "quick-tag-chip";
-          chip.type = "button";
-          chip.textContent = "+ " + name;
-          chip.addEventListener("click", function () {
-            var id = addCategory(name);
-            refreshAllCategorySelects();
-            itemCategorySel.value = id;
-            document.getElementById("itemLabel").focus();
-          });
-          quickTagsBox.appendChild(chip);
-        });
-        quickTagsBox.classList.add("show");
-      }
-
       var priceHint = document.getElementById("priceHint");
       if (localStorage.getItem("budget_os_hint_dismissed")) priceHint.style.display = "none";
       document.getElementById("dismissHint").addEventListener("click", function () {
         priceHint.style.display = "none";
         localStorage.setItem("budget_os_hint_dismissed", "1");
       });
-
-      var newCatRowChecklist = document.getElementById("newCatRowChecklist");
-      var newCatNameChecklist = document.getElementById("newCatNameChecklist");
-      itemCategorySel.addEventListener("change", function () {
-        if (itemCategorySel.value === "__new__") { newCatRowChecklist.classList.add("show"); newCatNameChecklist.focus(); }
-        else newCatRowChecklist.classList.remove("show");
-      });
-      function confirmNewCat(input, select, rowEl, focusNext) {
-        var id = addCategory(input.value);
-        input.value = "";
-        rowEl.classList.remove("show");
-        refreshAllCategorySelects();
-        if (id) select.value = id;
-        if (focusNext) focusNext.focus();
-      }
-      document.getElementById("confirmNewCatChecklist").addEventListener("click", function () { confirmNewCat(newCatNameChecklist, itemCategorySel, newCatRowChecklist, document.getElementById("itemLabel")); });
-      newCatNameChecklist.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); confirmNewCat(newCatNameChecklist, itemCategorySel, newCatRowChecklist, document.getElementById("itemLabel")); } });
-
-      var newCatRowSpend = document.getElementById("newCatRowSpend");
-      var newCatNameSpend = document.getElementById("newCatNameSpend");
-      spendCategorySel.addEventListener("change", function () {
-        if (spendCategorySel.value === "__new__") { newCatRowSpend.classList.add("show"); newCatNameSpend.focus(); }
-        else newCatRowSpend.classList.remove("show");
-      });
-      document.getElementById("confirmNewCatSpend").addEventListener("click", function () { confirmNewCat(newCatNameSpend, spendCategorySel, newCatRowSpend, document.getElementById("spendNote")); });
-      newCatNameSpend.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); confirmNewCat(newCatNameSpend, spendCategorySel, newCatRowSpend, document.getElementById("spendNote")); } });
 
       /* ---------- checklist ---------- */
       var ledgerList = document.getElementById("ledgerList");
@@ -2122,7 +2615,7 @@
           empty.className = "empty-state";
           empty.innerHTML = '<span class="glyph">◌</span>no items yet — add your first recurring expense above<br><span class="cta" id="emptyChecklistCta">+ add an item</span>';
           ledgerList.appendChild(empty);
-          document.getElementById("emptyChecklistCta").addEventListener("click", function () { document.getElementById("itemLabel").focus(); });
+          document.getElementById("emptyChecklistCta").addEventListener("click", function () { openAddItemModal(); });
         } else {
           var ordered = state.checklist.slice().sort(function (a, b) { return (a.checked === b.checked) ? 0 : (a.checked ? 1 : -1); });
           ordered.forEach(function (item) {
@@ -2136,7 +2629,8 @@
               '<span class="prompt">&gt;</span>' +
               '<button class="checkbox' + (item.checked ? ' checked' : '') + '" aria-label="toggle done"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-6"/></svg></button>' +
               '<div class="row-main"><span class="row-label">' + escapeHtml(item.label) + '</span>' + chipHtml + '</div>' +
-              '<div class="row-price" data-price="' + item.price + '">' + money(item.price) + '</div>' +
+              '<div class="row-price">' + money(item.price) + '</div>' +
+              '<button class="row-edit" title="edit">✎</button>' +
               '<button class="row-del" title="remove">✕</button>';
             ledgerList.appendChild(row);
 
@@ -2167,26 +2661,7 @@
                 renderChecklist();
               });
             });
-            var priceEl = row.querySelector(".row-price");
-            priceEl.addEventListener("click", function () {
-              var input = document.createElement("input");
-              input.type = "number"; input.step = "0.01"; input.min = "0"; input.value = item.price;
-              priceEl.textContent = ""; priceEl.appendChild(input);
-              input.focus(); input.select();
-              function commit() {
-                var val = parseFloat(input.value);
-                if (!isNaN(val) && val >= 0) {
-                  item.price = val;
-                  if (item.checked && item.linkedSpendId) {
-                    var linked = state.spendings.find(function (s) { return s.id === item.linkedSpendId; });
-                    if (linked) linked.amount = val;
-                  }
-                }
-                save(); renderChecklist(); renderAnalytics(false); renderHistory();
-              }
-              input.addEventListener("blur", commit);
-              input.addEventListener("keydown", function (e) { if (e.key === "Enter") input.blur(); if (e.key === "Escape") renderChecklist(); });
-            });
+            row.querySelector(".row-edit").addEventListener("click", function () { openEditItemModal(item); });
           });
         }
         var total = state.checklist.length;
@@ -2198,23 +2673,78 @@
         spentTodayLabel.innerHTML = "Spent today: <b>" + money(spentToday) + "</b>";
       }
 
-      document.getElementById("addItemBtn").addEventListener("click", function () {
-        var labelInput = document.getElementById("itemLabel");
-        var priceInput = document.getElementById("itemPrice");
-        var label = labelInput.value.trim();
-        var price = parseFloat(priceInput.value);
-        var catId = itemCategorySel.value;
-        if (catId === "__new__" || !catId) { toast("give this item a tag first"); return; }
-        if (!label) { toast("give it a short name"); labelInput.focus(); return; }
-        if (isNaN(price) || price < 0) { toast("enter a valid price"); priceInput.focus(); return; }
-        state.checklist.push({ id: uid(), categoryId: catId, label: label, price: price, checked: false });
-        save();
-        labelInput.value = ""; priceInput.value = ""; labelInput.focus();
-        renderChecklist();
-      });
-      [document.getElementById("itemLabel"), document.getElementById("itemPrice")].forEach(function (el) {
-        el.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); document.getElementById("addItemBtn").click(); } });
-      });
+      function openAddItemModal() {
+        var html =
+          '<div class="modal-head"><h3>Log a recurring item</h3><button class="modal-close" type="button">&times;</button></div>' +
+          '<div class="modal-error" id="mError"></div>' +
+          '<div class="modal-field"><label>Tag</label><select id="mCat">' + categoryOptionsHTML(null) + '</select></div>' +
+          '<div class="new-cat-row" id="mNewCatRow"><input type="text" id="mNewCatName" placeholder="new tag name…" maxlength="20"><button class="btn-add" type="button">✓</button></div>' +
+          quickTagsHTML() +
+          '<div class="modal-field"><label>Name</label><input type="text" id="mLabel" placeholder="e.g. groceries, gym, coffee…" maxlength="60"></div>' +
+          '<div class="modal-field"><label>Price</label><input type="number" id="mPrice" placeholder="0.00" step="0.01" min="0"></div>' +
+          '<div class="modal-actions"><button class="btn-text primary" id="mSave" type="button" style="flex:2;">Add item</button><button class="btn-text" type="button" data-modal-cancel>Cancel</button></div>';
+        openModal(html);
+        var catSel = document.getElementById("mCat"), labelInput = document.getElementById("mLabel"), priceInput = document.getElementById("mPrice");
+        wireModalCategorySelect(catSel, document.getElementById("mNewCatRow"), document.getElementById("mNewCatName"));
+        wireQuickTags(catSel, labelInput);
+        function submit() {
+          var catId = catSel.value;
+          var label = sanitizeLabel(labelInput.value, 60);
+          var price = sanitizeAmount(priceInput.value, { allowZero: true });
+          if (catId === "__new__" || !catId) { showModalError("give this item a tag first"); return; }
+          if (!label) { showModalError("give it a short, real name"); labelInput.focus(); return; }
+          if (price === null) { showModalError("enter a valid price (0 – " + MAX_LOG_AMOUNT.toLocaleString() + ")"); priceInput.focus(); return; }
+          state.checklist.push({ id: uid(), categoryId: catId, label: label, price: price, checked: false });
+          save();
+          renderChecklist();
+          closeModal();
+          toast("“" + label + "” added to your checklist");
+        }
+        document.getElementById("mSave").addEventListener("click", submit);
+        [labelInput, priceInput].forEach(function (el) { el.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); submit(); } }); });
+      }
+      document.getElementById("openAddItemBtn").addEventListener("click", openAddItemModal);
+
+      function openEditItemModal(item) {
+        var html =
+          '<div class="modal-head"><h3>Edit item</h3><button class="modal-close" type="button">&times;</button></div>' +
+          '<div class="modal-error" id="mError"></div>' +
+          '<div class="modal-field"><label>Tag</label><select id="mCat">' + categoryOptionsHTML(item.categoryId) + '</select></div>' +
+          '<div class="new-cat-row" id="mNewCatRow"><input type="text" id="mNewCatName" placeholder="new tag name…" maxlength="20"><button class="btn-add" type="button">✓</button></div>' +
+          '<div class="modal-field"><label>Name</label><input type="text" id="mLabel" maxlength="60" value="' + escapeHtml(item.label) + '"></div>' +
+          '<div class="modal-field"><label>Price</label><input type="number" id="mPrice" step="0.01" min="0" value="' + item.price + '"></div>' +
+          '<div class="modal-actions"><button class="btn-text primary" id="mSave" type="button" style="flex:2;">Save</button><button class="btn-text danger" id="mDelete" type="button">Delete</button></div>';
+        openModal(html);
+        var catSel = document.getElementById("mCat"), labelInput = document.getElementById("mLabel"), priceInput = document.getElementById("mPrice");
+        wireModalCategorySelect(catSel, document.getElementById("mNewCatRow"), document.getElementById("mNewCatName"));
+        function submit() {
+          var catId = catSel.value;
+          var label = sanitizeLabel(labelInput.value, 60);
+          var price = sanitizeAmount(priceInput.value, { allowZero: true });
+          if (catId === "__new__" || !catId) { showModalError("give this item a tag first"); return; }
+          if (!label) { showModalError("give it a short, real name"); labelInput.focus(); return; }
+          if (price === null) { showModalError("enter a valid price (0 – " + MAX_LOG_AMOUNT.toLocaleString() + ")"); priceInput.focus(); return; }
+          item.categoryId = catId; item.label = label; item.price = price;
+          if (item.checked && item.linkedSpendId) {
+            var linked = state.spendings.find(function (s) { return s.id === item.linkedSpendId; });
+            if (linked) { linked.amount = price; linked.categoryId = catId; linked.note = label; }
+          }
+          save();
+          renderChecklist(); renderAnalytics(false); renderHistory();
+          closeModal();
+          toast("item updated");
+        }
+        document.getElementById("mSave").addEventListener("click", submit);
+        document.getElementById("mDelete").addEventListener("click", function () {
+          state.checklist = state.checklist.filter(function (i) { return i.id !== item.id; });
+          if (item.linkedSpendId) state.spendings = state.spendings.filter(function (s) { return s.id !== item.linkedSpendId; });
+          save();
+          renderChecklist(); renderAnalytics(false); renderHistory();
+          closeModal();
+          toast("“" + item.label + "” removed");
+        });
+        [labelInput, priceInput].forEach(function (el) { el.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); submit(); } }); });
+      }
 
       /* ---------- analytics (cycle based) ---------- */
       var viewingCycleStart = null;
@@ -2231,19 +2761,52 @@
       var cycleLabelBox = document.getElementById("cycleLabelBox");
       var cycleBadge = document.getElementById("cycleBadge");
       var cycleSubNote = document.getElementById("cycleSubNote");
-      var spendDateInput = document.getElementById("spendDate");
       var cyclePrevBtn = document.getElementById("cyclePrev");
       var cycleNextBtn = document.getElementById("cycleNext");
+      var sortByDateBtn = document.getElementById("sortByDateBtn");
+      var sortByPriceBtn = document.getElementById("sortByPriceBtn");
+      var spendSort = { key: "date", dir: "desc" };
+
+      function salaryForCycle(startDate) { var v = state.salaryByCycle[isoOfDate(startDate)]; return (typeof v === "number") ? v : null; }
+      function setSalaryForCycle(startDate, val) {
+        var key = isoOfDate(startDate);
+        if (val === null) delete state.salaryByCycle[key];
+        else state.salaryByCycle[key] = val;
+      }
+      function latestKnownSalary() {
+        var keys = Object.keys(state.salaryByCycle).filter(function (k) { return k <= isoOfDate(new Date()); }).sort();
+        if (!keys.length) return null;
+        return state.salaryByCycle[keys[keys.length - 1]];
+      }
 
       salaryInput.addEventListener("input", function () {
-        var v = parseFloat(salaryInput.value);
-        state.salary = isNaN(v) ? null : v;
+        var raw = salaryInput.value.trim();
+        var v = raw === "" ? null : sanitizeAmount(raw, { allowZero: true });
+        setSalaryForCycle(viewingCycleStart, v);
         save();
         renderAnalytics(false);
       });
 
       cyclePrevBtn.addEventListener("click", function () { viewingCycleStart = prevCycleStart(viewingCycleStart, state.salaryDay); renderAnalytics(true); });
       cycleNextBtn.addEventListener("click", function () { viewingCycleStart = nextCycleStart(viewingCycleStart, state.salaryDay); renderAnalytics(true); });
+
+      function setSpendSort(key) {
+        if (spendSort.key === key) spendSort.dir = spendSort.dir === "desc" ? "asc" : "desc";
+        else { spendSort.key = key; spendSort.dir = "desc"; }
+        renderSortButtons();
+        renderAnalytics(false);
+      }
+      function renderSortButtons() {
+        [sortByDateBtn, sortByPriceBtn].forEach(function (btn) {
+          var key = btn === sortByDateBtn ? "date" : "price";
+          var active = spendSort.key === key;
+          btn.classList.toggle("active", active);
+          btn.querySelector(".arrow").textContent = active ? (spendSort.dir === "desc" ? "▾" : "▴") : "";
+        });
+      }
+      sortByDateBtn.addEventListener("click", function () { setSpendSort("date"); });
+      sortByPriceBtn.addEventListener("click", function () { setSpendSort("price"); });
+      renderSortButtons();
 
       var lastDonutTotal = 0;
 
@@ -2258,12 +2821,10 @@
         cycleNextBtn.disabled = isCurrent;
         cycleSubNote.textContent = "\u203a " + cycleLabel(start, end).toLowerCase() + (isCurrent ? " — your active cycle" : " — viewing history, still editable");
 
-        salaryInput.value = state.salary === null ? "" : state.salary;
+        var cycleSalary = salaryForCycle(start);
+        salaryInput.value = cycleSalary === null ? "" : cycleSalary;
 
         var minISO = isoOfDate(start), maxISO = isoOfDate(end);
-        spendDateInput.min = minISO; spendDateInput.max = maxISO;
-        var t = todayISO();
-        spendDateInput.value = (t >= minISO && t <= maxISO) ? t : maxISO;
 
         var inCycle = state.spendings.filter(function (s) { return s.date >= minISO && s.date <= maxISO; });
 
@@ -2272,8 +2833,8 @@
         var total = inCycle.reduce(function (s, x) { return s + x.amount; }, 0);
 
         totalSpentStat.textContent = money(total);
-        if (state.salary !== null && state.salary > 0) {
-          var remaining = state.salary - total;
+        if (cycleSalary !== null && cycleSalary > 0) {
+          var remaining = cycleSalary - total;
           remainingStat.textContent = money(remaining);
           remainingBox.classList.toggle("warn", remaining < 0);
           remainingBox.classList.toggle("good", remaining >= 0);
@@ -2314,20 +2875,25 @@
         });
 
         spendLog.innerHTML = "";
-        var sorted = inCycle.slice().sort(function (a, b) { return b.createdAt - a.createdAt; });
+        var sorted = inCycle.slice().sort(function (a, b) {
+          var res = spendSort.key === "price" ? (a.amount - b.amount) : (a.date === b.date ? a.createdAt - b.createdAt : (a.date < b.date ? -1 : 1));
+          return spendSort.dir === "desc" ? -res : res;
+        });
         if (sorted.length === 0) spendLog.innerHTML = '<div class="empty-state" style="padding:6px 0;">nothing logged yet — add a spend below</div>';
         sorted.forEach(function (s) {
           var cat = categoryById(s.categoryId);
           var row = document.createElement("div");
           row.className = "spend-item";
           var d = dateFromISO(s.date);
-          var sourceBadge = s.fromChecklist ? '<span class="src-badge" title="logged from today\u2019s ledger">ledger</span>' : '';
+          var sourceBadge = s.fromChecklist ? '<span class="src-badge" title="logged from today’s ledger">ledger</span>' : '';
           row.innerHTML =
             '<span class="sw" style="background:' + (cat ? cat.color : "#999") + '"></span>' +
             '<span class="lab">' + sourceBadge + escapeHtml(cat ? cat.name : "unknown") + (s.note ? ' <span style="color:var(--ink-faint)">— ' + escapeHtml(s.note) + '</span>' : '') + '</span>' +
             '<span class="date">' + d.toLocaleDateString(undefined, { month: "short", day: "numeric" }) + '</span>' +
             '<span class="amt">' + money(s.amount) + '</span>' +
+            '<button class="row-edit" title="edit">✎</button>' +
             '<button class="row-del" title="remove">✕</button>';
+          row.querySelector(".row-edit").addEventListener("click", function () { openEditSpendModal(s); });
           row.querySelector(".row-del").addEventListener("click", function () {
             var idx = state.spendings.indexOf(s);
             state.spendings = state.spendings.filter(function (x) { return x.id !== s.id; });
@@ -2350,26 +2916,90 @@
         });
       }
 
-      document.getElementById("addSpendBtn").addEventListener("click", function () {
-        var noteInput = document.getElementById("spendNote");
-        var amountInput = document.getElementById("spendAmount");
-        var amount = parseFloat(amountInput.value);
-        var catId = spendCategorySel.value;
-        var dateVal = spendDateInput.value;
+      function openAddSpendModal() {
+        var start = viewingCycleStart, end = cycleEndForStart(start, state.salaryDay);
+        var minISO = isoOfDate(start), maxISO = isoOfDate(end);
+        var t = todayISO();
+        var defaultDate = (t >= minISO && t <= maxISO) ? t : maxISO;
+        var html =
+          '<div class="modal-head"><h3>Log a spend</h3><button class="modal-close" type="button">&times;</button></div>' +
+          '<div class="modal-error" id="mError"></div>' +
+          '<div class="modal-field"><label>Tag</label><select id="mCat">' + categoryOptionsHTML(null) + '</select></div>' +
+          '<div class="new-cat-row" id="mNewCatRow"><input type="text" id="mNewCatName" placeholder="new label name…" maxlength="20"><button class="btn-add" type="button">✓</button></div>' +
+          quickTagsHTML() +
+          '<div class="modal-field"><label>Note (optional)</label><input type="text" id="mNote" maxlength="60" placeholder="what was it?"></div>' +
+          '<div class="modal-field"><label>Date</label><input type="date" id="mDate" min="' + minISO + '" max="' + maxISO + '" value="' + defaultDate + '"></div>' +
+          '<div class="modal-field"><label>Amount</label><input type="number" id="mAmount" placeholder="0.00" step="0.01" min="0"></div>' +
+          '<div class="modal-actions"><button class="btn-text primary" id="mSave" type="button" style="flex:2;">Log spend</button><button class="btn-text" type="button" data-modal-cancel>Cancel</button></div>';
+        openModal(html);
+        var catSel = document.getElementById("mCat"), noteInput = document.getElementById("mNote"), dateInput = document.getElementById("mDate"), amountInput = document.getElementById("mAmount");
+        wireModalCategorySelect(catSel, document.getElementById("mNewCatRow"), document.getElementById("mNewCatName"));
+        wireQuickTags(catSel, noteInput);
+        function submit() {
+          var catId = catSel.value;
+          var amount = sanitizeAmount(amountInput.value);
+          var dateVal = sanitizeDateInRange(dateInput.value, minISO, maxISO);
+          var note = sanitizeLabel(noteInput.value, 60) || "";
+          if (catId === "__new__" || !catId) { showModalError("give this spend a tag first"); return; }
+          if (amount === null) { showModalError("enter a valid amount (0 – " + MAX_LOG_AMOUNT.toLocaleString() + ")"); amountInput.focus(); return; }
+          if (!dateVal) { showModalError("pick a date within this cycle (" + minISO + " – " + maxISO + ")"); return; }
+          state.spendings.push({ id: uid(), categoryId: catId, amount: amount, note: note, date: dateVal, createdAt: Date.now() });
+          save();
+          renderAnalytics(true);
+          renderHistory();
+          closeModal();
+          toast("spend logged");
+        }
+        document.getElementById("mSave").addEventListener("click", submit);
+        [noteInput, amountInput].forEach(function (el) { el.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); submit(); } }); });
+      }
+      document.getElementById("openAddSpendBtn").addEventListener("click", openAddSpendModal);
 
-        if (catId === "__new__" || !catId) { toast("give this spend a label first"); return; }
-        if (isNaN(amount) || amount <= 0) { toast("enter a valid amount"); amountInput.focus(); return; }
-        if (!dateVal) { toast("pick a date"); return; }
-
-        state.spendings.push({ id: uid(), categoryId: catId, amount: amount, note: noteInput.value.trim(), date: dateVal, createdAt: Date.now() });
-        save();
-        noteInput.value = ""; amountInput.value = "";
-        renderAnalytics(true);
-        renderHistory();
-      });
-      [document.getElementById("spendNote"), document.getElementById("spendAmount")].forEach(function (el) {
-        el.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); document.getElementById("addSpendBtn").click(); } });
-      });
+      function openEditSpendModal(s) {
+        var start = cycleStartForDate(dateFromISO(s.date), state.salaryDay), end = cycleEndForStart(start, state.salaryDay);
+        var minISO = isoOfDate(start), maxISO = isoOfDate(end);
+        var html =
+          '<div class="modal-head"><h3>Edit spend</h3><button class="modal-close" type="button">&times;</button></div>' +
+          '<div class="modal-error" id="mError"></div>' +
+          '<div class="modal-field"><label>Tag</label><select id="mCat">' + categoryOptionsHTML(s.categoryId) + '</select></div>' +
+          '<div class="new-cat-row" id="mNewCatRow"><input type="text" id="mNewCatName" placeholder="new label name…" maxlength="20"><button class="btn-add" type="button">✓</button></div>' +
+          '<div class="modal-field"><label>Note (optional)</label><input type="text" id="mNote" maxlength="60" value="' + escapeHtml(s.note || "") + '"></div>' +
+          '<div class="modal-field"><label>Date</label><input type="date" id="mDate" min="' + minISO + '" max="' + maxISO + '" value="' + s.date + '"></div>' +
+          '<div class="modal-field"><label>Amount</label><input type="number" id="mAmount" step="0.01" min="0" value="' + s.amount + '"></div>' +
+          '<div class="modal-actions"><button class="btn-text primary" id="mSave" type="button" style="flex:2;">Save</button><button class="btn-text danger" id="mDelete" type="button">Delete</button></div>';
+        openModal(html);
+        var catSel = document.getElementById("mCat"), noteInput = document.getElementById("mNote"), dateInput = document.getElementById("mDate"), amountInput = document.getElementById("mAmount");
+        wireModalCategorySelect(catSel, document.getElementById("mNewCatRow"), document.getElementById("mNewCatName"));
+        function submit() {
+          var catId = catSel.value;
+          var amount = sanitizeAmount(amountInput.value);
+          var dateVal = sanitizeDateInRange(dateInput.value, minISO, maxISO);
+          var note = sanitizeLabel(noteInput.value, 60) || "";
+          if (catId === "__new__" || !catId) { showModalError("give this spend a tag first"); return; }
+          if (amount === null) { showModalError("enter a valid amount (0 – " + MAX_LOG_AMOUNT.toLocaleString() + ")"); amountInput.focus(); return; }
+          if (!dateVal) { showModalError("pick a date within that spend's cycle (" + minISO + " – " + maxISO + ")"); return; }
+          s.categoryId = catId; s.amount = amount; s.date = dateVal; s.note = note;
+          if (s.fromChecklist) {
+            var linkedItem = state.checklist.find(function (i) { return i.linkedSpendId === s.id; });
+            if (linkedItem) { linkedItem.price = amount; linkedItem.categoryId = catId; }
+          }
+          save();
+          renderAnalytics(false); renderHistory(); renderChecklist();
+          closeModal();
+          toast("spend updated");
+        }
+        document.getElementById("mSave").addEventListener("click", submit);
+        document.getElementById("mDelete").addEventListener("click", function () {
+          state.spendings = state.spendings.filter(function (x) { return x.id !== s.id; });
+          var linkedItem = s.fromChecklist ? state.checklist.find(function (i) { return i.linkedSpendId === s.id; }) : null;
+          if (linkedItem) { linkedItem.checked = false; linkedItem.linkedSpendId = null; }
+          save();
+          renderAnalytics(false); renderHistory(); renderChecklist();
+          closeModal();
+          toast("spend removed");
+        });
+        [noteInput, amountInput].forEach(function (el) { el.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); submit(); } }); });
+      }
 
       /* ---------- history ---------- */
       var historyList = document.getElementById("historyList");
@@ -2398,6 +3028,306 @@
             '<div class="hright"><div class="amt">' + money(entry.total) + '</div><div class="go">view / edit →</div></div>';
           card.addEventListener("click", function () { goToAnalyticsCycle(entry.start); });
           historyList.appendChild(card);
+        });
+      }
+
+      /* ---------- wish list + smart decision engine ---------- */
+      var wishListBox = document.getElementById("wishList");
+
+      // no salary on record yet? fall back to a flat "this counts as expensive" line per currency
+      var CURRENCY_EXPENSIVE_FALLBACK = {
+        KWD: 20, BHD: 20, OMR: 20,
+        JPY: 6000,
+        SAR: 150, AED: 150, QAR: 150, EGP: 800,
+        USD: 50, EUR: 50, GBP: 45, INR: 3500
+      };
+      var WISH_NICE_LINES = [
+        "Small price for a little joy — go for it.",
+        "That's a guilt-free treat, enjoy it.",
+        "Cheap enough to just get it and smile.",
+        "Barely a dent in the budget — treat yourself.",
+        "Worth every penny for something this small."
+      ];
+      function hashStr(s) { var h = 0; for (var i = 0; i < s.length; i++) { h = (h * 31 + s.charCodeAt(i)) | 0; } return Math.abs(h); }
+
+      function decisionForWish(item) {
+        var salary = latestKnownSalary();
+        var threshold = (salary && salary > 0) ? salary * 0.15 : (CURRENCY_EXPENSIVE_FALLBACK[state.currency.code] || 50);
+        var price = item.price;
+        if (price > threshold) {
+          var n = price <= threshold * 3 ? 3 : (price <= threshold * 8 ? 6 : 12);
+          var per = price / n;
+          return { expensive: true, text: "Best option: " + n + " installments of " + money(per) + " over " + n + " month" + (n === 1 ? "" : "s") + "." };
+        }
+        return { expensive: false, text: WISH_NICE_LINES[hashStr(item.id) % WISH_NICE_LINES.length] };
+      }
+
+      function renderWishlist() {
+        wishListBox.innerHTML = "";
+        if (state.wishlist.length === 0) {
+          wishListBox.innerHTML = '<div class="empty-state"><span class="glyph">◌</span>nothing on your wish list yet — add something above</div>';
+          return;
+        }
+        var items = state.wishlist.slice().sort(function (a, b) { return b.createdAt - a.createdAt; });
+        items.forEach(function (item) {
+          var d = decisionForWish(item);
+          var card = document.createElement("div");
+          card.className = "wish-card";
+          card.innerHTML =
+            '<div class="wish-top"><div class="wish-name">' + escapeHtml(item.name) + '</div><div class="wish-price">' + money(item.price) + '</div></div>' +
+            '<div class="wish-decision ' + (d.expensive ? "plan" : "nice") + '"><span class="g">' + (d.expensive ? "📊" : "✨") + '</span><span>' + escapeHtml(d.text) + '</span></div>' +
+            '<div class="wish-actions">' +
+            '<button class="btn-text primary" data-act="bought">I bought it</button>' +
+            '<button class="btn-text" data-act="edit">Edit</button>' +
+            '<button class="btn-text danger" data-act="remove">Remove</button>' +
+            '</div>';
+          card.querySelector('[data-act="edit"]').addEventListener("click", function () { openEditWishModal(item); });
+          card.querySelector('[data-act="bought"]').addEventListener("click", function () { openMarkBoughtModal(item); });
+          card.querySelector('[data-act="remove"]').addEventListener("click", function () {
+            var idx = state.wishlist.indexOf(item);
+            state.wishlist = state.wishlist.filter(function (w) { return w.id !== item.id; });
+            save();
+            renderWishlist();
+            toast("“" + item.name + "” removed", function () {
+              state.wishlist.splice(Math.min(idx, state.wishlist.length), 0, item);
+              save();
+              renderWishlist();
+            });
+          });
+          wishListBox.appendChild(card);
+        });
+      }
+
+      function openAddWishModal() {
+        var html =
+          '<div class="modal-head"><h3>Add to wish list</h3><button class="modal-close" type="button">&times;</button></div>' +
+          '<div class="modal-error" id="mError"></div>' +
+          '<div class="modal-field"><label>What is it?</label><input type="text" id="mName" placeholder="e.g. Huawei FreeClip 2" maxlength="60"></div>' +
+          '<div class="modal-field"><label>Price</label><input type="number" id="mPrice" placeholder="0.00" step="0.01" min="0"></div>' +
+          '<div class="modal-actions"><button class="btn-text primary" id="mSave" type="button" style="flex:2;">Add</button><button class="btn-text" type="button" data-modal-cancel>Cancel</button></div>';
+        openModal(html);
+        var nameInput = document.getElementById("mName"), priceInput = document.getElementById("mPrice");
+        function submit() {
+          var name = sanitizeLabel(nameInput.value, 60);
+          var price = sanitizeAmount(priceInput.value);
+          if (!name) { showModalError("give it a real name"); nameInput.focus(); return; }
+          if (price === null) { showModalError("enter a valid price (0 – " + MAX_LOG_AMOUNT.toLocaleString() + ")"); priceInput.focus(); return; }
+          state.wishlist.push({ id: uid(), name: name, price: price, createdAt: Date.now() });
+          save();
+          renderWishlist();
+          closeModal();
+          toast("added to your wish list");
+        }
+        document.getElementById("mSave").addEventListener("click", submit);
+        [nameInput, priceInput].forEach(function (el) { el.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); submit(); } }); });
+      }
+      document.getElementById("openAddWishBtn").addEventListener("click", openAddWishModal);
+
+      function openEditWishModal(item) {
+        var html =
+          '<div class="modal-head"><h3>Edit wish</h3><button class="modal-close" type="button">&times;</button></div>' +
+          '<div class="modal-error" id="mError"></div>' +
+          '<div class="modal-field"><label>What is it?</label><input type="text" id="mName" maxlength="60" value="' + escapeHtml(item.name) + '"></div>' +
+          '<div class="modal-field"><label>Price</label><input type="number" id="mPrice" step="0.01" min="0" value="' + item.price + '"></div>' +
+          '<div class="modal-actions"><button class="btn-text primary" id="mSave" type="button" style="flex:2;">Save</button><button class="btn-text danger" id="mDelete" type="button">Delete</button></div>';
+        openModal(html);
+        var nameInput = document.getElementById("mName"), priceInput = document.getElementById("mPrice");
+        function submit() {
+          var name = sanitizeLabel(nameInput.value, 60);
+          var price = sanitizeAmount(priceInput.value);
+          if (!name) { showModalError("give it a real name"); nameInput.focus(); return; }
+          if (price === null) { showModalError("enter a valid price (0 – " + MAX_LOG_AMOUNT.toLocaleString() + ")"); priceInput.focus(); return; }
+          item.name = name; item.price = price;
+          save();
+          renderWishlist();
+          closeModal();
+          toast("wish updated");
+        }
+        document.getElementById("mSave").addEventListener("click", submit);
+        document.getElementById("mDelete").addEventListener("click", function () {
+          state.wishlist = state.wishlist.filter(function (w) { return w.id !== item.id; });
+          save(); renderWishlist(); closeModal();
+          toast("“" + item.name + "” removed");
+        });
+        [nameInput, priceInput].forEach(function (el) { el.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); submit(); } }); });
+      }
+
+      function openMarkBoughtModal(item) {
+        var curStart = viewingCycleStart || cycleStartForDate(new Date(), state.salaryDay);
+        var end = cycleEndForStart(curStart, state.salaryDay);
+        var minISO = isoOfDate(curStart), maxISO = isoOfDate(end);
+        var t = todayISO();
+        var defaultDate = (t >= minISO && t <= maxISO) ? t : maxISO;
+        var html =
+          '<div class="modal-head"><h3>Mark as bought</h3><button class="modal-close" type="button">&times;</button></div>' +
+          '<p class="modal-sub">Logs “' + escapeHtml(item.name) + '” (' + money(item.price) + ') as a spend in Analytics and takes it off your wish list.</p>' +
+          '<div class="modal-error" id="mError"></div>' +
+          '<div class="modal-field"><label>Tag</label><select id="mCat">' + categoryOptionsHTML(null) + '</select></div>' +
+          '<div class="new-cat-row" id="mNewCatRow"><input type="text" id="mNewCatName" placeholder="new tag name…" maxlength="20"><button class="btn-add" type="button">✓</button></div>' +
+          quickTagsHTML() +
+          '<div class="modal-field"><label>Date</label><input type="date" id="mDate" min="' + minISO + '" max="' + maxISO + '" value="' + defaultDate + '"></div>' +
+          '<div class="modal-actions"><button class="btn-text primary" id="mSave" type="button" style="flex:2;">Log purchase</button><button class="btn-text" type="button" data-modal-cancel>Cancel</button></div>';
+        openModal(html);
+        var catSel = document.getElementById("mCat"), dateInput = document.getElementById("mDate");
+        wireModalCategorySelect(catSel, document.getElementById("mNewCatRow"), document.getElementById("mNewCatName"));
+        wireQuickTags(catSel, dateInput);
+        document.getElementById("mSave").addEventListener("click", function () {
+          var catId = catSel.value;
+          var dateVal = sanitizeDateInRange(dateInput.value, minISO, maxISO);
+          if (catId === "__new__" || !catId) { showModalError("give it a tag first"); return; }
+          if (!dateVal) { showModalError("pick a date within this cycle (" + minISO + " – " + maxISO + ")"); return; }
+          state.spendings.push({ id: uid(), categoryId: catId, amount: item.price, note: item.name, date: dateVal, createdAt: Date.now() });
+          state.wishlist = state.wishlist.filter(function (w) { return w.id !== item.id; });
+          save();
+          renderWishlist(); renderAnalytics(false); renderHistory();
+          closeModal();
+          toast("nice — logged as a spend");
+        });
+      }
+
+      /* ---------- reports ---------- */
+      var reportRangeSel = document.getElementById("reportRange");
+      var reportCategorySel = document.getElementById("reportCategory");
+
+      function reportCycleList(rangeVal) {
+        var curStart = cycleStartForDate(new Date(), state.salaryDay);
+        var list = [];
+        if (rangeVal === "all") {
+          var earliestISO = null;
+          state.spendings.forEach(function (s) { if (!earliestISO || s.date < earliestISO) earliestISO = s.date; });
+          Object.keys(state.salaryByCycle).forEach(function (k) { if (!earliestISO || k < earliestISO) earliestISO = k; });
+          var cursor = earliestISO ? cycleStartForDate(dateFromISO(earliestISO), state.salaryDay) : curStart;
+          var guard = 0;
+          while (isoOfDate(cursor) <= isoOfDate(curStart) && guard < 240) {
+            list.push(cursor);
+            cursor = nextCycleStart(cursor, state.salaryDay);
+            guard++;
+          }
+        } else {
+          var n = parseInt(rangeVal, 10) || 1;
+          var c = curStart;
+          for (var i = 0; i < n; i++) { list.unshift(c); c = prevCycleStart(c, state.salaryDay); }
+        }
+        return list.length ? list : [curStart];
+      }
+
+      function renderReportCategoryOptions() {
+        var cur = reportCategorySel.value;
+        reportCategorySel.innerHTML = '<option value="all">All tags</option>';
+        state.categories.forEach(function (c) {
+          var opt = document.createElement("option");
+          opt.value = c.id; opt.textContent = c.name;
+          reportCategorySel.appendChild(opt);
+        });
+        if (cur && Array.prototype.some.call(reportCategorySel.options, function (o) { return o.value === cur; })) reportCategorySel.value = cur;
+      }
+      reportRangeSel.addEventListener("change", renderReports);
+      reportCategorySel.addEventListener("change", renderReports);
+
+      function renderReports() {
+        var rangeVal = reportRangeSel.value;
+        var catFilter = reportCategorySel.value;
+        var cycles = reportCycleList(rangeVal);
+
+        var rangeStartISO = isoOfDate(cycles[0]);
+        var rangeEndISO = isoOfDate(cycleEndForStart(cycles[cycles.length - 1], state.salaryDay));
+
+        var inRange = state.spendings.filter(function (s) { return s.date >= rangeStartISO && s.date <= rangeEndISO; });
+        var filtered = catFilter === "all" ? inRange : inRange.filter(function (s) { return s.categoryId === catFilter; });
+
+        var total = filtered.reduce(function (s, x) { return s + x.amount; }, 0);
+        document.getElementById("reportTotalStat").textContent = money(total);
+        document.getElementById("reportAvgStat").textContent = money(total / cycles.length);
+
+        var savedVals = [];
+        cycles.forEach(function (c) {
+          var sal = salaryForCycle(c);
+          if (sal === null) return;
+          var cMin = isoOfDate(c), cMax = isoOfDate(cycleEndForStart(c, state.salaryDay));
+          var cSpent = state.spendings.filter(function (s) { return s.date >= cMin && s.date <= cMax; }).reduce(function (s, x) { return s + x.amount; }, 0);
+          savedVals.push(sal - cSpent);
+        });
+        var savedBox = document.getElementById("reportSavedBox");
+        if (savedVals.length) {
+          var avgSaved = savedVals.reduce(function (a, b) { return a + b; }, 0) / savedVals.length;
+          document.getElementById("reportSavedStat").textContent = money(avgSaved);
+          savedBox.classList.toggle("warn", avgSaved < 0);
+          savedBox.classList.toggle("good", avgSaved >= 0);
+        } else {
+          document.getElementById("reportSavedStat").textContent = "—";
+          savedBox.classList.remove("warn"); savedBox.classList.remove("good");
+        }
+
+        // spend-by-cycle bar chart — single series (magnitude), respects the tag filter
+        var cycleBarChart = document.getElementById("cycleBarChart");
+        cycleBarChart.innerHTML = "";
+        var cycleTotals = cycles.map(function (c) {
+          var cMin = isoOfDate(c), cMax = isoOfDate(cycleEndForStart(c, state.salaryDay));
+          var spends = state.spendings.filter(function (s) { return s.date >= cMin && s.date <= cMax && (catFilter === "all" || s.categoryId === catFilter); });
+          return { start: c, total: spends.reduce(function (s, x) { return s + x.amount; }, 0) };
+        });
+        var maxCycleTotal = Math.max.apply(null, cycleTotals.map(function (c) { return c.total; }).concat([0.01]));
+        cycleTotals.forEach(function (c) {
+          var col = document.createElement("div");
+          col.className = "bar-col";
+          var h = Math.max(3, Math.round((c.total / maxCycleTotal) * 140));
+          var end = cycleEndForStart(c.start, state.salaryDay);
+          col.innerHTML = '<div class="bar-group"><div class="bar" style="height:' + h + 'px;background:var(--accent);" title="' + escapeHtml(cycleLabel(c.start, end)) + ': ' + money(c.total) + '"></div></div><div class="bar-label">' + MO[c.start.getMonth()] + ' ' + c.start.getDate() + '</div>';
+          cycleBarChart.appendChild(col);
+        });
+
+        // salary vs. spent — whole-budget view, ignores the tag filter on purpose
+        var salarySpendChart = document.getElementById("salarySpendChart");
+        salarySpendChart.innerHTML = "";
+        var maxPair = 0.01;
+        var pairs = cycles.map(function (c) {
+          var cMin = isoOfDate(c), cMax = isoOfDate(cycleEndForStart(c, state.salaryDay));
+          var spentTotal = state.spendings.filter(function (s) { return s.date >= cMin && s.date <= cMax; }).reduce(function (s, x) { return s + x.amount; }, 0);
+          var sal = salaryForCycle(c);
+          maxPair = Math.max(maxPair, spentTotal, sal || 0);
+          return { start: c, spent: spentTotal, salary: sal };
+        });
+        pairs.forEach(function (p) {
+          var col = document.createElement("div");
+          col.className = "bar-col";
+          var spentH = Math.max(3, Math.round((p.spent / maxPair) * 140));
+          var salH = p.salary !== null ? Math.max(3, Math.round((p.salary / maxPair) * 140)) : 0;
+          var group = '<div class="bar-group">' +
+            '<div class="bar" style="height:' + salH + 'px;background:var(--ink-faint);" title="salary: ' + (p.salary !== null ? money(p.salary) : "not set") + '"></div>' +
+            '<div class="bar" style="height:' + spentH + 'px;background:var(--accent);" title="spent: ' + money(p.spent) + '"></div>' +
+            '</div>';
+          col.innerHTML = group + '<div class="bar-label">' + MO[p.start.getMonth()] + ' ' + p.start.getDate() + '</div>';
+          salarySpendChart.appendChild(col);
+        });
+
+        // by-tag donut — always the full mix for context, independent of the tag filter above
+        var totalsByCat = {};
+        inRange.forEach(function (s) { totalsByCat[s.categoryId] = (totalsByCat[s.categoryId] || 0) + s.amount; });
+        var donutTotal = inRange.reduce(function (s, x) { return s + x.amount; }, 0);
+        var entries = Object.keys(totalsByCat).map(function (id) {
+          var cat = categoryById(id);
+          return { id: id, name: cat ? cat.name : "unknown", color: cat ? cat.color : "#999", amount: totalsByCat[id] };
+        }).sort(function (a, b) { return b.amount - a.amount; });
+        var r = 78, cx = 95, cy = 95, circ = 2 * Math.PI * r;
+        var svgParts = ['<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="#f0ede4" stroke-width="20"/>'];
+        var offsetAcc = 0;
+        entries.forEach(function (e) {
+          var frac = donutTotal > 0 ? e.amount / donutTotal : 0;
+          var len = frac * circ;
+          svgParts.push('<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="' + e.color + '" stroke-width="20" stroke-dasharray="' + len.toFixed(2) + ' ' + (circ - len).toFixed(2) + '" stroke-dashoffset="' + (-offsetAcc).toFixed(2) + '" transform="rotate(-90 ' + cx + ' ' + cy + ')" stroke-linecap="butt"/>');
+          offsetAcc += len;
+        });
+        document.getElementById("reportDonutSvg").innerHTML = svgParts.join("");
+        document.getElementById("reportDonutAmt").textContent = money(donutTotal);
+        var reportLegendBox = document.getElementById("reportLegendBox");
+        reportLegendBox.innerHTML = "";
+        if (entries.length === 0) reportLegendBox.innerHTML = '<div class="empty-state" style="padding:6px 0;">◌ nothing in this range yet</div>';
+        entries.forEach(function (e) {
+          var pct = donutTotal > 0 ? Math.round((e.amount / donutTotal) * 100) : 0;
+          var row = document.createElement("div");
+          row.className = "legend-row";
+          row.innerHTML = '<span class="sw" style="background:' + e.color + '"></span><span class="name">' + escapeHtml(e.name) + '</span><span class="pct">' + pct + '%</span><span class="amt">' + money(e.amount) + '</span>';
+          reportLegendBox.appendChild(row);
         });
       }
 
@@ -2576,9 +3506,20 @@
             state.subscribed = fresh.subscribed;
             save();
             renderBilling();
-            toast(state.subscribed ? "you're on Pro — thank you!" : "still on trial/free — webhooks can take a minute after payment");
+            showSubscriptionResultModal(state.subscribed);
           }
         }).catch(function () { toast("couldn't check right now, try again shortly"); });
+      }
+
+      function showSubscriptionResultModal(subscribed) {
+        var html = subscribed
+          ? ('<div class="modal-head"><h3>🎉 Yes, you did!</h3><button class="modal-close" type="button">&times;</button></div>' +
+            '<p class="modal-sub">We can see an active Pro subscription on your account — everything’s unlocked and syncing. Thanks for supporting Everything Budgeted.</p>' +
+            '<div class="modal-actions"><button class="btn-text primary" type="button" data-modal-cancel style="flex:1;">Nice, let’s go</button></div>')
+          : ('<div class="modal-head"><h3>Not yet</h3><button class="modal-close" type="button">&times;</button></div>' +
+            '<p class="modal-sub">We don’t see an active subscription yet. If you just paid, confirmation can take a minute or two — otherwise, upgrade below and we’ll unlock things the moment it clears.</p>' +
+            '<div class="modal-actions"><a class="btn-text primary" href="' + upgradeUrl() + '" target="_blank" rel="noopener" style="flex:1; text-align:center;">Upgrade — $5/mo</a><button class="btn-text" type="button" data-modal-cancel>Close</button></div>');
+        openModal(html);
       }
       lockRecheckBtn.addEventListener("click", recheckSubscription);
       var authGate = document.getElementById("authGate");
@@ -2663,10 +3604,12 @@
         salaryDayInput.value = state.salaryDay;
         applyAccentColor(state.accentColor);
         renderSwatches();
-        refreshAllCategorySelects();
         renderChecklist();
         renderAnalytics(false);
         renderHistory();
+        renderWishlist();
+        renderReportCategoryOptions();
+        renderReports();
         renderAccountCard();
         renderBilling();
         footerTip.textContent = cloudEnabled
