@@ -1889,6 +1889,41 @@
       margin-bottom: 18px;
     }
 
+    /* ---------- Subscriptions ---------- */
+    .sub-renewal {
+      margin-top: 10px;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      color: var(--ink-soft);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .sub-renewal .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--ink-faint);
+      flex-shrink: 0;
+    }
+
+    .sub-renewal.soon {
+      color: var(--amber);
+    }
+
+    .sub-renewal.soon .dot {
+      background: var(--amber);
+    }
+
+    .sub-renewal.today {
+      color: var(--accent-ink);
+    }
+
+    .sub-renewal.today .dot {
+      background: var(--accent);
+    }
+
     @media (max-width: 520px) {
       .report-stat-strip {
         grid-template-columns: 1fr 1fr;
@@ -1919,6 +1954,10 @@
       <div class="auth-brand"><span class="dot"></span>Everything<b>Budgeted</b></div>
       <p class="auth-sub" id="authSub">&gt; sign in to sync your data across devices</p>
       <div class="auth-error" id="authError"></div>
+      <div class="auth-field" id="authNameField" style="display:none;">
+        <label>Name</label>
+        <input type="text" id="authName" placeholder="what should we call you?" maxlength="40" autocomplete="name">
+      </div>
       <div class="auth-field">
         <label>Email</label>
         <input type="email" id="authEmail" placeholder="you@example.com" autocomplete="email">
@@ -1972,6 +2011,7 @@
       <div class="tabs" role="tablist">
         <button class="tab-btn active" data-tab="checklist" role="tab"><span class="pill-bg"></span>CHECKLIST</button>
         <button class="tab-btn" data-tab="analytics" role="tab"><span class="pill-bg"></span>ANALYTICS</button>
+        <button class="tab-btn" data-tab="subscriptions" role="tab"><span class="pill-bg"></span>SUBSCRIPTIONS</button>
         <button class="tab-btn" data-tab="wishlist" role="tab"><span class="pill-bg"></span>WISH LIST</button>
         <button class="tab-btn" data-tab="reports" role="tab"><span class="pill-bg"></span>REPORTS</button>
         <button class="tab-btn" data-tab="history" role="tab"><span class="pill-bg"></span>HISTORY</button>
@@ -2058,6 +2098,35 @@
 
           <div class="spend-log" id="spendLog"></div>
         </div>
+      </section>
+
+      <!-- SUBSCRIPTIONS PANEL -->
+      <section class="panel" id="panel-subscriptions">
+        <div class="section-head">
+          <h2 class="hl"><span>Subscriptions</span></h2>
+        </div>
+        <p class="sub-note">&gt; every recurring bill in one place — Netflix on the 17th, and everything else</p>
+
+        <div class="stat-strip">
+          <div class="stat-box">
+            <div class="k">Monthly Total</div>
+            <div class="v" id="subMonthlyTotalStat">$0.00</div>
+          </div>
+          <div class="stat-box">
+            <div class="k">Yearly Total</div>
+            <div class="v" id="subYearlyTotalStat">$0.00</div>
+          </div>
+          <div class="stat-box" id="subNextBox">
+            <div class="k">Next Renewal</div>
+            <div class="v" id="subNextStat">—</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <button class="add-trigger-btn" id="openAddSubBtn" type="button">+ add a subscription</button>
+        </div>
+
+        <div id="subList"></div>
       </section>
 
       <!-- WISH LIST PANEL -->
@@ -2153,6 +2222,11 @@
           <h2 class="hl"><span>Settings</span></h2>
         </div>
         <p class="sub-note">&gt; configure currency, pay cycle, and cloud sync</p>
+
+        <div class="card">
+          <span class="field-label">Your name</span>
+          <input type="text" id="usernameInput" placeholder="what should we call you?" maxlength="40">
+        </div>
 
         <div class="card">
           <span class="field-label">Currency</span>
@@ -2296,6 +2370,7 @@
 
       function defaultState() {
         return {
+          username: "",
           currency: CURRENCIES[0],
           salaryDay: 1,
           accentColor: "#17c99a",
@@ -2304,6 +2379,7 @@
           spendings: [],
           salaryByCycle: {},
           wishlist: [],
+          subscriptions: [],
           lastReset: todayISO(),
           trialStart: null,
           subscribed: false
@@ -2313,6 +2389,7 @@
       function normalizeState(raw) {
         var s = defaultState();
         if (raw && typeof raw === "object") {
+          s.username = raw.username || "";
           s.currency = raw.currency && raw.currency.symbol ? raw.currency : s.currency;
           s.salaryDay = raw.salaryDay || s.salaryDay;
           s.accentColor = raw.accentColor || s.accentColor;
@@ -2329,6 +2406,7 @@
             s.salaryByCycle[curCycleKey] = raw.salary;
           }
           s.wishlist = raw.wishlist || [];
+          s.subscriptions = raw.subscriptions || [];
           s.lastReset = raw.lastReset || s.lastReset;
           s.trialStart = raw.trialStart || null;
           s.subscribed = !!raw.subscribed;
@@ -2559,6 +2637,7 @@
       var panels = {
         checklist: document.getElementById("panel-checklist"),
         analytics: document.getElementById("panel-analytics"),
+        subscriptions: document.getElementById("panel-subscriptions"),
         wishlist: document.getElementById("panel-wishlist"),
         reports: document.getElementById("panel-reports"),
         history: document.getElementById("panel-history"),
@@ -2572,6 +2651,7 @@
           panels[btn.dataset.tab].classList.add("active");
           if (btn.dataset.tab === "analytics") renderAnalytics(true);
           if (btn.dataset.tab === "history") renderHistory();
+          if (btn.dataset.tab === "subscriptions") renderSubscriptions();
           if (btn.dataset.tab === "wishlist") renderWishlist();
           if (btn.dataset.tab === "reports") { renderReportCategoryOptions(); renderReports(); }
         });
@@ -3185,6 +3265,179 @@
         });
       }
 
+      /* ---------- subscriptions ---------- */
+      var subListBox = document.getElementById("subList");
+
+      function nextRenewalDate(billingDay, fromDate) {
+        fromDate = fromDate || new Date();
+        var y = fromDate.getFullYear(), m = fromDate.getMonth();
+        var cand = new Date(y, m, Math.min(billingDay, daysInMonth(y, m)));
+        cand.setHours(0, 0, 0, 0);
+        var f0 = new Date(fromDate); f0.setHours(0, 0, 0, 0);
+        if (cand.getTime() >= f0.getTime()) return cand;
+        var nm = m + 1, ny = y; if (nm > 11) { nm = 0; ny++; }
+        var next = new Date(ny, nm, Math.min(billingDay, daysInMonth(ny, nm)));
+        next.setHours(0, 0, 0, 0);
+        return next;
+      }
+      function sanitizeBillingDay(raw) {
+        var v = parseInt(raw, 10);
+        if (isNaN(v) || v < 1 || v > 31) return null;
+        return v;
+      }
+
+      function renderSubscriptions() {
+        subListBox.innerHTML = "";
+        var subs = state.subscriptions.slice();
+        var monthlyTotal = subs.reduce(function (s, x) { return s + x.price; }, 0);
+        document.getElementById("subMonthlyTotalStat").textContent = money(monthlyTotal);
+        document.getElementById("subYearlyTotalStat").textContent = money(monthlyTotal * 12);
+
+        var today = new Date(); today.setHours(0, 0, 0, 0);
+        var withRenewal = subs.map(function (s) { return { sub: s, renewal: nextRenewalDate(s.billingDay, today) }; })
+          .sort(function (a, b) { return a.renewal - b.renewal; });
+
+        var nextBox = document.getElementById("subNextBox");
+        if (withRenewal.length) {
+          var first = withRenewal[0];
+          var days0 = Math.round((first.renewal - today) / 86400000);
+          document.getElementById("subNextStat").textContent = first.sub.name + (days0 === 0 ? " · today" : days0 === 1 ? " · tomorrow" : " · " + days0 + "d");
+          nextBox.classList.toggle("warn", days0 <= 2);
+        } else {
+          document.getElementById("subNextStat").textContent = "—";
+          nextBox.classList.remove("warn");
+        }
+
+        if (subs.length === 0) {
+          subListBox.innerHTML = '<div class="empty-state"><span class="glyph">◌</span>no subscriptions tracked yet — add your first one above</div>';
+          return;
+        }
+
+        withRenewal.forEach(function (entry) {
+          var item = entry.sub;
+          var days = Math.round((entry.renewal - today) / 86400000);
+          var renewalClass = days === 0 ? "today" : (days <= 3 ? "soon" : "");
+          var renewalText = days === 0 ? "renews today" : days === 1 ? "renews tomorrow" : "renews in " + days + " days";
+          var dLabel = MO[entry.renewal.getMonth()] + " " + entry.renewal.getDate();
+          var card = document.createElement("div");
+          card.className = "wish-card";
+          card.innerHTML =
+            '<div class="wish-top"><div class="wish-name">' + escapeHtml(item.name) + '</div><div class="wish-price">' + money(item.price) + '/mo</div></div>' +
+            '<div class="sub-renewal ' + renewalClass + '"><span class="dot"></span>' + renewalText + ' · ' + dLabel + ' (day ' + item.billingDay + ')</div>' +
+            '<div class="wish-actions">' +
+            '<button class="btn-text primary" data-act="log">Log this month</button>' +
+            '<button class="btn-text" data-act="edit">Edit</button>' +
+            '<button class="btn-text danger" data-act="remove">Remove</button>' +
+            '</div>';
+          card.querySelector('[data-act="edit"]').addEventListener("click", function () { openEditSubscriptionModal(item); });
+          card.querySelector('[data-act="log"]').addEventListener("click", function () { openLogSubscriptionModal(item); });
+          card.querySelector('[data-act="remove"]').addEventListener("click", function () {
+            var idx = state.subscriptions.indexOf(item);
+            state.subscriptions = state.subscriptions.filter(function (x) { return x.id !== item.id; });
+            save();
+            renderSubscriptions();
+            toast("“" + item.name + "” removed", function () {
+              state.subscriptions.splice(Math.min(idx, state.subscriptions.length), 0, item);
+              save();
+              renderSubscriptions();
+            });
+          });
+          subListBox.appendChild(card);
+        });
+      }
+
+      function openAddSubscriptionModal() {
+        var html =
+          '<div class="modal-head"><h3>Add a subscription</h3><button class="modal-close" type="button">&times;</button></div>' +
+          '<div class="modal-error" id="mError"></div>' +
+          '<div class="modal-field"><label>Name</label><input type="text" id="mName" placeholder="e.g. Netflix" maxlength="40"></div>' +
+          '<div class="modal-field"><label>Price / month</label><input type="number" id="mPrice" placeholder="0.00" step="0.01" min="0"></div>' +
+          '<div class="modal-field"><label>Billing day of month</label><input type="number" id="mDay" placeholder="e.g. 17" min="1" max="31" step="1"></div>' +
+          '<div class="modal-actions"><button class="btn-text primary" id="mSave" type="button" style="flex:2;">Add</button><button class="btn-text" type="button" data-modal-cancel>Cancel</button></div>';
+        openModal(html);
+        var nameInput = document.getElementById("mName"), priceInput = document.getElementById("mPrice"), dayInput = document.getElementById("mDay");
+        function submit() {
+          var name = sanitizeLabel(nameInput.value, 40);
+          var price = sanitizeAmount(priceInput.value);
+          var day = sanitizeBillingDay(dayInput.value);
+          if (!name) { showModalError("give it a real name"); nameInput.focus(); return; }
+          if (price === null) { showModalError("enter a valid monthly price (0 – " + MAX_LOG_AMOUNT.toLocaleString() + ")"); priceInput.focus(); return; }
+          if (day === null) { showModalError("billing day must be between 1 and 31"); dayInput.focus(); return; }
+          state.subscriptions.push({ id: uid(), name: name, price: price, billingDay: day, createdAt: Date.now() });
+          save();
+          renderSubscriptions();
+          closeModal();
+          toast("“" + name + "” added");
+        }
+        document.getElementById("mSave").addEventListener("click", submit);
+        [nameInput, priceInput, dayInput].forEach(function (el) { el.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); submit(); } }); });
+      }
+      document.getElementById("openAddSubBtn").addEventListener("click", openAddSubscriptionModal);
+
+      function openEditSubscriptionModal(item) {
+        var html =
+          '<div class="modal-head"><h3>Edit subscription</h3><button class="modal-close" type="button">&times;</button></div>' +
+          '<div class="modal-error" id="mError"></div>' +
+          '<div class="modal-field"><label>Name</label><input type="text" id="mName" maxlength="40" value="' + escapeHtml(item.name) + '"></div>' +
+          '<div class="modal-field"><label>Price / month</label><input type="number" id="mPrice" step="0.01" min="0" value="' + item.price + '"></div>' +
+          '<div class="modal-field"><label>Billing day of month</label><input type="number" id="mDay" min="1" max="31" step="1" value="' + item.billingDay + '"></div>' +
+          '<div class="modal-actions"><button class="btn-text primary" id="mSave" type="button" style="flex:2;">Save</button><button class="btn-text danger" id="mDelete" type="button">Delete</button></div>';
+        openModal(html);
+        var nameInput = document.getElementById("mName"), priceInput = document.getElementById("mPrice"), dayInput = document.getElementById("mDay");
+        function submit() {
+          var name = sanitizeLabel(nameInput.value, 40);
+          var price = sanitizeAmount(priceInput.value);
+          var day = sanitizeBillingDay(dayInput.value);
+          if (!name) { showModalError("give it a real name"); nameInput.focus(); return; }
+          if (price === null) { showModalError("enter a valid monthly price (0 – " + MAX_LOG_AMOUNT.toLocaleString() + ")"); priceInput.focus(); return; }
+          if (day === null) { showModalError("billing day must be between 1 and 31"); dayInput.focus(); return; }
+          item.name = name; item.price = price; item.billingDay = day;
+          save();
+          renderSubscriptions();
+          closeModal();
+          toast("subscription updated");
+        }
+        document.getElementById("mSave").addEventListener("click", submit);
+        document.getElementById("mDelete").addEventListener("click", function () {
+          state.subscriptions = state.subscriptions.filter(function (x) { return x.id !== item.id; });
+          save(); renderSubscriptions(); closeModal();
+          toast("“" + item.name + "” removed");
+        });
+        [nameInput, priceInput, dayInput].forEach(function (el) { el.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); submit(); } }); });
+      }
+
+      function openLogSubscriptionModal(item) {
+        var curStart = viewingCycleStart || cycleStartForDate(new Date(), state.salaryDay);
+        var end = cycleEndForStart(curStart, state.salaryDay);
+        var minISO = isoOfDate(curStart), maxISO = isoOfDate(end);
+        var t = todayISO();
+        var defaultDate = (t >= minISO && t <= maxISO) ? t : maxISO;
+        var html =
+          '<div class="modal-head"><h3>Log this month’s charge</h3><button class="modal-close" type="button">&times;</button></div>' +
+          '<p class="modal-sub">Logs “' + escapeHtml(item.name) + '” (' + money(item.price) + ') as a spend in Analytics.</p>' +
+          '<div class="modal-error" id="mError"></div>' +
+          '<div class="modal-field"><label>Tag</label><select id="mCat">' + categoryOptionsHTML(null) + '</select></div>' +
+          '<div class="new-cat-row" id="mNewCatRow"><input type="text" id="mNewCatName" placeholder="new tag name…" maxlength="20"><button class="btn-add" type="button">✓</button></div>' +
+          quickTagsHTML() +
+          '<div class="modal-field"><label>Date</label><input type="date" id="mDate" min="' + minISO + '" max="' + maxISO + '" value="' + defaultDate + '"></div>' +
+          '<div class="modal-actions"><button class="btn-text primary" id="mSave" type="button" style="flex:2;">Log spend</button><button class="btn-text" type="button" data-modal-cancel>Cancel</button></div>';
+        openModal(html);
+        var catSel = document.getElementById("mCat"), dateInput = document.getElementById("mDate");
+        wireModalCategorySelect(catSel, document.getElementById("mNewCatRow"), document.getElementById("mNewCatName"));
+        wireQuickTags(catSel, dateInput);
+        document.getElementById("mSave").addEventListener("click", function () {
+          var catId = catSel.value;
+          var dateVal = sanitizeDateInRange(dateInput.value, minISO, maxISO);
+          if (catId === "__new__" || !catId) { showModalError("give it a tag first"); return; }
+          if (!dateVal) { showModalError("pick a date within this cycle (" + minISO + " – " + maxISO + ")"); return; }
+          state.spendings.push({ id: uid(), categoryId: catId, amount: item.price, note: item.name, date: dateVal, createdAt: Date.now() });
+          save();
+          renderAnalytics(false); renderHistory();
+          closeModal();
+          toast("logged as a spend");
+        });
+      }
+
       /* ---------- reports ---------- */
       var reportRangeSel = document.getElementById("reportRange");
       var reportCategorySel = document.getElementById("reportCategory");
@@ -3332,6 +3585,16 @@
       }
 
       /* ---------- settings ---------- */
+      var usernameInput = document.getElementById("usernameInput");
+      usernameInput.addEventListener("change", function () {
+        var name = sanitizeLabel(usernameInput.value, 40) || "";
+        state.username = name;
+        usernameInput.value = name;
+        save();
+        var greeting = state.username ? ("hey " + state.username + " — ") : "";
+        todayStrEl.textContent = "› " + greeting + new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }).toLowerCase() + " — checks reset every new day";
+      });
+
       var currencySelect = document.getElementById("currencySelect");
       CURRENCIES.forEach(function (c) {
         var opt = document.createElement("option");
@@ -3523,6 +3786,8 @@
       }
       lockRecheckBtn.addEventListener("click", recheckSubscription);
       var authGate = document.getElementById("authGate");
+      var authName = document.getElementById("authName");
+      var authNameField = document.getElementById("authNameField");
       var authEmail = document.getElementById("authEmail");
       var authPassword = document.getElementById("authPassword");
       var authError = document.getElementById("authError");
@@ -3540,11 +3805,13 @@
           authToggleText.textContent = "Don't have an account?";
           authToggleBtn.textContent = "Create one";
           authSub.textContent = "\u203a sign in to sync your data across devices";
+          authNameField.style.display = "none";
         } else {
           authSubmitBtn.textContent = "Create account";
           authToggleText.textContent = "Already have an account?";
           authToggleBtn.textContent = "Sign in";
           authSub.textContent = "\u203a create an account to start syncing";
+          authNameField.style.display = "";
         }
       }
       authToggleBtn.addEventListener("click", function () { setAuthMode(authMode === "signin" ? "signup" : "signin"); });
@@ -3571,20 +3838,31 @@
       };
       function friendlyAuthError(err) { return AUTH_ERROR_MAP[err.code] || err.message || "something went wrong"; }
 
+      var pendingSignupName = "";
       authSubmitBtn.addEventListener("click", function () {
         var email = authEmail.value.trim();
         var pass = authPassword.value;
         if (!email || !pass) { showAuthError("enter both email and password"); return; }
+        var name = "";
+        if (authMode === "signup") {
+          name = sanitizeLabel(authName.value, 40) || "";
+          if (!name) { showAuthError("tell us what to call you"); authName.focus(); return; }
+        }
         authSubmitBtn.disabled = true;
         var origText = authSubmitBtn.textContent;
         authSubmitBtn.textContent = "…";
         var done = function () { authSubmitBtn.disabled = false; authSubmitBtn.textContent = origText; };
-        var action = authMode === "signin"
-          ? auth.signInWithEmailAndPassword(email, pass)
-          : auth.createUserWithEmailAndPassword(email, pass);
-        action.then(function () { done(); }).catch(function (err) { done(); showAuthError(friendlyAuthError(err)); });
+        if (authMode === "signup") {
+          pendingSignupName = name;
+          auth.createUserWithEmailAndPassword(email, pass).then(function (cred) {
+            done();
+            if (cred && cred.user && cred.user.updateProfile) cred.user.updateProfile({ displayName: name });
+          }).catch(function (err) { done(); showAuthError(friendlyAuthError(err)); });
+        } else {
+          auth.signInWithEmailAndPassword(email, pass).then(function () { done(); }).catch(function (err) { done(); showAuthError(friendlyAuthError(err)); });
+        }
       });
-      [authEmail, authPassword].forEach(function (el) {
+      [authName, authEmail, authPassword].forEach(function (el) {
         el.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); authSubmitBtn.click(); } });
       });
 
@@ -3599,14 +3877,17 @@
       function initAppUI() {
         ensureDailyReset();
         viewingCycleStart = cycleStartForDate(new Date(), state.salaryDay);
-        todayStrEl.textContent = "\u203a " + new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }).toLowerCase() + " — checks reset every new day";
+        var greeting = state.username ? ("hey " + state.username + " — ") : "";
+        todayStrEl.textContent = "\u203a " + greeting + new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }).toLowerCase() + " — checks reset every new day";
         currencySelect.value = state.currency.code;
         salaryDayInput.value = state.salaryDay;
+        usernameInput.value = state.username || "";
         applyAccentColor(state.accentColor);
         renderSwatches();
         renderChecklist();
         renderAnalytics(false);
         renderHistory();
+        renderSubscriptions();
         renderWishlist();
         renderReportCategoryOptions();
         renderReports();
@@ -3648,6 +3929,7 @@
                 if (!state.trialStart) { state.trialStart = Date.now(); save(); }
               } else {
                 state = loadLocalState();
+                state.username = pendingSignupName || user.displayName || state.username || "";
                 state.trialStart = Date.now();
                 state.subscribed = false;
                 db.collection("users").doc(user.uid).set(state);
@@ -3665,7 +3947,7 @@
             authGate.classList.add("show");
             billingLock.classList.remove("show");
             trialBanner.classList.remove("show");
-            authEmail.value = ""; authPassword.value = "";
+            authName.value = ""; authEmail.value = ""; authPassword.value = "";
             hideBootLoader();
           }
         });
