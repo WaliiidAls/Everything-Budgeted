@@ -932,6 +932,56 @@
       margin-right: 6px;
     }
 
+    .cur-chip {
+      font-family: var(--font-mono);
+      font-size: 8.5px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: var(--ink-soft);
+      background: var(--line-soft);
+      border-radius: 5px;
+      padding: 1px 5px;
+      margin-left: 6px;
+      white-space: nowrap;
+    }
+
+    .currency-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px dashed var(--line);
+    }
+
+    .currency-row:last-child {
+      border-bottom: none;
+    }
+
+    .currency-row .code {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    .currency-row .rate {
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      color: var(--ink-faint);
+      margin-top: 2px;
+    }
+
+    .currency-row .actions {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .currency-row .actions button {
+      font-size: 10.5px;
+      padding: 5px 10px;
+    }
+
     /* ---------- History ---------- */
     .history-card {
       background: var(--bg-card);
@@ -2231,6 +2281,14 @@
         <div class="card">
           <span class="field-label">Currency</span>
           <select id="currencySelect"></select>
+          <p class="helper-text">Your main currency — used for totals, salary, and budgets everywhere.</p>
+        </div>
+
+        <div class="card">
+          <span class="field-label">Other currencies</span>
+          <p class="helper-text" style="margin-top:0;">Log a spend or subscription in a different currency (e.g. USD) while keeping totals in your main currency. Set the exchange rate yourself, and update it whenever it changes.</p>
+          <div id="extraCurrencyList"></div>
+          <button class="add-trigger-btn" id="openAddCurrencyBtn" type="button">+ add a currency</button>
         </div>
 
         <div class="card">
@@ -2380,6 +2438,7 @@
           salaryByCycle: {},
           wishlist: [],
           subscriptions: [],
+          extraCurrencies: [],
           lastReset: todayISO(),
           trialStart: null,
           subscribed: false
@@ -2407,6 +2466,7 @@
           }
           s.wishlist = raw.wishlist || [];
           s.subscriptions = raw.subscriptions || [];
+          s.extraCurrencies = (raw.extraCurrencies || []).filter(function (c) { return c && c.code !== s.currency.code; });
           s.lastReset = raw.lastReset || s.lastReset;
           s.trialStart = raw.trialStart || null;
           s.subscribed = !!raw.subscribed;
@@ -2461,10 +2521,37 @@
       }
 
       function money(n) {
-        var c = (state && state.currency) || CURRENCIES[0];
+        return formatIn(n, (state && state.currency && state.currency.code) || CURRENCIES[0].code);
+      }
+
+      /* ---------- multi-currency: log a spend/subscription in USD even when your main currency is KWD ---------- */
+      function currencyObjFor(code) {
+        return CURRENCIES.find(function (c) { return c.code === code; }) || (state && state.currency) || CURRENCIES[0];
+      }
+      function formatIn(n, code) {
+        var c = currencyObjFor(code);
         var rounded = Math.round((n + Number.EPSILON) * Math.pow(10, c.decimals)) / Math.pow(10, c.decimals);
         var v = rounded.toLocaleString(undefined, { minimumFractionDigits: c.decimals, maximumFractionDigits: c.decimals });
         return c.after ? (v + " " + c.symbol) : (c.symbol + v);
+      }
+      // how many main-currency units equal 1 unit of `code` — 1 for the main currency itself
+      function rateToMain(code) {
+        if (!code || code === state.currency.code) return 1;
+        var ec = state.extraCurrencies.find(function (c) { return c.code === code; });
+        return ec ? ec.rate : 1;
+      }
+      // convert an amount that was entered/stored in `code` into the main currency, for totals & charts
+      function toMain(amount, code) {
+        return amount * rateToMain(code);
+      }
+      function availableCurrencyCodes() {
+        return [state.currency.code].concat(state.extraCurrencies.map(function (c) { return c.code; }));
+      }
+      function currencySelectOptionsHTML(selectedCode) {
+        var sel = selectedCode || state.currency.code;
+        return availableCurrencyCodes().map(function (code) {
+          return '<option value="' + code + '"' + (code === sel ? " selected" : "") + '>' + code + (code === state.currency.code ? " (main)" : "") + '</option>';
+        }).join("");
       }
 
       function hexToRgba(hex, alpha) {
@@ -2526,16 +2613,24 @@
 
       /* ---------- validation (nothing unreasonable gets logged) ---------- */
       var MAX_LOG_AMOUNT = 999999; // sanity ceiling — catches fat-finger typos, not real purchases
-      function sanitizeAmount(raw, opts) {
+      function sanitizeAmountInCurrency(raw, code, opts) {
         opts = opts || {};
         var v = parseFloat(raw);
         if (isNaN(v) || !isFinite(v)) return null;
         if (v < 0) return null;
         if (!opts.allowZero && v <= 0) return null;
         if (v > MAX_LOG_AMOUNT) return null;
-        var c = (state && state.currency) || CURRENCIES[0];
+        var c = currencyObjFor(code);
         var f = Math.pow(10, c.decimals);
         return Math.round((v + Number.EPSILON) * f) / f;
+      }
+      function sanitizeAmount(raw, opts) {
+        return sanitizeAmountInCurrency(raw, state.currency.code, opts);
+      }
+      function sanitizeRate(raw) {
+        var v = parseFloat(raw);
+        if (isNaN(v) || !isFinite(v) || v <= 0 || v > 1000000) return null;
+        return Math.round((v + Number.EPSILON) * 1e6) / 1e6;
       }
       function sanitizeLabel(raw, maxLen) {
         maxLen = maxLen || 60;
@@ -2909,8 +3004,8 @@
         var inCycle = state.spendings.filter(function (s) { return s.date >= minISO && s.date <= maxISO; });
 
         var totalsByCat = {};
-        inCycle.forEach(function (s) { totalsByCat[s.categoryId] = (totalsByCat[s.categoryId] || 0) + s.amount; });
-        var total = inCycle.reduce(function (s, x) { return s + x.amount; }, 0);
+        inCycle.forEach(function (s) { totalsByCat[s.categoryId] = (totalsByCat[s.categoryId] || 0) + toMain(s.amount, s.currency); });
+        var total = inCycle.reduce(function (s, x) { return s + toMain(x.amount, x.currency); }, 0);
 
         totalSpentStat.textContent = money(total);
         if (cycleSalary !== null && cycleSalary > 0) {
@@ -2956,7 +3051,7 @@
 
         spendLog.innerHTML = "";
         var sorted = inCycle.slice().sort(function (a, b) {
-          var res = spendSort.key === "price" ? (a.amount - b.amount) : (a.date === b.date ? a.createdAt - b.createdAt : (a.date < b.date ? -1 : 1));
+          var res = spendSort.key === "price" ? (toMain(a.amount, a.currency) - toMain(b.amount, b.currency)) : (a.date === b.date ? a.createdAt - b.createdAt : (a.date < b.date ? -1 : 1));
           return spendSort.dir === "desc" ? -res : res;
         });
         if (sorted.length === 0) spendLog.innerHTML = '<div class="empty-state" style="padding:6px 0;">nothing logged yet — add a spend below</div>';
@@ -2966,11 +3061,13 @@
           row.className = "spend-item";
           var d = dateFromISO(s.date);
           var sourceBadge = s.fromChecklist ? '<span class="src-badge" title="logged from today’s ledger">ledger</span>' : '';
+          var foreign = s.currency && s.currency !== state.currency.code;
+          var curChip = foreign ? '<span class="cur-chip" title="logged as ' + formatIn(s.amount, s.currency) + '">' + s.currency + '</span>' : '';
           row.innerHTML =
             '<span class="sw" style="background:' + (cat ? cat.color : "#999") + '"></span>' +
-            '<span class="lab">' + sourceBadge + escapeHtml(cat ? cat.name : "unknown") + (s.note ? ' <span style="color:var(--ink-faint)">— ' + escapeHtml(s.note) + '</span>' : '') + '</span>' +
+            '<span class="lab">' + sourceBadge + escapeHtml(cat ? cat.name : "unknown") + (s.note ? ' <span style="color:var(--ink-faint)">— ' + escapeHtml(s.note) + '</span>' : '') + curChip + '</span>' +
             '<span class="date">' + d.toLocaleDateString(undefined, { month: "short", day: "numeric" }) + '</span>' +
-            '<span class="amt">' + money(s.amount) + '</span>' +
+            '<span class="amt">' + money(toMain(s.amount, s.currency)) + '</span>' +
             '<button class="row-edit" title="edit">✎</button>' +
             '<button class="row-del" title="remove">✕</button>';
           row.querySelector(".row-edit").addEventListener("click", function () { openEditSpendModal(s); });
@@ -3010,20 +3107,22 @@
           '<div class="modal-field"><label>Note (optional)</label><input type="text" id="mNote" maxlength="60" placeholder="what was it?"></div>' +
           '<div class="modal-field"><label>Date</label><input type="date" id="mDate" min="' + minISO + '" max="' + maxISO + '" value="' + defaultDate + '"></div>' +
           '<div class="modal-field"><label>Amount</label><input type="number" id="mAmount" placeholder="0.00" step="0.01" min="0"></div>' +
+          (availableCurrencyCodes().length > 1 ? '<div class="modal-field"><label>Currency</label><select id="mCur">' + currencySelectOptionsHTML(null) + '</select></div>' : '') +
           '<div class="modal-actions"><button class="btn-text primary" id="mSave" type="button" style="flex:2;">Log spend</button><button class="btn-text" type="button" data-modal-cancel>Cancel</button></div>';
         openModal(html);
-        var catSel = document.getElementById("mCat"), noteInput = document.getElementById("mNote"), dateInput = document.getElementById("mDate"), amountInput = document.getElementById("mAmount");
+        var catSel = document.getElementById("mCat"), noteInput = document.getElementById("mNote"), dateInput = document.getElementById("mDate"), amountInput = document.getElementById("mAmount"), curSel = document.getElementById("mCur");
         wireModalCategorySelect(catSel, document.getElementById("mNewCatRow"), document.getElementById("mNewCatName"));
         wireQuickTags(catSel, noteInput);
         function submit() {
           var catId = catSel.value;
-          var amount = sanitizeAmount(amountInput.value);
+          var curCode = curSel ? curSel.value : state.currency.code;
+          var amount = sanitizeAmountInCurrency(amountInput.value, curCode);
           var dateVal = sanitizeDateInRange(dateInput.value, minISO, maxISO);
           var note = sanitizeLabel(noteInput.value, 60) || "";
           if (catId === "__new__" || !catId) { showModalError("give this spend a tag first"); return; }
           if (amount === null) { showModalError("enter a valid amount (0 – " + MAX_LOG_AMOUNT.toLocaleString() + ")"); amountInput.focus(); return; }
           if (!dateVal) { showModalError("pick a date within this cycle (" + minISO + " – " + maxISO + ")"); return; }
-          state.spendings.push({ id: uid(), categoryId: catId, amount: amount, note: note, date: dateVal, createdAt: Date.now() });
+          state.spendings.push({ id: uid(), categoryId: catId, amount: amount, currency: curCode === state.currency.code ? null : curCode, note: note, date: dateVal, createdAt: Date.now() });
           save();
           renderAnalytics(true);
           renderHistory();
@@ -3046,22 +3145,24 @@
           '<div class="modal-field"><label>Note (optional)</label><input type="text" id="mNote" maxlength="60" value="' + escapeHtml(s.note || "") + '"></div>' +
           '<div class="modal-field"><label>Date</label><input type="date" id="mDate" min="' + minISO + '" max="' + maxISO + '" value="' + s.date + '"></div>' +
           '<div class="modal-field"><label>Amount</label><input type="number" id="mAmount" step="0.01" min="0" value="' + s.amount + '"></div>' +
+          (availableCurrencyCodes().length > 1 ? '<div class="modal-field"><label>Currency</label><select id="mCur">' + currencySelectOptionsHTML(s.currency || null) + '</select></div>' : '') +
           '<div class="modal-actions"><button class="btn-text primary" id="mSave" type="button" style="flex:2;">Save</button><button class="btn-text danger" id="mDelete" type="button">Delete</button></div>';
         openModal(html);
-        var catSel = document.getElementById("mCat"), noteInput = document.getElementById("mNote"), dateInput = document.getElementById("mDate"), amountInput = document.getElementById("mAmount");
+        var catSel = document.getElementById("mCat"), noteInput = document.getElementById("mNote"), dateInput = document.getElementById("mDate"), amountInput = document.getElementById("mAmount"), curSel = document.getElementById("mCur");
         wireModalCategorySelect(catSel, document.getElementById("mNewCatRow"), document.getElementById("mNewCatName"));
         function submit() {
           var catId = catSel.value;
-          var amount = sanitizeAmount(amountInput.value);
+          var curCode = curSel ? curSel.value : state.currency.code;
+          var amount = sanitizeAmountInCurrency(amountInput.value, curCode);
           var dateVal = sanitizeDateInRange(dateInput.value, minISO, maxISO);
           var note = sanitizeLabel(noteInput.value, 60) || "";
           if (catId === "__new__" || !catId) { showModalError("give this spend a tag first"); return; }
           if (amount === null) { showModalError("enter a valid amount (0 – " + MAX_LOG_AMOUNT.toLocaleString() + ")"); amountInput.focus(); return; }
           if (!dateVal) { showModalError("pick a date within that spend's cycle (" + minISO + " – " + maxISO + ")"); return; }
-          s.categoryId = catId; s.amount = amount; s.date = dateVal; s.note = note;
+          s.categoryId = catId; s.amount = amount; s.currency = curCode === state.currency.code ? null : curCode; s.date = dateVal; s.note = note;
           if (s.fromChecklist) {
             var linkedItem = state.checklist.find(function (i) { return i.linkedSpendId === s.id; });
-            if (linkedItem) { linkedItem.price = amount; linkedItem.categoryId = catId; }
+            if (linkedItem) { linkedItem.price = toMain(amount, curCode); linkedItem.categoryId = catId; }
           }
           save();
           renderAnalytics(false); renderHistory(); renderChecklist();
@@ -3091,7 +3192,7 @@
           var st = cycleStartForDate(dateFromISO(s.date), state.salaryDay);
           var key = isoOfDate(st);
           if (!byId[key]) byId[key] = { start: st, total: 0, count: 0 };
-          byId[key].total += s.amount;
+          byId[key].total += toMain(s.amount, s.currency);
           byId[key].count += 1;
         });
         var list = Object.keys(byId).map(function (k) { return byId[k]; }).sort(function (a, b) { return b.start - a.start; });
@@ -3268,33 +3369,63 @@
       /* ---------- subscriptions ---------- */
       var subListBox = document.getElementById("subList");
 
-      function nextRenewalDate(billingDay, fromDate) {
-        fromDate = fromDate || new Date();
+      function nextRenewalDateMonthly(billingDay, fromDate) {
         var y = fromDate.getFullYear(), m = fromDate.getMonth();
         var cand = new Date(y, m, Math.min(billingDay, daysInMonth(y, m)));
         cand.setHours(0, 0, 0, 0);
-        var f0 = new Date(fromDate); f0.setHours(0, 0, 0, 0);
-        if (cand.getTime() >= f0.getTime()) return cand;
+        if (cand.getTime() >= fromDate.getTime()) return cand;
         var nm = m + 1, ny = y; if (nm > 11) { nm = 0; ny++; }
         var next = new Date(ny, nm, Math.min(billingDay, daysInMonth(ny, nm)));
         next.setHours(0, 0, 0, 0);
         return next;
+      }
+      function nextRenewalDateYearly(billingMonth, billingDay, fromDate) {
+        var y = fromDate.getFullYear(), mIdx = billingMonth - 1;
+        var cand = new Date(y, mIdx, Math.min(billingDay, daysInMonth(y, mIdx)));
+        cand.setHours(0, 0, 0, 0);
+        if (cand.getTime() >= fromDate.getTime()) return cand;
+        var ny = y + 1;
+        var next = new Date(ny, mIdx, Math.min(billingDay, daysInMonth(ny, mIdx)));
+        next.setHours(0, 0, 0, 0);
+        return next;
+      }
+      function renewalDateFor(sub, fromDate) {
+        fromDate = fromDate || new Date();
+        var f0 = new Date(fromDate); f0.setHours(0, 0, 0, 0);
+        return sub.billingCycle === "yearly"
+          ? nextRenewalDateYearly(sub.billingMonth, sub.billingDay, f0)
+          : nextRenewalDateMonthly(sub.billingDay, f0);
       }
       function sanitizeBillingDay(raw) {
         var v = parseInt(raw, 10);
         if (isNaN(v) || v < 1 || v > 31) return null;
         return v;
       }
+      function sanitizeBillingMonth(raw) {
+        var v = parseInt(raw, 10);
+        if (isNaN(v) || v < 1 || v > 12) return null;
+        return v;
+      }
+      // per-billing-event amount, converted to the main currency
+      function subMainAmount(sub) { return toMain(sub.price, sub.currency); }
+      function subMonthlyEquivalent(sub) { var m = subMainAmount(sub); return sub.billingCycle === "yearly" ? m / 12 : m; }
+      function subYearlyEquivalent(sub) { var m = subMainAmount(sub); return sub.billingCycle === "yearly" ? m : m * 12; }
+      function monthOptionsHTML(selected) {
+        return MO.map(function (name, i) {
+          return '<option value="' + (i + 1) + '"' + (i + 1 === selected ? " selected" : "") + '>' + name + '</option>';
+        }).join("");
+      }
 
       function renderSubscriptions() {
         subListBox.innerHTML = "";
         var subs = state.subscriptions.slice();
-        var monthlyTotal = subs.reduce(function (s, x) { return s + x.price; }, 0);
+        var monthlyTotal = subs.reduce(function (s, x) { return s + subMonthlyEquivalent(x); }, 0);
+        var yearlyTotal = subs.reduce(function (s, x) { return s + subYearlyEquivalent(x); }, 0);
         document.getElementById("subMonthlyTotalStat").textContent = money(monthlyTotal);
-        document.getElementById("subYearlyTotalStat").textContent = money(monthlyTotal * 12);
+        document.getElementById("subYearlyTotalStat").textContent = money(yearlyTotal);
 
         var today = new Date(); today.setHours(0, 0, 0, 0);
-        var withRenewal = subs.map(function (s) { return { sub: s, renewal: nextRenewalDate(s.billingDay, today) }; })
+        var withRenewal = subs.map(function (s) { return { sub: s, renewal: renewalDateFor(s, today) }; })
           .sort(function (a, b) { return a.renewal - b.renewal; });
 
         var nextBox = document.getElementById("subNextBox");
@@ -3319,13 +3450,17 @@
           var renewalClass = days === 0 ? "today" : (days <= 3 ? "soon" : "");
           var renewalText = days === 0 ? "renews today" : days === 1 ? "renews tomorrow" : "renews in " + days + " days";
           var dLabel = MO[entry.renewal.getMonth()] + " " + entry.renewal.getDate();
+          var cycleDetail = item.billingCycle === "yearly" ? (dLabel + " · yearly") : (dLabel + " (day " + item.billingDay + ")");
+          var foreign = item.currency && item.currency !== state.currency.code;
+          var curChip = foreign ? '<span class="cur-chip">' + item.currency + '</span>' : '';
+          var unit = item.billingCycle === "yearly" ? "/yr" : "/mo";
           var card = document.createElement("div");
           card.className = "wish-card";
           card.innerHTML =
-            '<div class="wish-top"><div class="wish-name">' + escapeHtml(item.name) + '</div><div class="wish-price">' + money(item.price) + '/mo</div></div>' +
-            '<div class="sub-renewal ' + renewalClass + '"><span class="dot"></span>' + renewalText + ' · ' + dLabel + ' (day ' + item.billingDay + ')</div>' +
+            '<div class="wish-top"><div class="wish-name">' + escapeHtml(item.name) + curChip + '</div><div class="wish-price">' + formatIn(item.price, item.currency || state.currency.code) + unit + '</div></div>' +
+            '<div class="sub-renewal ' + renewalClass + '"><span class="dot"></span>' + renewalText + ' · ' + cycleDetail + '</div>' +
             '<div class="wish-actions">' +
-            '<button class="btn-text primary" data-act="log">Log this month</button>' +
+            '<button class="btn-text primary" data-act="log">Log this charge</button>' +
             '<button class="btn-text" data-act="edit">Edit</button>' +
             '<button class="btn-text danger" data-act="remove">Remove</button>' +
             '</div>';
@@ -3346,31 +3481,70 @@
         });
       }
 
+      function subscriptionModalFieldsHTML(sub) {
+        var cycle = (sub && sub.billingCycle) || "monthly";
+        var day = sub ? sub.billingDay : "";
+        var month = sub ? (sub.billingMonth || (new Date()).getMonth() + 1) : (new Date()).getMonth() + 1;
+        return (
+          '<div class="modal-field"><label>Name</label><input type="text" id="mName" placeholder="e.g. Netflix" maxlength="40" value="' + (sub ? escapeHtml(sub.name) : "") + '"></div>' +
+          '<div class="modal-field"><label>Billing cycle</label><select id="mCycle"><option value="monthly"' + (cycle === "monthly" ? " selected" : "") + '>Monthly</option><option value="yearly"' + (cycle === "yearly" ? " selected" : "") + '>Yearly</option></select></div>' +
+          '<div class="modal-field" id="mMonthlyRow" style="display:' + (cycle === "yearly" ? "none" : "") + ';"><label>Billing day of month</label><input type="number" id="mDay" placeholder="e.g. 17" min="1" max="31" step="1" value="' + (cycle === "monthly" && day ? day : "") + '"></div>' +
+          '<div class="modal-field" id="mYearlyRow" style="display:' + (cycle === "yearly" ? "" : "none") + ';"><label>Renews on</label><div style="display:flex; gap:8px;"><select id="mMonth" style="flex:1;">' + monthOptionsHTML(month) + '</select><input type="number" id="mYearDay" placeholder="day" min="1" max="31" step="1" style="width:80px;" value="' + (cycle === "yearly" && day ? day : "") + '"></div></div>' +
+          '<div class="modal-field"><label id="mPriceLabel">Price / ' + (cycle === "yearly" ? "year" : "month") + '</label><input type="number" id="mPrice" placeholder="0.00" step="0.01" min="0" value="' + (sub ? sub.price : "") + '"></div>' +
+          (availableCurrencyCodes().length > 1 ? '<div class="modal-field"><label>Currency</label><select id="mCur">' + currencySelectOptionsHTML(sub ? sub.currency : null) + '</select></div>' : '')
+        );
+      }
+      function wireSubscriptionCycleToggle() {
+        var cycleSel = document.getElementById("mCycle");
+        var monthlyRow = document.getElementById("mMonthlyRow"), yearlyRow = document.getElementById("mYearlyRow");
+        var priceLabel = document.getElementById("mPriceLabel");
+        cycleSel.addEventListener("change", function () {
+          var yearly = cycleSel.value === "yearly";
+          monthlyRow.style.display = yearly ? "none" : "";
+          yearlyRow.style.display = yearly ? "" : "none";
+          priceLabel.textContent = "Price / " + (yearly ? "year" : "month");
+        });
+      }
+      function readSubscriptionForm() {
+        var cycleSel = document.getElementById("mCycle");
+        var cycle = cycleSel.value;
+        var curSel = document.getElementById("mCur");
+        var curCode = curSel ? curSel.value : state.currency.code;
+        var name = sanitizeLabel(document.getElementById("mName").value, 40);
+        var price = sanitizeAmountInCurrency(document.getElementById("mPrice").value, curCode);
+        var day, month = null;
+        if (cycle === "yearly") {
+          day = sanitizeBillingDay(document.getElementById("mYearDay").value);
+          month = sanitizeBillingMonth(document.getElementById("mMonth").value);
+        } else {
+          day = sanitizeBillingDay(document.getElementById("mDay").value);
+        }
+        return { cycle: cycle, name: name, price: price, day: day, month: month, currency: curCode === state.currency.code ? null : curCode };
+      }
+
       function openAddSubscriptionModal() {
         var html =
           '<div class="modal-head"><h3>Add a subscription</h3><button class="modal-close" type="button">&times;</button></div>' +
           '<div class="modal-error" id="mError"></div>' +
-          '<div class="modal-field"><label>Name</label><input type="text" id="mName" placeholder="e.g. Netflix" maxlength="40"></div>' +
-          '<div class="modal-field"><label>Price / month</label><input type="number" id="mPrice" placeholder="0.00" step="0.01" min="0"></div>' +
-          '<div class="modal-field"><label>Billing day of month</label><input type="number" id="mDay" placeholder="e.g. 17" min="1" max="31" step="1"></div>' +
+          subscriptionModalFieldsHTML(null) +
           '<div class="modal-actions"><button class="btn-text primary" id="mSave" type="button" style="flex:2;">Add</button><button class="btn-text" type="button" data-modal-cancel>Cancel</button></div>';
         openModal(html);
-        var nameInput = document.getElementById("mName"), priceInput = document.getElementById("mPrice"), dayInput = document.getElementById("mDay");
+        wireSubscriptionCycleToggle();
         function submit() {
-          var name = sanitizeLabel(nameInput.value, 40);
-          var price = sanitizeAmount(priceInput.value);
-          var day = sanitizeBillingDay(dayInput.value);
-          if (!name) { showModalError("give it a real name"); nameInput.focus(); return; }
-          if (price === null) { showModalError("enter a valid monthly price (0 – " + MAX_LOG_AMOUNT.toLocaleString() + ")"); priceInput.focus(); return; }
-          if (day === null) { showModalError("billing day must be between 1 and 31"); dayInput.focus(); return; }
-          state.subscriptions.push({ id: uid(), name: name, price: price, billingDay: day, createdAt: Date.now() });
+          var f = readSubscriptionForm();
+          if (!f.name) { showModalError("give it a real name"); return; }
+          if (f.price === null) { showModalError("enter a valid price (0 – " + MAX_LOG_AMOUNT.toLocaleString() + ")"); return; }
+          if (f.day === null) { showModalError("billing day must be between 1 and 31"); return; }
+          if (f.cycle === "yearly" && f.month === null) { showModalError("pick a renewal month"); return; }
+          var sub = { id: uid(), name: f.name, price: f.price, currency: f.currency, billingCycle: f.cycle, billingDay: f.day, createdAt: Date.now() };
+          if (f.cycle === "yearly") sub.billingMonth = f.month;
+          state.subscriptions.push(sub);
           save();
           renderSubscriptions();
           closeModal();
-          toast("“" + name + "” added");
+          toast("“" + f.name + "” added");
         }
         document.getElementById("mSave").addEventListener("click", submit);
-        [nameInput, priceInput, dayInput].forEach(function (el) { el.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); submit(); } }); });
       }
       document.getElementById("openAddSubBtn").addEventListener("click", openAddSubscriptionModal);
 
@@ -3378,20 +3552,18 @@
         var html =
           '<div class="modal-head"><h3>Edit subscription</h3><button class="modal-close" type="button">&times;</button></div>' +
           '<div class="modal-error" id="mError"></div>' +
-          '<div class="modal-field"><label>Name</label><input type="text" id="mName" maxlength="40" value="' + escapeHtml(item.name) + '"></div>' +
-          '<div class="modal-field"><label>Price / month</label><input type="number" id="mPrice" step="0.01" min="0" value="' + item.price + '"></div>' +
-          '<div class="modal-field"><label>Billing day of month</label><input type="number" id="mDay" min="1" max="31" step="1" value="' + item.billingDay + '"></div>' +
+          subscriptionModalFieldsHTML(item) +
           '<div class="modal-actions"><button class="btn-text primary" id="mSave" type="button" style="flex:2;">Save</button><button class="btn-text danger" id="mDelete" type="button">Delete</button></div>';
         openModal(html);
-        var nameInput = document.getElementById("mName"), priceInput = document.getElementById("mPrice"), dayInput = document.getElementById("mDay");
+        wireSubscriptionCycleToggle();
         function submit() {
-          var name = sanitizeLabel(nameInput.value, 40);
-          var price = sanitizeAmount(priceInput.value);
-          var day = sanitizeBillingDay(dayInput.value);
-          if (!name) { showModalError("give it a real name"); nameInput.focus(); return; }
-          if (price === null) { showModalError("enter a valid monthly price (0 – " + MAX_LOG_AMOUNT.toLocaleString() + ")"); priceInput.focus(); return; }
-          if (day === null) { showModalError("billing day must be between 1 and 31"); dayInput.focus(); return; }
-          item.name = name; item.price = price; item.billingDay = day;
+          var f = readSubscriptionForm();
+          if (!f.name) { showModalError("give it a real name"); return; }
+          if (f.price === null) { showModalError("enter a valid price (0 – " + MAX_LOG_AMOUNT.toLocaleString() + ")"); return; }
+          if (f.day === null) { showModalError("billing day must be between 1 and 31"); return; }
+          if (f.cycle === "yearly" && f.month === null) { showModalError("pick a renewal month"); return; }
+          item.name = f.name; item.price = f.price; item.currency = f.currency; item.billingCycle = f.cycle; item.billingDay = f.day;
+          if (f.cycle === "yearly") item.billingMonth = f.month; else delete item.billingMonth;
           save();
           renderSubscriptions();
           closeModal();
@@ -3403,7 +3575,6 @@
           save(); renderSubscriptions(); closeModal();
           toast("“" + item.name + "” removed");
         });
-        [nameInput, priceInput, dayInput].forEach(function (el) { el.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); submit(); } }); });
       }
 
       function openLogSubscriptionModal(item) {
@@ -3413,8 +3584,8 @@
         var t = todayISO();
         var defaultDate = (t >= minISO && t <= maxISO) ? t : maxISO;
         var html =
-          '<div class="modal-head"><h3>Log this month’s charge</h3><button class="modal-close" type="button">&times;</button></div>' +
-          '<p class="modal-sub">Logs “' + escapeHtml(item.name) + '” (' + money(item.price) + ') as a spend in Analytics.</p>' +
+          '<div class="modal-head"><h3>Log this charge</h3><button class="modal-close" type="button">&times;</button></div>' +
+          '<p class="modal-sub">Logs “' + escapeHtml(item.name) + '” (' + formatIn(item.price, item.currency || state.currency.code) + ') as a spend in Analytics.</p>' +
           '<div class="modal-error" id="mError"></div>' +
           '<div class="modal-field"><label>Tag</label><select id="mCat">' + categoryOptionsHTML(null) + '</select></div>' +
           '<div class="new-cat-row" id="mNewCatRow"><input type="text" id="mNewCatName" placeholder="new tag name…" maxlength="20"><button class="btn-add" type="button">✓</button></div>' +
@@ -3430,7 +3601,7 @@
           var dateVal = sanitizeDateInRange(dateInput.value, minISO, maxISO);
           if (catId === "__new__" || !catId) { showModalError("give it a tag first"); return; }
           if (!dateVal) { showModalError("pick a date within this cycle (" + minISO + " – " + maxISO + ")"); return; }
-          state.spendings.push({ id: uid(), categoryId: catId, amount: item.price, note: item.name, date: dateVal, createdAt: Date.now() });
+          state.spendings.push({ id: uid(), categoryId: catId, amount: item.price, currency: item.currency, note: item.name, date: dateVal, createdAt: Date.now() });
           save();
           renderAnalytics(false); renderHistory();
           closeModal();
@@ -3488,7 +3659,7 @@
         var inRange = state.spendings.filter(function (s) { return s.date >= rangeStartISO && s.date <= rangeEndISO; });
         var filtered = catFilter === "all" ? inRange : inRange.filter(function (s) { return s.categoryId === catFilter; });
 
-        var total = filtered.reduce(function (s, x) { return s + x.amount; }, 0);
+        var total = filtered.reduce(function (s, x) { return s + toMain(x.amount, x.currency); }, 0);
         document.getElementById("reportTotalStat").textContent = money(total);
         document.getElementById("reportAvgStat").textContent = money(total / cycles.length);
 
@@ -3497,7 +3668,7 @@
           var sal = salaryForCycle(c);
           if (sal === null) return;
           var cMin = isoOfDate(c), cMax = isoOfDate(cycleEndForStart(c, state.salaryDay));
-          var cSpent = state.spendings.filter(function (s) { return s.date >= cMin && s.date <= cMax; }).reduce(function (s, x) { return s + x.amount; }, 0);
+          var cSpent = state.spendings.filter(function (s) { return s.date >= cMin && s.date <= cMax; }).reduce(function (s, x) { return s + toMain(x.amount, x.currency); }, 0);
           savedVals.push(sal - cSpent);
         });
         var savedBox = document.getElementById("reportSavedBox");
@@ -3517,7 +3688,7 @@
         var cycleTotals = cycles.map(function (c) {
           var cMin = isoOfDate(c), cMax = isoOfDate(cycleEndForStart(c, state.salaryDay));
           var spends = state.spendings.filter(function (s) { return s.date >= cMin && s.date <= cMax && (catFilter === "all" || s.categoryId === catFilter); });
-          return { start: c, total: spends.reduce(function (s, x) { return s + x.amount; }, 0) };
+          return { start: c, total: spends.reduce(function (s, x) { return s + toMain(x.amount, x.currency); }, 0) };
         });
         var maxCycleTotal = Math.max.apply(null, cycleTotals.map(function (c) { return c.total; }).concat([0.01]));
         cycleTotals.forEach(function (c) {
@@ -3535,7 +3706,7 @@
         var maxPair = 0.01;
         var pairs = cycles.map(function (c) {
           var cMin = isoOfDate(c), cMax = isoOfDate(cycleEndForStart(c, state.salaryDay));
-          var spentTotal = state.spendings.filter(function (s) { return s.date >= cMin && s.date <= cMax; }).reduce(function (s, x) { return s + x.amount; }, 0);
+          var spentTotal = state.spendings.filter(function (s) { return s.date >= cMin && s.date <= cMax; }).reduce(function (s, x) { return s + toMain(x.amount, x.currency); }, 0);
           var sal = salaryForCycle(c);
           maxPair = Math.max(maxPair, spentTotal, sal || 0);
           return { start: c, spent: spentTotal, salary: sal };
@@ -3555,8 +3726,8 @@
 
         // by-tag donut — always the full mix for context, independent of the tag filter above
         var totalsByCat = {};
-        inRange.forEach(function (s) { totalsByCat[s.categoryId] = (totalsByCat[s.categoryId] || 0) + s.amount; });
-        var donutTotal = inRange.reduce(function (s, x) { return s + x.amount; }, 0);
+        inRange.forEach(function (s) { totalsByCat[s.categoryId] = (totalsByCat[s.categoryId] || 0) + toMain(s.amount, s.currency); });
+        var donutTotal = inRange.reduce(function (s, x) { return s + toMain(x.amount, x.currency); }, 0);
         var entries = Object.keys(totalsByCat).map(function (id) {
           var cat = categoryById(id);
           return { id: id, name: cat ? cat.name : "unknown", color: cat ? cat.color : "#999", amount: totalsByCat[id] };
@@ -3603,8 +3774,92 @@
       });
       currencySelect.addEventListener("change", function () {
         var c = CURRENCIES.find(function (x) { return x.code === currencySelect.value; });
-        if (c) { state.currency = c; save(); renderChecklist(); renderAnalytics(false); renderHistory(); }
+        if (c) {
+          state.currency = c;
+          state.extraCurrencies = state.extraCurrencies.filter(function (ec) { return ec.code !== c.code; });
+          save();
+          renderChecklist(); renderAnalytics(false); renderHistory(); renderSubscriptions(); renderWishlist(); renderReports();
+          renderExtraCurrencies();
+        }
       });
+
+      /* ---------- extra (secondary) currencies ---------- */
+      var extraCurrencyList = document.getElementById("extraCurrencyList");
+      function renderExtraCurrencies() {
+        extraCurrencyList.innerHTML = "";
+        state.extraCurrencies.forEach(function (ec) {
+          var row = document.createElement("div");
+          row.className = "currency-row";
+          row.innerHTML =
+            '<div><div class="code">' + ec.code + '</div><div class="rate">1 ' + ec.code + ' = ' + ec.rate + ' ' + state.currency.symbol + '</div></div>' +
+            '<div class="actions"><button class="btn-text" data-act="edit">Edit</button><button class="btn-text danger" data-act="remove">Remove</button></div>';
+          row.querySelector('[data-act="edit"]').addEventListener("click", function () { openEditCurrencyModal(ec); });
+          row.querySelector('[data-act="remove"]').addEventListener("click", function () {
+            state.extraCurrencies = state.extraCurrencies.filter(function (x) { return x.code !== ec.code; });
+            save();
+            renderExtraCurrencies();
+            toast(ec.code + " removed");
+          });
+          extraCurrencyList.appendChild(row);
+        });
+      }
+
+      function currencyCodePickerHTML(excludeCodes) {
+        return CURRENCIES.filter(function (c) { return excludeCodes.indexOf(c.code) === -1; })
+          .map(function (c) { return '<option value="' + c.code + '">' + c.code + '  ·  ' + c.symbol + '</option>'; }).join("");
+      }
+
+      function openAddCurrencyModal() {
+        var used = [state.currency.code].concat(state.extraCurrencies.map(function (c) { return c.code; }));
+        var options = currencyCodePickerHTML(used);
+        if (!options) { toast("every supported currency is already added"); return; }
+        var html =
+          '<div class="modal-head"><h3>Add a currency</h3><button class="modal-close" type="button">&times;</button></div>' +
+          '<div class="modal-error" id="mError"></div>' +
+          '<div class="modal-field"><label>Currency</label><select id="mCode">' + options + '</select></div>' +
+          '<div class="modal-field"><label>Exchange rate — 1 unit = how many ' + state.currency.symbol + '?</label><input type="number" id="mRate" placeholder="e.g. 0.307" step="0.000001" min="0"></div>' +
+          '<div class="modal-actions"><button class="btn-text primary" id="mSave" type="button" style="flex:2;">Add</button><button class="btn-text" type="button" data-modal-cancel>Cancel</button></div>';
+        openModal(html);
+        var codeSel = document.getElementById("mCode"), rateInput = document.getElementById("mRate");
+        function submit() {
+          var rate = sanitizeRate(rateInput.value);
+          if (rate === null) { showModalError("enter a valid exchange rate greater than 0"); rateInput.focus(); return; }
+          state.extraCurrencies.push({ code: codeSel.value, rate: rate });
+          save();
+          renderExtraCurrencies();
+          closeModal();
+          toast(codeSel.value + " added");
+        }
+        document.getElementById("mSave").addEventListener("click", submit);
+        rateInput.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); submit(); } });
+      }
+      document.getElementById("openAddCurrencyBtn").addEventListener("click", openAddCurrencyModal);
+
+      function openEditCurrencyModal(ec) {
+        var html =
+          '<div class="modal-head"><h3>Edit ' + ec.code + ' rate</h3><button class="modal-close" type="button">&times;</button></div>' +
+          '<div class="modal-error" id="mError"></div>' +
+          '<div class="modal-field"><label>Exchange rate — 1 ' + ec.code + ' = how many ' + state.currency.symbol + '?</label><input type="number" id="mRate" step="0.000001" min="0" value="' + ec.rate + '"></div>' +
+          '<div class="modal-actions"><button class="btn-text primary" id="mSave" type="button" style="flex:2;">Save</button><button class="btn-text danger" id="mDelete" type="button">Remove</button></div>';
+        openModal(html);
+        var rateInput = document.getElementById("mRate");
+        function submit() {
+          var rate = sanitizeRate(rateInput.value);
+          if (rate === null) { showModalError("enter a valid exchange rate greater than 0"); rateInput.focus(); return; }
+          ec.rate = rate;
+          save();
+          renderExtraCurrencies();
+          closeModal();
+          toast(ec.code + " rate updated");
+        }
+        document.getElementById("mSave").addEventListener("click", submit);
+        document.getElementById("mDelete").addEventListener("click", function () {
+          state.extraCurrencies = state.extraCurrencies.filter(function (x) { return x.code !== ec.code; });
+          save(); renderExtraCurrencies(); closeModal();
+          toast(ec.code + " removed");
+        });
+        rateInput.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); submit(); } });
+      }
 
       var salaryDayInput = document.getElementById("salaryDayInput");
       salaryDayInput.addEventListener("change", function () {
@@ -3882,6 +4137,7 @@
         currencySelect.value = state.currency.code;
         salaryDayInput.value = state.salaryDay;
         usernameInput.value = state.username || "";
+        renderExtraCurrencies();
         applyAccentColor(state.accentColor);
         renderSwatches();
         renderChecklist();
