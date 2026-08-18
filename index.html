@@ -156,7 +156,17 @@
       margin-bottom: 22px;
     }
 
-    .topbar-right {
+    .tabs-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      row-gap: 10px;
+      column-gap: 10px;
+      margin-bottom: 26px;
+    }
+
+    .tabs-icons {
       display: flex;
       align-items: center;
       gap: 8px;
@@ -262,7 +272,6 @@
       border-radius: 999px;
       padding: 4px;
       gap: 2px;
-      margin-bottom: 26px;
     }
 
     .tab-btn {
@@ -1737,6 +1746,31 @@
       border-style: solid;
     }
 
+    .import-preview {
+      margin: 4px 0 6px;
+    }
+
+    .import-row {
+      display: grid;
+      grid-template-columns: 74px 62px 1fr 1fr;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--ink-soft);
+      padding: 5px 0;
+      border-bottom: 1px dashed var(--line);
+    }
+
+    .import-row span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .import-row.bad {
+      color: var(--danger);
+    }
+
     /* ---------- edit affordance ---------- */
     .row-edit {
       background: none;
@@ -2130,17 +2164,9 @@
 
       <div class="topbar">
         <div class="brand"><span class="dot"></span>Everything<b>Budgeted</b></div>
-        <div class="topbar-right">
-          <button class="icon-btn" id="historyIconBtn" title="History" aria-label="History">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
-          </button>
-          <button class="icon-btn" id="settingsIconBtn" title="Settings" aria-label="Settings">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-          </button>
-          <div class="clockbox">
-            <div class="time" id="clockTime">--:--:--<span class="cursor"></span></div>
-            <div id="clockDate">---</div>
-          </div>
+        <div class="clockbox">
+          <div class="time" id="clockTime">--:--:--<span class="cursor"></span></div>
+          <div id="clockDate">---</div>
         </div>
       </div>
 
@@ -2149,12 +2175,22 @@
         <a class="btn-text primary" id="trialBannerBtn" target="_blank" rel="noopener">Upgrade — $5/mo</a>
       </div>
 
-      <div class="tabs" role="tablist">
-        <button class="tab-btn active" data-tab="home" role="tab"><span class="pill-bg"></span>HOME</button>
-        <button class="tab-btn" data-tab="checklist" role="tab"><span class="pill-bg"></span>LEDGER</button>
-        <button class="tab-btn" data-tab="analytics" role="tab"><span class="pill-bg"></span>ANALYTICS</button>
-        <button class="tab-btn" data-tab="subscriptions" role="tab"><span class="pill-bg"></span>SUBSCRIPTIONS</button>
-        <button class="tab-btn" data-tab="wishlist" role="tab"><span class="pill-bg"></span>WISH LIST</button>
+      <div class="tabs-row">
+        <div class="tabs" role="tablist">
+          <button class="tab-btn active" data-tab="home" role="tab"><span class="pill-bg"></span>HOME</button>
+          <button class="tab-btn" data-tab="checklist" role="tab"><span class="pill-bg"></span>LEDGER</button>
+          <button class="tab-btn" data-tab="analytics" role="tab"><span class="pill-bg"></span>ANALYTICS</button>
+          <button class="tab-btn" data-tab="subscriptions" role="tab"><span class="pill-bg"></span>SUBSCRIPTIONS</button>
+          <button class="tab-btn" data-tab="wishlist" role="tab"><span class="pill-bg"></span>WISH LIST</button>
+        </div>
+        <div class="tabs-icons">
+          <button class="icon-btn" id="historyIconBtn" title="History" aria-label="History">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+          </button>
+          <button class="icon-btn" id="settingsIconBtn" title="Settings" aria-label="Settings">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </button>
+        </div>
       </div>
 
       <!-- CHECKLIST PANEL -->
@@ -2228,6 +2264,7 @@
         <div class="card">
           <span class="field-label">Spending log</span>
           <button class="add-trigger-btn" id="openAddSpendBtn" type="button">+ log a spend</button>
+          <button class="add-trigger-btn" id="openImportBtn" type="button" style="margin-top:8px;">⇪ import from CSV / Excel</button>
 
           <div class="sort-row" id="spendSortRow">
             <span>sort:</span>
@@ -2294,6 +2331,21 @@
           <div>
             <p class="advice-headline" id="adviceHeadline">Loading your numbers…</p>
             <p class="advice-detail" id="adviceDetail"></p>
+          </div>
+        </div>
+
+        <div class="report-stat-strip">
+          <div class="stat-box">
+            <div class="k">Cycle Days Left</div>
+            <div class="v" id="homeDaysLeftStat">—</div>
+          </div>
+          <div class="stat-box">
+            <div class="k">Daily Avg (cycle)</div>
+            <div class="v" id="homeDailyAvgStat">$0.00</div>
+          </div>
+          <div class="stat-box" id="homeNextRenewBox">
+            <div class="k">Next Renewal</div>
+            <div class="v" id="homeNextRenewStat">—</div>
           </div>
         </div>
 
@@ -3278,6 +3330,256 @@
         [noteInput, amountInput].forEach(function (el) { el.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); submit(); } }); });
       }
 
+      /* ---------- import spends from CSV / Excel ---------- */
+      var SHEETJS_URL = "https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js";
+      var sheetJsLoaded = typeof XLSX !== "undefined";
+      var sheetJsLoading = null;
+      function ensureSheetJs() {
+        if (sheetJsLoaded) return Promise.resolve();
+        if (sheetJsLoading) return sheetJsLoading;
+        sheetJsLoading = new Promise(function (resolve, reject) {
+          var s = document.createElement("script");
+          s.src = SHEETJS_URL;
+          s.onload = function () { sheetJsLoaded = true; resolve(); };
+          s.onerror = function () { sheetJsLoading = null; reject(new Error("failed to load xlsx library")); };
+          document.head.appendChild(s);
+        });
+        return sheetJsLoading;
+      }
+
+      var IMPORT_MAX_ROWS = 2000;
+      var DATE_HEADERS = ["date", "transaction date", "posted date", "when"];
+      var AMOUNT_HEADERS = ["amount", "price", "cost", "value", "total", "debit"];
+      var CATEGORY_HEADERS = ["category", "tag", "type"];
+      var NOTE_HEADERS = ["note", "notes", "description", "memo", "merchant", "details"];
+      var CURRENCY_HEADERS = ["currency", "cur", "ccy"];
+
+      function parseCSV(text) {
+        var rows = [], row = [], field = "", inQuotes = false;
+        for (var i = 0; i < text.length; i++) {
+          var ch = text[i];
+          if (inQuotes) {
+            if (ch === '"') {
+              if (text[i + 1] === '"') { field += '"'; i++; } else { inQuotes = false; }
+            } else field += ch;
+          } else if (ch === '"') { inQuotes = true; }
+          else if (ch === ",") { row.push(field); field = ""; }
+          else if (ch === "\r") { /* skip */ }
+          else if (ch === "\n") { row.push(field); rows.push(row); row = []; field = ""; }
+          else field += ch;
+        }
+        row.push(field);
+        if (!(row.length === 1 && row[0] === "")) rows.push(row);
+        rows = rows.filter(function (r) { return !(r.length === 1 && r[0].trim() === ""); });
+        if (!rows.length) return { headers: [], rows: [] };
+        return { headers: rows[0], rows: rows.slice(1, 1 + IMPORT_MAX_ROWS) };
+      }
+      function parseXLSXArrayBuffer(buf) {
+        var wb = XLSX.read(buf, { type: "array", cellDates: true });
+        var sheet = wb.Sheets[wb.SheetNames[0]];
+        var rows2d = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false, dateNF: "yyyy-mm-dd" });
+        var headers = (rows2d[0] || []).map(function (h) { return h === null || typeof h === "undefined" ? "" : String(h); });
+        return { headers: headers, rows: rows2d.slice(1, 1 + IMPORT_MAX_ROWS) };
+      }
+
+      function guessColumnIndex(headers, candidates) {
+        var lower = headers.map(function (h) { return (h || "").toString().trim().toLowerCase(); });
+        for (var c = 0; c < candidates.length; c++) {
+          var idx = lower.indexOf(candidates[c]);
+          if (idx !== -1) return idx;
+        }
+        return -1;
+      }
+      function parseLooseNumber(raw) {
+        if (raw === null || typeof raw === "undefined") return NaN;
+        var s = String(raw).replace(/[^0-9.\-]/g, "");
+        return parseFloat(s);
+      }
+      function parseLooseDate(raw) {
+        if (!raw && raw !== 0) return null;
+        var s = String(raw).trim();
+        if (!s) return null;
+        if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+        var d = new Date(s);
+        if (!isNaN(d.getTime())) return isoOfDate(d);
+        return null;
+      }
+
+      function buildImportRows(parsed, mapping) {
+        return parsed.rows.map(function (r) {
+          var dateRaw = mapping.dateIdx >= 0 ? r[mapping.dateIdx] : null;
+          var amountRaw = mapping.amountIdx >= 0 ? r[mapping.amountIdx] : null;
+          var catRaw = mapping.catIdx >= 0 ? r[mapping.catIdx] : null;
+          var noteRaw = mapping.noteIdx >= 0 ? r[mapping.noteIdx] : null;
+          var curRaw = mapping.curIdx >= 0 ? r[mapping.curIdx] : null;
+
+          var dateISO = parseLooseDate(dateRaw);
+          var rawAmount = parseLooseNumber(amountRaw);
+          var currency = null, valid = dateISO !== null && !isNaN(rawAmount) && rawAmount > 0;
+          if (curRaw) {
+            var code = String(curRaw).trim().toUpperCase();
+            if (code && code !== state.currency.code) {
+              if (availableCurrencyCodes().indexOf(code) !== -1) currency = code;
+              else valid = false;
+            }
+          }
+          var amount = valid ? sanitizeAmountInCurrency(rawAmount, currency || state.currency.code) : null;
+          if (amount === null) valid = false;
+          return {
+            valid: valid,
+            date: dateISO,
+            amount: amount,
+            currency: currency,
+            categoryName: catRaw ? String(catRaw).trim() : "",
+            note: noteRaw ? String(noteRaw).trim().slice(0, 60) : ""
+          };
+        });
+      }
+      function commitImport(rows, defaultCatId) {
+        var added = 0, skipped = 0, catCache = {};
+        rows.forEach(function (r) {
+          if (!r.valid) { skipped++; return; }
+          var catId = defaultCatId;
+          if (r.categoryName) {
+            var key = r.categoryName.toLowerCase();
+            if (catCache[key]) catId = catCache[key];
+            else { var id = addCategory(r.categoryName); if (id) { catCache[key] = id; catId = id; } }
+          }
+          if (!catId) { skipped++; return; }
+          state.spendings.push({ id: uid(), categoryId: catId, amount: r.amount, currency: r.currency, note: r.note, date: r.date, createdAt: Date.now(), fromImport: true });
+          added++;
+        });
+        save();
+        return { added: added, skipped: skipped };
+      }
+
+      function renderImportMapping(parsed) {
+        var body = document.getElementById("mImportBody");
+        if (!parsed.headers.length || !parsed.rows.length) {
+          body.innerHTML = '<div class="modal-error show">no rows found in that file</div>';
+          return;
+        }
+        var dateIdx = guessColumnIndex(parsed.headers, DATE_HEADERS);
+        var amountIdx = guessColumnIndex(parsed.headers, AMOUNT_HEADERS);
+        var catIdx = guessColumnIndex(parsed.headers, CATEGORY_HEADERS);
+        var noteIdx = guessColumnIndex(parsed.headers, NOTE_HEADERS);
+        var curIdx = guessColumnIndex(parsed.headers, CURRENCY_HEADERS);
+
+        function colOptions(selected, allowNone) {
+          var html = allowNone ? '<option value="-1">(none)</option>' : "";
+          parsed.headers.forEach(function (h, i) {
+            html += '<option value="' + i + '"' + (i === selected ? " selected" : "") + '>' + escapeHtml(h || ("Column " + (i + 1))) + '</option>';
+          });
+          return html;
+        }
+
+        body.innerHTML =
+          '<div class="modal-field"><label>Date column</label><select id="mColDate">' + colOptions(dateIdx, false) + '</select></div>' +
+          '<div class="modal-field"><label>Amount column</label><select id="mColAmount">' + colOptions(amountIdx, false) + '</select></div>' +
+          '<div class="modal-field"><label>Tag column (optional)</label><select id="mColCat">' + colOptions(catIdx, true) + '</select></div>' +
+          '<div class="modal-field"><label>Note column (optional)</label><select id="mColNote">' + colOptions(noteIdx, true) + '</select></div>' +
+          (availableCurrencyCodes().length > 1 ? '<div class="modal-field"><label>Currency column (optional)</label><select id="mColCur">' + colOptions(curIdx, true) + '</select></div>' : "") +
+          '<div class="modal-field"><label>Default tag (for rows with no tag)</label><select id="mDefaultCat">' + categoryOptionsHTML(null) + '</select></div>' +
+          '<div class="new-cat-row" id="mNewCatRow"><input type="text" id="mNewCatName" placeholder="new tag name…" maxlength="20"><button class="btn-add" type="button">✓</button></div>' +
+          '<div class="import-preview" id="mPreview"></div>' +
+          '<div class="modal-actions"><button class="btn-text primary" id="mImportConfirm" type="button" style="flex:2;">Import</button><button class="btn-text" type="button" data-modal-cancel>Cancel</button></div>';
+
+        var defaultCatSel = document.getElementById("mDefaultCat");
+        wireModalCategorySelect(defaultCatSel, document.getElementById("mNewCatRow"), document.getElementById("mNewCatName"));
+
+        var selDate = document.getElementById("mColDate"), selAmount = document.getElementById("mColAmount"),
+          selCat = document.getElementById("mColCat"), selNote = document.getElementById("mColNote"),
+          selCur = document.getElementById("mColCur");
+
+        function currentMapping() {
+          return {
+            dateIdx: parseInt(selDate.value, 10),
+            amountIdx: parseInt(selAmount.value, 10),
+            catIdx: selCat ? parseInt(selCat.value, 10) : -1,
+            noteIdx: selNote ? parseInt(selNote.value, 10) : -1,
+            curIdx: selCur ? parseInt(selCur.value, 10) : -1
+          };
+        }
+        var lastBuilt = [];
+        function updatePreview() {
+          lastBuilt = buildImportRows(parsed, currentMapping());
+          var validCount = lastBuilt.filter(function (r) { return r.valid; }).length;
+          var previewRows = lastBuilt.slice(0, 5).map(function (r) {
+            return '<div class="import-row' + (r.valid ? '' : ' bad') + '">' +
+              '<span>' + (r.date || "—") + '</span>' +
+              '<span>' + (r.valid ? money(r.amount) : "—") + '</span>' +
+              '<span>' + escapeHtml(r.categoryName || "(default)") + '</span>' +
+              '<span>' + escapeHtml(r.note || "") + '</span>' +
+              '</div>';
+          }).join("");
+          var truncatedNote = parsed.rows.length >= IMPORT_MAX_ROWS ? (" (first " + IMPORT_MAX_ROWS + " rows only)") : "";
+          document.getElementById("mPreview").innerHTML =
+            '<p class="helper-text">' + validCount + ' of ' + lastBuilt.length + ' rows look valid' + truncatedNote + '</p>' + previewRows;
+        }
+        [selDate, selAmount, selCat, selNote].concat(selCur ? [selCur] : []).forEach(function (el) {
+          el.addEventListener("change", updatePreview);
+        });
+        updatePreview();
+
+        document.getElementById("mImportConfirm").addEventListener("click", function () {
+          var defaultCatId = defaultCatSel.value;
+          if (defaultCatId === "__new__") { showModalError("finish adding that new tag first, or pick an existing one"); return; }
+          var built = buildImportRows(parsed, currentMapping());
+          var needsDefault = built.some(function (r) { return r.valid && !r.categoryName; });
+          if (needsDefault && !defaultCatId) { showModalError("some rows have no tag — pick a default tag to use for them"); return; }
+          var result = commitImport(built, defaultCatId);
+          renderAnalytics(true); renderHistory(); renderReports(); renderAdvice();
+          closeModal();
+          toast("imported " + result.added + " spend" + (result.added === 1 ? "" : "s") + (result.skipped ? " · " + result.skipped + " skipped" : ""));
+        });
+      }
+
+      function openImportSpendsModal() {
+        var html =
+          '<div class="modal-head"><h3>Import spends</h3><button class="modal-close" type="button">&times;</button></div>' +
+          '<div class="modal-error" id="mError"></div>' +
+          '<p class="modal-sub">Upload a CSV or Excel export — we’ll try to match the columns automatically, and you can fix anything before importing.</p>' +
+          '<div class="modal-field"><label>File (.csv, .xlsx, .xls)</label><input type="file" id="mFile" accept=".csv,.xlsx,.xls"></div>' +
+          '<div id="mImportBody"></div>';
+        openModal(html);
+        var fileInput = document.getElementById("mFile");
+        fileInput.addEventListener("change", function () {
+          var file = fileInput.files[0];
+          if (!file) return;
+          document.getElementById("mImportBody").innerHTML = '<p class="helper-text">reading file…</p>';
+          var isExcel = /\.xlsx?$/i.test(file.name);
+          if (isExcel) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+              ensureSheetJs().then(function () {
+                try {
+                  renderImportMapping(parseXLSXArrayBuffer(e.target.result));
+                } catch (err) {
+                  document.getElementById("mImportBody").innerHTML = "";
+                  showModalError("couldn't read that file — try exporting as CSV instead");
+                }
+              }).catch(function () {
+                document.getElementById("mImportBody").innerHTML = "";
+                showModalError("couldn't load the Excel parser — check your connection, or try a CSV file instead");
+              });
+            };
+            reader.readAsArrayBuffer(file);
+          } else {
+            var reader2 = new FileReader();
+            reader2.onload = function (e) {
+              try {
+                renderImportMapping(parseCSV(String(e.target.result)));
+              } catch (err) {
+                document.getElementById("mImportBody").innerHTML = "";
+                showModalError("couldn't read that file");
+              }
+            };
+            reader2.readAsText(file);
+          }
+        });
+      }
+      document.getElementById("openImportBtn").addEventListener("click", openImportSpendsModal);
+
       /* ---------- history ---------- */
       var historyList = document.getElementById("historyList");
       function renderHistory() {
@@ -3870,6 +4172,8 @@
           .reduce(function (sum, s) { return sum + toMain(s.amount, s.currency); }, 0);
         var cycleSalary = salaryForCycle(curStart);
         var remaining = (cycleSalary !== null) ? (cycleSalary - cycleSpent) : null;
+        var daysLeftInCycle = Math.max(0, Math.round((curEnd.getTime() - today.getTime()) / 86400000) + 1);
+        var daysLine = daysLeftInCycle + " day" + (daysLeftInCycle === 1 ? "" : "s") + " left in this cycle";
 
         var hasAnyData = state.spendings.length > 0;
         var weekDeltaPct = prev7 > 0 ? ((last7 - prev7) / prev7) * 100 : null;
@@ -3879,29 +4183,47 @@
         if (!hasAnyData) {
           glyph = "👋"; tone = "neutral";
           headline = "Nothing logged yet — let's get started.";
-          detail = "Once you log a few spends, I'll keep you posted on how your week and month are trending.";
+          detail = "Once you log a few spends, I'll keep you posted on how your week and month are trending. " + daysLine + ".";
         } else if (remaining !== null && remaining < 0) {
           glyph = "⚠️"; tone = "warn";
           headline = "You're over budget for this cycle — let's rein it in until the next one starts.";
-          detail = money(Math.abs(remaining)) + " past your " + money(cycleSalary) + " budget so far. " + weekLine;
+          detail = money(Math.abs(remaining)) + " past your " + money(cycleSalary) + " budget so far  ·  " + daysLine + ". " + weekLine;
         } else if (weekDeltaPct !== null && weekDeltaPct >= 15) {
           glyph = "📈"; tone = "warn";
           headline = "Spending was higher this past week — let's keep it lighter this week to balance it out.";
-          detail = weekLine + "  ·  up " + Math.round(weekDeltaPct) + "%";
+          detail = weekLine + "  ·  up " + Math.round(weekDeltaPct) + "%  ·  " + daysLine;
         } else if (weekDeltaPct !== null && weekDeltaPct <= -15) {
           glyph = "🎉"; tone = "good";
           headline = "You're doing great — spending's down, there's room for savings this month.";
-          detail = weekLine + "  ·  down " + Math.round(Math.abs(weekDeltaPct)) + "%";
+          detail = weekLine + "  ·  down " + Math.round(Math.abs(weekDeltaPct)) + "%  ·  " + daysLine;
         } else if (remaining !== null && cycleSalary > 0 && (remaining / cycleSalary) >= 0.3) {
           glyph = "🌿"; tone = "good";
           headline = "You're in a healthy spot this cycle — plenty of room left, keep it steady.";
-          detail = money(remaining) + " left of " + money(cycleSalary) + " this cycle. " + weekLine;
+          detail = money(remaining) + " left of " + money(cycleSalary) + "  ·  " + daysLine + ". " + weekLine;
         } else {
           glyph = "🙂"; tone = "neutral";
           headline = "Spending's been steady lately — nothing alarming, just keep an eye on it.";
-          detail = weekLine;
+          detail = weekLine + "  ·  " + daysLine;
         }
-        return { glyph: glyph, tone: tone, headline: headline, detail: detail };
+        return { glyph: glyph, tone: tone, headline: headline, detail: detail, daysLeftInCycle: daysLeftInCycle, cycleSpent: cycleSpent, curStart: curStart };
+      }
+
+      function renderHomeQuickStats(advice) {
+        var daysElapsed = Math.max(1, Math.round((new Date().setHours(0, 0, 0, 0) - advice.curStart.getTime()) / 86400000) + 1);
+        document.getElementById("homeDaysLeftStat").textContent = advice.daysLeftInCycle + (advice.daysLeftInCycle === 1 ? " day" : " days");
+        document.getElementById("homeDailyAvgStat").textContent = money(advice.cycleSpent / daysElapsed);
+
+        var today0 = new Date(); today0.setHours(0, 0, 0, 0);
+        var subsWithRenewal = state.subscriptions.map(function (s) { return { sub: s, renewal: renewalDateFor(s, today0) }; })
+          .sort(function (a, b) { return a.renewal - b.renewal; });
+        var nextRenewEl = document.getElementById("homeNextRenewStat");
+        if (subsWithRenewal.length) {
+          var first = subsWithRenewal[0];
+          var d = Math.round((first.renewal - today0) / 86400000);
+          nextRenewEl.textContent = first.sub.name + (d === 0 ? " · today" : d === 1 ? " · tomorrow" : " · " + d + "d");
+        } else {
+          nextRenewEl.textContent = "—";
+        }
       }
 
       function renderAdvice() {
@@ -3911,6 +4233,7 @@
         document.getElementById("adviceGlyph").textContent = a.glyph;
         document.getElementById("adviceHeadline").textContent = a.headline;
         document.getElementById("adviceDetail").textContent = a.detail;
+        renderHomeQuickStats(a);
 
         document.getElementById("homeHeading").textContent = state.username ? ("Welcome back, " + state.username) : "Welcome back";
         document.getElementById("homeSubNote").textContent = "› here's where things stand";
