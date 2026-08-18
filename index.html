@@ -149,9 +149,43 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      flex-wrap: wrap;
+      row-gap: 10px;
       padding: 6px 4px 20px;
       border-bottom: 1px solid var(--line);
       margin-bottom: 22px;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .icon-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid var(--line);
+      background: var(--bg-card);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--ink-soft);
+      flex-shrink: 0;
+      padding: 0;
+      transition: border-color .15s ease, color .15s ease, background .15s ease;
+    }
+
+    .icon-btn:hover {
+      border-color: var(--ink);
+      color: var(--ink);
+    }
+
+    .icon-btn svg {
+      width: 15px;
+      height: 15px;
     }
 
     .brand {
@@ -1939,6 +1973,55 @@
       margin-bottom: 18px;
     }
 
+    /* ---------- Home / advice ---------- */
+    .advice-card {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      padding: 20px;
+      border-radius: var(--radius);
+      margin-bottom: 22px;
+      border: 1px solid var(--line);
+      background: var(--bg-card);
+    }
+
+    .advice-card.good {
+      background: var(--accent-wash);
+      border-color: var(--accent-wash-strong);
+    }
+
+    .advice-card.warn {
+      background: rgba(226, 88, 74, 0.08);
+      border-color: rgba(226, 88, 74, 0.25);
+    }
+
+    .advice-card.neutral {
+      background: rgba(217, 154, 43, 0.08);
+      border-color: rgba(217, 154, 43, 0.22);
+    }
+
+    .advice-glyph {
+      font-size: 26px;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .advice-headline {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 16.5px;
+      margin: 0 0 6px;
+      line-height: 1.35;
+    }
+
+    .advice-detail {
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      color: var(--ink-soft);
+      margin: 0;
+      line-height: 1.65;
+    }
+
     /* ---------- Subscriptions ---------- */
     .sub-renewal {
       margin-top: 10px;
@@ -2047,9 +2130,17 @@
 
       <div class="topbar">
         <div class="brand"><span class="dot"></span>Everything<b>Budgeted</b></div>
-        <div class="clockbox">
-          <div class="time" id="clockTime">--:--:--<span class="cursor"></span></div>
-          <div id="clockDate">---</div>
+        <div class="topbar-right">
+          <button class="icon-btn" id="historyIconBtn" title="History" aria-label="History">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+          </button>
+          <button class="icon-btn" id="settingsIconBtn" title="Settings" aria-label="Settings">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </button>
+          <div class="clockbox">
+            <div class="time" id="clockTime">--:--:--<span class="cursor"></span></div>
+            <div id="clockDate">---</div>
+          </div>
         </div>
       </div>
 
@@ -2059,17 +2150,15 @@
       </div>
 
       <div class="tabs" role="tablist">
-        <button class="tab-btn active" data-tab="checklist" role="tab"><span class="pill-bg"></span>CHECKLIST</button>
+        <button class="tab-btn active" data-tab="home" role="tab"><span class="pill-bg"></span>HOME</button>
+        <button class="tab-btn" data-tab="checklist" role="tab"><span class="pill-bg"></span>LEDGER</button>
         <button class="tab-btn" data-tab="analytics" role="tab"><span class="pill-bg"></span>ANALYTICS</button>
         <button class="tab-btn" data-tab="subscriptions" role="tab"><span class="pill-bg"></span>SUBSCRIPTIONS</button>
         <button class="tab-btn" data-tab="wishlist" role="tab"><span class="pill-bg"></span>WISH LIST</button>
-        <button class="tab-btn" data-tab="reports" role="tab"><span class="pill-bg"></span>REPORTS</button>
-        <button class="tab-btn" data-tab="history" role="tab"><span class="pill-bg"></span>HISTORY</button>
-        <button class="tab-btn" data-tab="settings" role="tab"><span class="pill-bg"></span>SETTINGS</button>
       </div>
 
       <!-- CHECKLIST PANEL -->
-      <section class="panel active" id="panel-checklist">
+      <section class="panel" id="panel-checklist">
         <div class="section-head">
           <h2 class="hl"><span>Today's Ledger</span></h2>
         </div>
@@ -2193,12 +2282,20 @@
         <div id="wishList"></div>
       </section>
 
-      <!-- REPORTS PANEL -->
-      <section class="panel" id="panel-reports">
+      <!-- HOME PANEL -->
+      <section class="panel active" id="panel-home">
         <div class="section-head">
-          <h2 class="hl"><span>Reports</span></h2>
+          <h2 class="hl"><span id="homeHeading">Welcome</span></h2>
         </div>
-        <p class="sub-note">&gt; a wider view of your spending, filtered your way</p>
+        <p class="sub-note" id="homeSubNote">&gt; here's where things stand</p>
+
+        <div class="advice-card" id="adviceCard">
+          <div class="advice-glyph" id="adviceGlyph">👋</div>
+          <div>
+            <p class="advice-headline" id="adviceHeadline">Loading your numbers…</p>
+            <p class="advice-detail" id="adviceDetail"></p>
+          </div>
+        </div>
 
         <div class="filter-row">
           <select id="reportRange">
@@ -2730,32 +2827,31 @@
       /* ---------- tabs ---------- */
       var tabBtns = document.querySelectorAll(".tab-btn");
       var panels = {
+        home: document.getElementById("panel-home"),
         checklist: document.getElementById("panel-checklist"),
         analytics: document.getElementById("panel-analytics"),
         subscriptions: document.getElementById("panel-subscriptions"),
         wishlist: document.getElementById("panel-wishlist"),
-        reports: document.getElementById("panel-reports"),
         history: document.getElementById("panel-history"),
         settings: document.getElementById("panel-settings")
       };
+      function activateTab(tabKey) {
+        tabBtns.forEach(function (b) { b.classList.toggle("active", b.dataset.tab === tabKey); });
+        Object.keys(panels).forEach(function (k) { panels[k].classList.toggle("active", k === tabKey); });
+        if (tabKey === "analytics") renderAnalytics(true);
+        if (tabKey === "history") renderHistory();
+        if (tabKey === "subscriptions") renderSubscriptions();
+        if (tabKey === "wishlist") renderWishlist();
+        if (tabKey === "home") { renderReportCategoryOptions(); renderReports(); renderAdvice(); }
+      }
       tabBtns.forEach(function (btn) {
-        btn.addEventListener("click", function () {
-          tabBtns.forEach(function (b) { b.classList.remove("active"); });
-          btn.classList.add("active");
-          Object.keys(panels).forEach(function (k) { panels[k].classList.remove("active"); });
-          panels[btn.dataset.tab].classList.add("active");
-          if (btn.dataset.tab === "analytics") renderAnalytics(true);
-          if (btn.dataset.tab === "history") renderHistory();
-          if (btn.dataset.tab === "subscriptions") renderSubscriptions();
-          if (btn.dataset.tab === "wishlist") renderWishlist();
-          if (btn.dataset.tab === "reports") { renderReportCategoryOptions(); renderReports(); }
-        });
+        btn.addEventListener("click", function () { activateTab(btn.dataset.tab); });
       });
+      document.getElementById("historyIconBtn").addEventListener("click", function () { activateTab("history"); });
+      document.getElementById("settingsIconBtn").addEventListener("click", function () { activateTab("settings"); });
       function goToAnalyticsCycle(startDate) {
         viewingCycleStart = startDate;
-        tabBtns.forEach(function (b) { b.classList.toggle("active", b.dataset.tab === "analytics"); });
-        Object.keys(panels).forEach(function (k) { panels[k].classList.toggle("active", k === "analytics"); });
-        renderAnalytics(true);
+        activateTab("analytics");
       }
 
       /* ---------- clock ---------- */
@@ -3755,6 +3851,71 @@
         });
       }
 
+      /* ---------- home / friendly budget advice ---------- */
+      function computeAdvice() {
+        var today = new Date(); today.setHours(0, 0, 0, 0);
+        function daysAgoISO(n) { var d = new Date(today); d.setDate(d.getDate() - n); return isoOfDate(d); }
+        var last7Start = daysAgoISO(6), last7End = isoOfDate(today);
+        var prev7Start = daysAgoISO(13), prev7End = daysAgoISO(7);
+
+        var last7 = state.spendings.filter(function (s) { return s.date >= last7Start && s.date <= last7End; })
+          .reduce(function (sum, s) { return sum + toMain(s.amount, s.currency); }, 0);
+        var prev7 = state.spendings.filter(function (s) { return s.date >= prev7Start && s.date <= prev7End; })
+          .reduce(function (sum, s) { return sum + toMain(s.amount, s.currency); }, 0);
+
+        var curStart = cycleStartForDate(new Date(), state.salaryDay);
+        var curEnd = cycleEndForStart(curStart, state.salaryDay);
+        var cMin = isoOfDate(curStart), cMax = isoOfDate(curEnd);
+        var cycleSpent = state.spendings.filter(function (s) { return s.date >= cMin && s.date <= cMax; })
+          .reduce(function (sum, s) { return sum + toMain(s.amount, s.currency); }, 0);
+        var cycleSalary = salaryForCycle(curStart);
+        var remaining = (cycleSalary !== null) ? (cycleSalary - cycleSpent) : null;
+
+        var hasAnyData = state.spendings.length > 0;
+        var weekDeltaPct = prev7 > 0 ? ((last7 - prev7) / prev7) * 100 : null;
+        var weekLine = "This week: " + money(last7) + "  ·  last week: " + money(prev7);
+
+        var glyph, tone, headline, detail;
+        if (!hasAnyData) {
+          glyph = "👋"; tone = "neutral";
+          headline = "Nothing logged yet — let's get started.";
+          detail = "Once you log a few spends, I'll keep you posted on how your week and month are trending.";
+        } else if (remaining !== null && remaining < 0) {
+          glyph = "⚠️"; tone = "warn";
+          headline = "You're over budget for this cycle — let's rein it in until the next one starts.";
+          detail = money(Math.abs(remaining)) + " past your " + money(cycleSalary) + " budget so far. " + weekLine;
+        } else if (weekDeltaPct !== null && weekDeltaPct >= 15) {
+          glyph = "📈"; tone = "warn";
+          headline = "Spending was higher this past week — let's keep it lighter this week to balance it out.";
+          detail = weekLine + "  ·  up " + Math.round(weekDeltaPct) + "%";
+        } else if (weekDeltaPct !== null && weekDeltaPct <= -15) {
+          glyph = "🎉"; tone = "good";
+          headline = "You're doing great — spending's down, there's room for savings this month.";
+          detail = weekLine + "  ·  down " + Math.round(Math.abs(weekDeltaPct)) + "%";
+        } else if (remaining !== null && cycleSalary > 0 && (remaining / cycleSalary) >= 0.3) {
+          glyph = "🌿"; tone = "good";
+          headline = "You're in a healthy spot this cycle — plenty of room left, keep it steady.";
+          detail = money(remaining) + " left of " + money(cycleSalary) + " this cycle. " + weekLine;
+        } else {
+          glyph = "🙂"; tone = "neutral";
+          headline = "Spending's been steady lately — nothing alarming, just keep an eye on it.";
+          detail = weekLine;
+        }
+        return { glyph: glyph, tone: tone, headline: headline, detail: detail };
+      }
+
+      function renderAdvice() {
+        var a = computeAdvice();
+        var card = document.getElementById("adviceCard");
+        card.className = "advice-card " + a.tone;
+        document.getElementById("adviceGlyph").textContent = a.glyph;
+        document.getElementById("adviceHeadline").textContent = a.headline;
+        document.getElementById("adviceDetail").textContent = a.detail;
+
+        document.getElementById("homeHeading").textContent = state.username ? ("Welcome back, " + state.username) : "Welcome back";
+        document.getElementById("homeSubNote").textContent = "› here's where things stand";
+      }
+
       /* ---------- settings ---------- */
       var usernameInput = document.getElementById("usernameInput");
       usernameInput.addEventListener("change", function () {
@@ -4147,6 +4308,7 @@
         renderWishlist();
         renderReportCategoryOptions();
         renderReports();
+        renderAdvice();
         renderAccountCard();
         renderBilling();
         footerTip.textContent = cloudEnabled
