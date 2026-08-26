@@ -1746,29 +1746,70 @@
       border-style: solid;
     }
 
-    .import-preview {
-      margin: 4px 0 6px;
+    .import-review-list {
+      max-height: 300px;
+      overflow-y: auto;
+      margin: 2px 0 10px;
+      border-top: 1px dashed var(--line);
     }
 
-    .import-row {
-      display: grid;
-      grid-template-columns: 74px 62px 1fr 1fr;
-      gap: 6px;
-      font-family: var(--font-mono);
-      font-size: 10px;
-      color: var(--ink-soft);
-      padding: 5px 0;
+    .import-review-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 10px 2px;
       border-bottom: 1px dashed var(--line);
     }
 
-    .import-row span {
+    .irr-main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .irr-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      font-weight: 600;
+    }
+
+    .irr-sub {
+      font-size: 12px;
+      color: var(--ink-soft);
+      margin-top: 2px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
 
-    .import-row.bad {
+    .irr-badges {
+      display: flex;
+      gap: 6px;
+      margin-top: 5px;
+      flex-wrap: wrap;
+    }
+
+    .dup-chip,
+    .delay-chip {
+      font-family: var(--font-mono);
+      font-size: 8.5px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      border-radius: 5px;
+      padding: 1px 5px;
+      white-space: nowrap;
+    }
+
+    .dup-chip {
       color: var(--danger);
+      background: rgba(226, 88, 74, 0.12);
+    }
+
+    .delay-chip {
+      color: var(--amber);
+      background: rgba(217, 154, 43, 0.14);
     }
 
     /* ---------- edit affordance ---------- */
@@ -2154,6 +2195,7 @@
       <div class="plan-actions" style="justify-content:center;">
         <a class="btn-text primary" id="lockUpgradeBtn" target="_blank" rel="noopener">Upgrade to Pro</a>
         <button class="btn-text" id="lockRecheckBtn">I've subscribed</button>
+        <button class="btn-text danger" id="lockSignOutBtn">Sign out</button>
       </div>
     </div>
   </div>
@@ -3211,9 +3253,10 @@
           var sourceBadge = s.fromChecklist ? '<span class="src-badge" title="logged from today’s ledger">ledger</span>' : '';
           var foreign = s.currency && s.currency !== state.currency.code;
           var curChip = foreign ? '<span class="cur-chip" title="logged as ' + formatIn(s.amount, s.currency) + '">' + s.currency + '</span>' : '';
+          var delayChip = s.delayedPayment ? '<span class="delay-chip" title="flagged as a delayed payment on import">delayed</span>' : '';
           row.innerHTML =
             '<span class="sw" style="background:' + (cat ? cat.color : "#999") + '"></span>' +
-            '<span class="lab">' + sourceBadge + escapeHtml(cat ? cat.name : "unknown") + (s.note ? ' <span style="color:var(--ink-faint)">— ' + escapeHtml(s.note) + '</span>' : '') + curChip + '</span>' +
+            '<span class="lab">' + sourceBadge + escapeHtml(cat ? cat.name : "unknown") + (s.note ? ' <span style="color:var(--ink-faint)">— ' + escapeHtml(s.note) + '</span>' : '') + curChip + delayChip + '</span>' +
             '<span class="date">' + d.toLocaleDateString(undefined, { month: "short", day: "numeric" }) + '</span>' +
             '<span class="amt">' + money(toMain(s.amount, s.currency)) + '</span>' +
             '<button class="row-edit" title="edit">✎</button>' +
@@ -3405,7 +3448,38 @@
         return null;
       }
 
+      function spendFingerprint(dateISO, amount, currency) {
+        return dateISO + "|" + amount.toFixed(4) + "|" + (currency || state.currency.code);
+      }
+      function existingFingerprints() {
+        var set = {};
+        state.spendings.forEach(function (s) { set[spendFingerprint(s.date, s.amount, s.currency)] = true; });
+        return set;
+      }
+      var DELAYED_KEYWORDS = ["installment", "installments", "deferred", "delayed", "pay later", "buy now pay later", "bnpl", "layaway", "due date", "postponed", "later payment", "part payment", "partial payment"];
+      function detectDelayedPayment(rawText) {
+        if (!rawText) return false;
+        var lower = String(rawText).toLowerCase();
+        return DELAYED_KEYWORDS.some(function (kw) { return lower.indexOf(kw) !== -1; });
+      }
+      // messy bank/card descriptions ("SQ *STARBUCKS #4821 SEATTLE WA") -> a clean store name for the note
+      var STORE_NAME_STRIP_RE = /^(SQ\s*\*|TST\s*\*|PAYPAL\s*\*|POS\s+(DEBIT|PURCHASE)?\s*-?\s*|PURCHASE\s+(AT|FROM)?\s*|PAYMENT\s+TO\s*|DEBIT\s+CARD\s+PURCHASE\s*-?\s*|ACH\s+DEBIT\s*-?\s*|CARD\s+PURCHASE\s*-?\s*|WWW\.)/i;
+      function extractStoreName(rawText) {
+        if (!rawText) return "";
+        var s = String(rawText).trim();
+        s = s.replace(STORE_NAME_STRIP_RE, "");
+        s = s.replace(/\s*#\d+.*$/, "");
+        s = s.replace(/\s+\d{3,}.*$/, "");
+        s = s.replace(/\s+[A-Z]{2}$/, "");
+        s = s.replace(/\s{2,}/g, " ").trim();
+        if (s.length < 2) s = String(rawText).trim();
+        s = s.toLowerCase().replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+        return s.slice(0, 60);
+      }
+
       function buildImportRows(parsed, mapping) {
+        var existing = existingFingerprints();
+        var seenInBatch = {};
         return parsed.rows.map(function (r) {
           var dateRaw = mapping.dateIdx >= 0 ? r[mapping.dateIdx] : null;
           var amountRaw = mapping.amountIdx >= 0 ? r[mapping.amountIdx] : null;
@@ -3425,32 +3499,45 @@
           }
           var amount = valid ? sanitizeAmountInCurrency(rawAmount, currency || state.currency.code) : null;
           if (amount === null) valid = false;
+
+          var noteText = noteRaw ? String(noteRaw).trim() : "";
+          var duplicate = false;
+          if (valid) {
+            var fp = spendFingerprint(dateISO, amount, currency);
+            duplicate = !!existing[fp] || !!seenInBatch[fp];
+            seenInBatch[fp] = true;
+          }
+
           return {
+            _id: uid(),
             valid: valid,
+            duplicate: duplicate,
+            delayedPayment: detectDelayedPayment(noteText),
             date: dateISO,
             amount: amount,
             currency: currency,
             categoryName: catRaw ? String(catRaw).trim() : "",
-            note: noteRaw ? String(noteRaw).trim().slice(0, 60) : ""
+            note: extractStoreName(noteText)
           };
         });
       }
-      function commitImport(rows, defaultCatId) {
-        var added = 0, skipped = 0, catCache = {};
+      function commitImportRows(rows, defaultCatId) {
+        var added = 0, catCache = {};
         rows.forEach(function (r) {
-          if (!r.valid) { skipped++; return; }
           var catId = defaultCatId;
           if (r.categoryName) {
             var key = r.categoryName.toLowerCase();
             if (catCache[key]) catId = catCache[key];
             else { var id = addCategory(r.categoryName); if (id) { catCache[key] = id; catId = id; } }
           }
-          if (!catId) { skipped++; return; }
-          state.spendings.push({ id: uid(), categoryId: catId, amount: r.amount, currency: r.currency, note: r.note, date: r.date, createdAt: Date.now(), fromImport: true });
+          if (!catId) return;
+          var spend = { id: uid(), categoryId: catId, amount: r.amount, currency: r.currency, note: r.note, date: r.date, createdAt: Date.now(), fromImport: true };
+          if (r.delayedPayment) spend.delayedPayment = true;
+          state.spendings.push(spend);
           added++;
         });
         save();
-        return { added: added, skipped: skipped };
+        return added;
       }
 
       function renderImportMapping(parsed) {
@@ -3477,12 +3564,12 @@
           '<div class="modal-field"><label>Date column</label><select id="mColDate">' + colOptions(dateIdx, false) + '</select></div>' +
           '<div class="modal-field"><label>Amount column</label><select id="mColAmount">' + colOptions(amountIdx, false) + '</select></div>' +
           '<div class="modal-field"><label>Tag column (optional)</label><select id="mColCat">' + colOptions(catIdx, true) + '</select></div>' +
-          '<div class="modal-field"><label>Note column (optional)</label><select id="mColNote">' + colOptions(noteIdx, true) + '</select></div>' +
+          '<div class="modal-field"><label>Note / description column (optional)</label><select id="mColNote">' + colOptions(noteIdx, true) + '</select></div>' +
           (availableCurrencyCodes().length > 1 ? '<div class="modal-field"><label>Currency column (optional)</label><select id="mColCur">' + colOptions(curIdx, true) + '</select></div>' : "") +
           '<div class="modal-field"><label>Default tag (for rows with no tag)</label><select id="mDefaultCat">' + categoryOptionsHTML(null) + '</select></div>' +
           '<div class="new-cat-row" id="mNewCatRow"><input type="text" id="mNewCatName" placeholder="new tag name…" maxlength="20"><button class="btn-add" type="button">✓</button></div>' +
-          '<div class="import-preview" id="mPreview"></div>' +
-          '<div class="modal-actions"><button class="btn-text primary" id="mImportConfirm" type="button" style="flex:2;">Import</button><button class="btn-text" type="button" data-modal-cancel>Cancel</button></div>';
+          '<p class="helper-text" id="mMappingSummary"></p>' +
+          '<div class="modal-actions"><button class="btn-text primary" id="mImportContinue" type="button" style="flex:2;">Review rows</button><button class="btn-text" type="button" data-modal-cancel>Cancel</button></div>';
 
         var defaultCatSel = document.getElementById("mDefaultCat");
         wireModalCategorySelect(defaultCatSel, document.getElementById("mNewCatRow"), document.getElementById("mNewCatName"));
@@ -3500,37 +3587,83 @@
             curIdx: selCur ? parseInt(selCur.value, 10) : -1
           };
         }
-        var lastBuilt = [];
-        function updatePreview() {
-          lastBuilt = buildImportRows(parsed, currentMapping());
-          var validCount = lastBuilt.filter(function (r) { return r.valid; }).length;
-          var previewRows = lastBuilt.slice(0, 5).map(function (r) {
-            return '<div class="import-row' + (r.valid ? '' : ' bad') + '">' +
-              '<span>' + (r.date || "—") + '</span>' +
-              '<span>' + (r.valid ? money(r.amount) : "—") + '</span>' +
-              '<span>' + escapeHtml(r.categoryName || "(default)") + '</span>' +
-              '<span>' + escapeHtml(r.note || "") + '</span>' +
-              '</div>';
-          }).join("");
+        function updateSummary() {
+          var built = buildImportRows(parsed, currentMapping());
+          var validCount = built.filter(function (r) { return r.valid; }).length;
+          var dupCount = built.filter(function (r) { return r.valid && r.duplicate; }).length;
           var truncatedNote = parsed.rows.length >= IMPORT_MAX_ROWS ? (" (first " + IMPORT_MAX_ROWS + " rows only)") : "";
-          document.getElementById("mPreview").innerHTML =
-            '<p class="helper-text">' + validCount + ' of ' + lastBuilt.length + ' rows look valid' + truncatedNote + '</p>' + previewRows;
+          document.getElementById("mMappingSummary").textContent =
+            validCount + " of " + built.length + " rows look valid" + (dupCount ? " · " + dupCount + " possible duplicate" + (dupCount === 1 ? "" : "s") : "") + truncatedNote + ".";
         }
         [selDate, selAmount, selCat, selNote].concat(selCur ? [selCur] : []).forEach(function (el) {
-          el.addEventListener("change", updatePreview);
+          el.addEventListener("change", updateSummary);
         });
-        updatePreview();
+        updateSummary();
 
-        document.getElementById("mImportConfirm").addEventListener("click", function () {
+        document.getElementById("mImportContinue").addEventListener("click", function () {
           var defaultCatId = defaultCatSel.value;
           if (defaultCatId === "__new__") { showModalError("finish adding that new tag first, or pick an existing one"); return; }
           var built = buildImportRows(parsed, currentMapping());
-          var needsDefault = built.some(function (r) { return r.valid && !r.categoryName; });
+          var validRows = built.filter(function (r) { return r.valid; });
+          if (!validRows.length) { showModalError("no valid rows to import — check your column choices"); return; }
+          var needsDefault = validRows.some(function (r) { return !r.categoryName; });
           if (needsDefault && !defaultCatId) { showModalError("some rows have no tag — pick a default tag to use for them"); return; }
-          var result = commitImport(built, defaultCatId);
+          renderImportReview(validRows, defaultCatId);
+        });
+      }
+
+      function renderImportReview(rows, defaultCatId) {
+        var pending = rows.slice();
+        var body = document.getElementById("mImportBody");
+
+        function summaryText() {
+          var dupCount = pending.filter(function (r) { return r.duplicate; }).length;
+          var delayCount = pending.filter(function (r) { return r.delayedPayment; }).length;
+          var bits = [pending.length + " spend" + (pending.length === 1 ? "" : "s") + " ready to add"];
+          if (dupCount) bits.push(dupCount + " possible duplicate" + (dupCount === 1 ? "" : "s"));
+          if (delayCount) bits.push(delayCount + " delayed payment" + (delayCount === 1 ? "" : "s"));
+          return bits.join("  ·  ");
+        }
+
+        function renderList() {
+          var listHtml = pending.map(function (r) {
+            var badges = "";
+            if (r.duplicate) badges += '<span class="dup-chip">possible duplicate</span>';
+            if (r.delayedPayment) badges += '<span class="delay-chip">delayed payment</span>';
+            return '<div class="import-review-row">' +
+              '<div class="irr-main">' +
+              '<div class="irr-top"><span class="irr-date">' + r.date + '</span><span class="irr-amt">' + formatIn(r.amount, r.currency || state.currency.code) + '</span></div>' +
+              '<div class="irr-sub">' + escapeHtml(r.categoryName || "(default tag)") + (r.note ? " — " + escapeHtml(r.note) : "") + '</div>' +
+              (badges ? '<div class="irr-badges">' + badges + '</div>' : "") +
+              '</div>' +
+              '<button class="row-del" type="button" title="remove" data-remove="' + r._id + '">✕</button>' +
+              '</div>';
+          }).join("");
+          body.querySelector("#mReviewList").innerHTML = listHtml || '<div class="empty-state" style="padding:16px 0;">nothing left to import</div>';
+          body.querySelector("#mReviewSummary").textContent = summaryText();
+          var confirmBtn = body.querySelector("#mImportConfirm");
+          confirmBtn.textContent = "Add " + pending.length + " spend" + (pending.length === 1 ? "" : "s");
+          confirmBtn.disabled = pending.length === 0;
+          body.querySelectorAll("[data-remove]").forEach(function (btn) {
+            btn.addEventListener("click", function () {
+              pending = pending.filter(function (r) { return r._id !== btn.getAttribute("data-remove"); });
+              renderList();
+            });
+          });
+        }
+
+        body.innerHTML =
+          '<p class="helper-text" id="mReviewSummary"></p>' +
+          '<div class="import-review-list" id="mReviewList"></div>' +
+          '<div class="modal-actions"><button class="btn-text primary" id="mImportConfirm" type="button" style="flex:2;">Add spends</button><button class="btn-text" type="button" data-modal-cancel>Cancel</button></div>';
+        renderList();
+
+        document.getElementById("mImportConfirm").addEventListener("click", function () {
+          if (!pending.length) return;
+          var added = commitImportRows(pending, defaultCatId);
           renderAnalytics(true); renderHistory(); renderReports(); renderAdvice();
           closeModal();
-          toast("imported " + result.added + " spend" + (result.added === 1 ? "" : "s") + (result.skipped ? " · " + result.skipped + " skipped" : ""));
+          toast("imported " + added + " spend" + (added === 1 ? "" : "s"));
         });
       }
 
@@ -3538,7 +3671,7 @@
         var html =
           '<div class="modal-head"><h3>Import spends</h3><button class="modal-close" type="button">&times;</button></div>' +
           '<div class="modal-error" id="mError"></div>' +
-          '<p class="modal-sub">Upload a CSV or Excel export — we’ll try to match the columns automatically, and you can fix anything before importing.</p>' +
+          '<p class="modal-sub">Upload a CSV or Excel export — we’ll try to match the columns automatically, flag likely duplicates and delayed payments, and let you review every row before anything is added.</p>' +
           '<div class="modal-field"><label>File (.csv, .xlsx, .xls)</label><input type="file" id="mFile" accept=".csv,.xlsx,.xls"></div>' +
           '<div id="mImportBody"></div>';
         openModal(html);
@@ -4422,6 +4555,8 @@
       var billingLock = document.getElementById("billingLock");
       var lockUpgradeBtn = document.getElementById("lockUpgradeBtn");
       var lockRecheckBtn = document.getElementById("lockRecheckBtn");
+      var lockSignOutBtn = document.getElementById("lockSignOutBtn");
+      lockSignOutBtn.addEventListener("click", function () { if (cloudEnabled && auth) auth.signOut(); });
       var billingCard = document.getElementById("billingCard");
       var planBox = document.getElementById("planBox");
 
