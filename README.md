@@ -6,7 +6,7 @@
 - **One tap:** your most frequent spends from the last 45 days show as chips under the box.
 - **Apple Pay (iPhone):** in Shortcuts → Automation → **Transaction**, pick your cards, then add *Open URL*:
   `https://waliiidals.github.io/Everything-Budgeted/?amount=[Amount]&merchant=[Merchant]&ref=[Current Date]`
-  Every tap-to-pay purchase opens the app and logs itself. The `ref` stops the same purchase being logged twice.
+  Every tap-to-pay purchase opens the app and logs itself. The `ref` stops the same purchase being logged twice. Run *Merchant* and *Current Date* (formatted ISO 8601) through a *URL Encode* action first so spaces don't break the link.
 - **Other automations:** `?q=4.50 coffee` logs a quick-log line; `?quick=1` opens the app with the quick-log box focused (also the "Quick log" home-screen shortcut).
 
 ## Duplicate detection
