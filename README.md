@@ -12,3 +12,13 @@
 ## Duplicate detection
 
 Before any spend is saved (quick log, chip, checklist tick, analytics form, automation) it is compared with spends on the same day with the same amount. It is flagged when enough extra evidence lines up: logged within minutes of each other, the same or similar note/merchant, the same tag, or coming from two different routes (e.g. Apple Pay automation and by hand). You get an "Already logged?" prompt with *Don't add* / *Add anyway*, so two genuine coffees are never blocked. A repeated automation `ref` is skipped automatically.
+
+## Bank statement import
+
+Tap **import bank statement** under the quick-log box and pick the file your bank exports (.xls, .xlsx, .csv or an HTML-table export). The file is read in the browser and never uploaded; the [SheetJS](https://sheetjs.com) reader is downloaded from cdn.sheetjs.com the first time you import.
+
+- It finds the Date / Description / Debit (or Amount) table, keeps only purchases and pulls out the date, the place (e.g. `UTap KNET POS @STARBUCKS NUZHA COOP` becomes "Starbucks Nuzha Coop") and the amount.
+- Transfers, salary and other income, refunds, cash withdrawals and totals are skipped and counted in the summary.
+- Card rows that carry their own purchase date (`VISA POS,28/9/26,…`) use that date instead of the posting date.
+- A review list shows every purchase with a suggested tag (learned from your history, then from the merchant name) before anything is saved.
+- Re-importing the same statement, or one that overlaps, only adds rows that are new. Rows that match something you already logged by hand (same amount, same or next day, plus the usual duplicate evidence) are shown unticked with the match next to them.

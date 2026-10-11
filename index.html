@@ -1624,8 +1624,126 @@
       margin-top: 14px;
     }
 
+    /* ---------- Statement import ---------- */
+    .quick-foot {
+      margin-top: 8px;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .import-link {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--ink-soft);
+      cursor: pointer;
+      border-bottom: 1px dashed var(--line);
+    }
+
+    .import-link:hover {
+      color: var(--accent-ink);
+      border-color: var(--accent);
+    }
+
+    #importSheet {
+      position: fixed;
+      inset: 0;
+      z-index: 75;
+      background: rgba(23, 24, 26, .35);
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    #importSheet.show {
+      display: flex;
+    }
+
+    .import-card {
+      max-width: 560px;
+      max-height: calc(100vh - 32px);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .import-list {
+      flex: 1;
+      overflow-y: auto;
+      margin-top: 10px;
+      border-top: 1px dashed var(--line);
+      min-height: 120px;
+    }
+
+    .imp-row {
+      display: grid;
+      grid-template-columns: 22px 1fr auto;
+      grid-template-areas: "box name amt" ". sub sub" ". warn warn";
+      column-gap: 8px;
+      row-gap: 4px;
+      align-items: center;
+      padding: 9px 2px;
+      border-bottom: 1px solid var(--line-soft);
+      font-size: 13.5px;
+    }
+
+    .imp-row input[type="checkbox"] {
+      grid-area: box;
+      accent-color: var(--accent-ink);
+      width: 16px;
+      height: 16px;
+      margin: 0;
+    }
+
+    .imp-row .m {
+      grid-area: name;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .imp-row .a {
+      grid-area: amt;
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      text-align: right;
+    }
+
+    .imp-row .sub {
+      grid-area: sub;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .imp-row .d {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--ink-faint);
+    }
+
+    .imp-row select {
+      width: auto;
+      padding: 4px 22px 4px 8px;
+      font-size: 12px;
+    }
+
+    .imp-row .warn {
+      grid-area: warn;
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      color: var(--amber);
+    }
+
+    .imp-row.off .m,
+    .imp-row.off .a {
+      color: var(--ink-faint);
+    }
+
     @media (min-width: 521px) {
-      #dupSheet {
+      #dupSheet,
+      #importSheet {
         align-items: center;
       }
     }
@@ -1747,6 +1865,10 @@
         </div>
         <div class="quick-preview" id="quickPreview">type an amount and what it was for, then hit enter</div>
         <div class="quick-recents" id="quickRecents"></div>
+        <div class="quick-foot">
+          <label class="import-link" for="importFile">&#8613; import bank statement</label>
+          <input type="file" id="importFile" accept=".xls,.xlsx,.csv,.txt,.htm,.html" hidden>
+        </div>
       </div>
 
       <div class="tabs" role="tablist">
@@ -1901,6 +2023,18 @@
       </section>
 
       <footer class="tip" id="footerTip">stored locally in this browser · nothing leaves your device</footer>
+    </div>
+  </div>
+
+  <div id="importSheet" role="dialog" aria-modal="true" aria-labelledby="importTitle">
+    <div class="dup-card import-card">
+      <h3 id="importTitle">Import statement</h3>
+      <p id="importSummary"></p>
+      <div class="import-list" id="importList"></div>
+      <div class="plan-actions">
+        <button class="btn-text" id="importCancelBtn">Cancel</button>
+        <button class="btn-text primary" id="importConfirmBtn">Import</button>
+      </div>
     </div>
   </div>
 
@@ -2487,7 +2621,7 @@
         });
 
         spendLog.innerHTML = "";
-        var sorted = inCycle.slice().sort(function (a, b) { return b.createdAt - a.createdAt; });
+        var sorted = inCycle.slice().sort(function (a, b) { return (b.createdAt - a.createdAt) || (a.date < b.date ? 1 : a.date > b.date ? -1 : 0); });
         if (sorted.length === 0) spendLog.innerHTML = '<div class="empty-state" style="padding:6px 0;">nothing logged yet — add a spend below</div>';
         sorted.forEach(function (s) {
           var cat = categoryById(s.categoryId);
@@ -2495,7 +2629,8 @@
           row.className = "spend-item";
           var d = dateFromISO(s.date);
           var sourceBadge = s.fromChecklist ? '<span class="src-badge" title="logged from today\u2019s ledger">ledger</span>'
-            : s.source === "shortcut" ? '<span class="src-badge" title="logged by an Apple Pay / Shortcuts automation">auto</span>' : '';
+            : s.source === "shortcut" ? '<span class="src-badge" title="logged by an Apple Pay / Shortcuts automation">auto</span>'
+            : s.source === "import" ? '<span class="src-badge" title="imported from a bank statement">bank</span>' : '';
           row.innerHTML =
             '<span class="sw" style="background:' + (cat ? cat.color : "#999") + '"></span>' +
             '<span class="lab">' + sourceBadge + escapeHtml(cat ? cat.name : "unknown") + (s.note ? ' <span style="color:var(--ink-faint)">— ' + escapeHtml(s.note) + '</span>' : '') + '</span>' +
@@ -2578,19 +2713,22 @@
         return Math.abs(a - b) < 0.5 / Math.pow(10, d);
       }
       function spendSource(s) { return s.fromChecklist ? "checklist" : (s.source || "form"); }
-      var SOURCE_NAMES = { checklist: "your checklist", quick: "quick log", recent: "a recent chip", shortcut: "Apple Pay / Shortcuts", form: "the analytics form" };
+      var SOURCE_NAMES = { import: "a bank statement", checklist: "your checklist", quick: "quick log", recent: "a recent chip", shortcut: "Apple Pay / Shortcuts", form: "the analytics form" };
       // createdAt is only the purchase time when the entry wasn't backdated
-      function knowsTime(s) { return s.createdAt && s.date === isoOfDate(new Date(s.createdAt)); }
+      function knowsTime(s) { return s.source !== "import" && s.createdAt && s.date === isoOfDate(new Date(s.createdAt)); }
 
       function duplicateScore(cand, s) {
         if (cand.ref && s.ref && cand.ref === s.ref) return { score: Infinity, reasons: ["same automation reference"] };
-        if (s.date !== cand.date || !sameAmount(s.amount, cand.amount)) return { score: 0, reasons: [] };
-        var score = 0, reasons = ["same amount on the same day"];
+        if (!sameAmount(s.amount, cand.amount)) return { score: 0, reasons: [] };
+        // bank statements can post a purchase a day after it happened
+        var dayGap = Math.round(Math.abs(dateFromISO(s.date) - dateFromISO(cand.date)) / 86400000);
+        if (dayGap > ((cand.source === "import" || s.source === "import") ? 1 : 0)) return { score: 0, reasons: [] };
+        var score = 0, reasons = [dayGap ? "same amount a day apart" : "same amount on the same day"];
         if (knowsTime(s) && knowsTime(cand)) {
           var mins = Math.abs(cand.createdAt - s.createdAt) / 60000;
           if (mins <= 2) score += 2.5; else if (mins <= 15) score += 1.5; else if (mins <= 60) score += 1;
           if (mins <= 60) reasons.push("logged " + (mins < 1 ? "under a minute" : Math.round(mins) + " min") + " apart");
-        } else {
+        } else if (!dayGap) {
           score += 1;
         }
         var sim = textSimilarity(cand.note, s.note);
@@ -2675,7 +2813,7 @@
       }
       function lastUsedCategory() {
         var latest = state.spendings.slice().sort(function (a, b) { return b.createdAt - a.createdAt; })
-          .find(function (s) { return categoryById(s.categoryId); });
+          .find(function (s) { return s.source !== "import" && categoryById(s.categoryId); });
         return latest ? latest.categoryId : (state.categories[0] ? state.categories[0].id : null);
       }
       function findCategoryByName(name) {
@@ -2774,7 +2912,7 @@
         var cutoff = Date.now() - 45 * 86400000;
         var groups = {};
         state.spendings.forEach(function (s) {
-          if (!s.createdAt || s.createdAt < cutoff || !categoryById(s.categoryId)) return;
+          if (!s.createdAt || s.createdAt < cutoff || s.source === "import" || !categoryById(s.categoryId)) return;
           var key = normText(s.note) + "|" + s.amount + "|" + s.categoryId;
           var g = groups[key] || (groups[key] = { note: s.note, amount: s.amount, categoryId: s.categoryId, count: 0, last: 0 });
           g.count++; g.last = Math.max(g.last, s.createdAt);
@@ -2826,6 +2964,278 @@
           quickInput.focus();
         }
       }
+
+      /* ---------- bank statement import ----------
+         The file is read in the browser and never uploaded. SheetJS (loaded on
+         first use) turns .xls / .xlsx / .csv / HTML-table exports into rows; we
+         find the header, keep only money going out to a merchant, and skip
+         transfers, income, cash withdrawals and totals. */
+      var SHEETJS_URL = "https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js";
+      function loadSheetJS() {
+        return new Promise(function (resolve, reject) {
+          if (window.XLSX) { resolve(window.XLSX); return; }
+          var el = document.createElement("script");
+          el.src = SHEETJS_URL;
+          el.onload = function () { window.XLSX ? resolve(window.XLSX) : reject(new Error("reader missing")); };
+          el.onerror = function () { reject(new Error("couldn't load the file reader")); };
+          document.head.appendChild(el);
+        });
+      }
+
+      var SKIP_RULES = [
+        [/transfer|\btrf\b|standing order|own account/i, "transfers"],
+        [/salary|payroll|refund|reversal|cashback|interest|dividend/i, "income & refunds"],
+        [/\batm\b|cash withdrawal/i, "cash withdrawals"],
+        [/opening balance|closing balance|brought forward|carried forward|^total/i, "totals"]
+      ];
+      var MERCHANT_TAGS = [
+        [/coffee|coffe\b|cafe|café|roast|starbucks|espresso|\btea\b|bak(ery|eries)|juice|restaur|\bres\b|\brest\b|burger|pizza|grill|kitchen|wingstop|shake ?shack|chopsters|sushi|maki|chocolate|keeta|talabat|deliveroo|mcdonald|\bkfc\b|food/i, "Food"],
+        [/\bknpc\b|\boula\b|\balfa\b|\bsoot\b|petrol|fuel|gas station|taxi|uber|careem|parking/i, "Transport"],
+        [/\bzain\b|ooredoo|\bstc\b|\bviva\b|electric|internet|telecom/i, "Bills"],
+        [/sultan cent|\btsc\b|co-?op|\blulu\b|carrefour|market|grocer|supermarket|\boldi\b|daily picks/i, "Groceries"],
+        [/pharma|clinic|hospital|fitness|\bgym\b|nutrition|health|medical/i, "Health"]
+      ];
+
+      function findStatementHeader(rows) {
+        for (var r = 0; r < Math.min(rows.length, 60); r++) {
+          var cols = { date: -1, desc: -1, debit: -1, credit: -1, amount: -1, balance: -1 };
+          (rows[r] || []).forEach(function (c, i) {
+            var t = String(c).trim().toLowerCase();
+            if (!t || t.length > 40) return;
+            if (cols.date < 0 && /^((transaction|posting|trans\.?|txn|booking)\s+)?date$/.test(t)) cols.date = i;
+            else if (cols.desc < 0 && /description|details|narrative|particulars|merchant|payee|transaction/.test(t)) cols.desc = i;
+            else if (cols.debit < 0 && /debit|withdraw|money out|paid out/.test(t)) cols.debit = i;
+            else if (cols.credit < 0 && /credit|deposit|money in|paid in/.test(t)) cols.credit = i;
+            else if (cols.amount < 0 && /amount/.test(t)) cols.amount = i;
+            else if (cols.balance < 0 && /balance/.test(t)) cols.balance = i;
+          });
+          if (cols.date >= 0 && cols.desc >= 0 && (cols.debit >= 0 || cols.amount >= 0)) return { row: r, cols: cols };
+        }
+        return null;
+      }
+
+      function stmtAmount(v) {
+        if (typeof v === "number") return v;
+        var s = String(v || "").trim();
+        if (!s) return NaN;
+        var neg = /^-|-$|^\(.*\)$/.test(s);
+        s = s.replace(/[^\d.,]/g, "");
+        // "1.234,56" style uses a comma for decimals; otherwise commas are thousands
+        s = /,\d{1,2}$/.test(s) ? s.replace(/\./g, "").replace(",", ".") : s.replace(/,/g, "");
+        var n = parseFloat(s);
+        return isNaN(n) ? NaN : (neg ? -n : n);
+      }
+
+      function stmtDate(v, dayFirst) {
+        if (v instanceof Date && !isNaN(v)) return isoOfDate(v);
+        if (typeof v === "number" && v > 20000 && v < 80000) {
+          var d = new Date(Math.round((v - 25569) * 86400000));
+          return d.getUTCFullYear() + "-" + pad(d.getUTCMonth() + 1) + "-" + pad(d.getUTCDate());
+        }
+        var s = String(v || "").trim(), m;
+        if ((m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/))) return m[1] + "-" + pad(+m[2]) + "-" + pad(+m[3]);
+        if ((m = s.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2,4})\b/))) {
+          var y = m[3].length === 2 ? "20" + m[3] : m[3];
+          var day = dayFirst ? +m[1] : +m[2], mon = dayFirst ? +m[2] : +m[1];
+          if (mon < 1 || mon > 12 || day < 1 || day > 31) return null;
+          return y + "-" + pad(mon) + "-" + pad(day);
+        }
+        if (/[a-z]{3}/i.test(s) && /\d{4}/.test(s) && !isNaN(Date.parse(s))) return isoOfDate(new Date(Date.parse(s)));
+        return null;
+      }
+
+      // dd/mm unless the file proves mm/dd (a middle number above 12)
+      function statementDayFirst(values) {
+        var dayFirst = null;
+        values.forEach(function (v) {
+          var m = String(v).match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-]\d{2,4}/);
+          if (!m || dayFirst !== null) return;
+          if (+m[1] > 12) dayFirst = true; else if (+m[2] > 12) dayFirst = false;
+        });
+        return dayFirst === null ? !/^en-US/.test(navigator.language || "") : dayFirst;
+      }
+
+      function titleCase(s) {
+        if (/[a-z]/.test(s)) return s;
+        return s.toLowerCase().replace(/(^|[\s\-&\/(])([a-z])/g, function (_, a, b) { return a + b.toUpperCase(); });
+      }
+
+      // "UTap KNET POS    @STARBUCKS NUZHA COOP" -> "Starbucks Nuzha Coop"
+      // "POS PAYMENT @MyFatoorahAP |PixelTechnology-" -> "Pixel Technology"
+      // "VISA POS,28/9/26,IHERB IHERB.COM 49.770000,414,..." -> "Iherb Iherb.com" (+ its own purchase date)
+      function statementMerchant(desc) {
+        var d = String(desc || "").replace(/\s+/g, " ").trim(), m, name, when = null;
+        if ((m = d.match(/^(?:visa|mastercard|master card|mada|card)\s*pos\s*,\s*([\d\/.\-]+)\s*,\s*(.+?)\s+[\d.]+\s*,/i))) { when = m[1]; name = m[2]; }
+        else if (d.indexOf("@") !== -1) {
+          name = d.slice(d.indexOf("@") + 1);
+          if (/^pos payment/i.test(d) || name.indexOf("|") !== -1) {
+            var g = name.match(/^(.+?)AP(?=[\s|\-]|$)\s*\|?\s*(.*?)[\s\-]*$/);
+            if (g) name = g[2] || g[1];
+          }
+        }
+        else if ((m = d.match(/^mobile payment\s+([a-z]+)/i))) name = m[1];
+        else name = d.replace(/^(pos|purchase|card purchase|debit card( purchase)?|visa|mastercard|apple pay|contactless)[\s:,\-]+/i, "");
+        name = name.replace(/^[A-Z]{2,4}\*/, "").replace(/\s[*#]?\d{5,}.*$/, "").replace(/[\s\-|,]+$/, "")
+          .replace(/([a-z])([A-Z])/g, "$1 $2").trim();
+        return { name: titleCase(name || d).slice(0, 40), when: when };
+      }
+
+      function hashRef(str) {
+        var h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+        for (var i = 0; i < str.length; i++) {
+          var c = str.charCodeAt(i);
+          h1 = Math.imul(h1 ^ c, 2654435761); h2 = Math.imul(h2 ^ c, 1597334677);
+        }
+        h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+        h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+        return "stmt:" + (h2 >>> 0).toString(36) + (h1 >>> 0).toString(36);
+      }
+
+      function parseStatement(rows) {
+        var head = findStatementHeader(rows);
+        if (!head) return null;
+        var c = head.cols, body = rows.slice(head.row + 1);
+        var dayFirst = statementDayFirst(body.map(function (r) { return r[c.date]; }));
+        // single amount column: negatives are spending if the file has any, else everything is
+        var signed = c.debit < 0 && body.some(function (r) { return stmtAmount(r[c.amount]) < 0; });
+        var items = [], skipped = {}, seen = {};
+        body.forEach(function (r) {
+          var date = stmtDate(r[c.date], dayFirst);
+          if (!date) return; // footer, notes, blank lines
+          var desc = String(r[c.desc] || "").trim();
+          var amt = c.debit >= 0 ? stmtAmount(r[c.debit]) : stmtAmount(r[c.amount]);
+          if (c.debit < 0 && signed) amt = amt < 0 ? -amt : NaN;
+          amt = Math.abs(amt);
+          if (!amt) { skipped["income & refunds"] = (skipped["income & refunds"] || 0) + 1; return; }
+          var rule = SKIP_RULES.find(function (x) { return x[0].test(desc); });
+          if (rule) { skipped[rule[1]] = (skipped[rule[1]] || 0) + 1; return; }
+          var merchant = statementMerchant(desc);
+          var bal = c.balance >= 0 ? String(r[c.balance]) : "";
+          var key = [date, desc, amt, bal].join("|");
+          seen[key] = (seen[key] || 0) + 1;
+          items.push({
+            date: (merchant.when && stmtDate(merchant.when, dayFirst)) || date,
+            note: merchant.name, amount: amt, desc: desc,
+            ref: hashRef(key + "|" + seen[key])
+          });
+        });
+        return { items: items, skipped: skipped };
+      }
+
+      function suggestTag(merchant) {
+        var fromHistory = guessCategory(merchant);
+        if (fromHistory) return fromHistory;
+        var hit = MERCHANT_TAGS.find(function (x) { return x[0].test(merchant); });
+        var name = hit ? hit[1] : "Other";
+        var existing = findCategoryByName(name);
+        return existing ? existing.id : "new:" + name;
+      }
+
+      var importSheet = document.getElementById("importSheet");
+      var importList = document.getElementById("importList");
+      var importConfirmBtn = document.getElementById("importConfirmBtn");
+      var importRows = [];
+
+      function closeImport() { importSheet.classList.remove("show"); importRows = []; importList.innerHTML = ""; }
+      document.getElementById("importCancelBtn").addEventListener("click", closeImport);
+      function updateImportCount() {
+        var n = importRows.filter(function (x) { return x.box.checked; }).length;
+        importConfirmBtn.textContent = "Import " + n + (n === 1 ? " spend" : " spends");
+        importConfirmBtn.disabled = !n;
+      }
+
+      function showImportReview(parsed, fileName) {
+        var others = state.spendings.filter(function (s) { return s.source !== "import"; });
+        var knownRefs = {};
+        state.spendings.forEach(function (s) { if (s.ref) knownRefs[s.ref] = true; });
+        var already = 0, flagged = 0;
+        var tagNames = {};
+        importRows = [];
+        importList.innerHTML = "";
+        parsed.items.forEach(function (it, i) {
+          if (knownRefs[it.ref]) { already++; return; }
+          var cand = { amount: it.amount, date: it.date, note: it.note, categoryId: null, source: "import", ref: it.ref };
+          var tag = suggestTag(it.note);
+          cand.categoryId = tag;
+          var best = null;
+          others.forEach(function (s) {
+            var r = duplicateScore(cand, s);
+            if (r.score >= DUP_THRESHOLD && (!best || r.score > best.score)) best = { spend: s, score: r.score };
+          });
+          if (best) flagged++;
+          if (tag.indexOf("new:") === 0) tagNames[tag] = tag.slice(4);
+
+          var row = document.createElement("div");
+          row.className = "imp-row" + (best ? " off" : "");
+          var id = "imp" + i;
+          row.innerHTML = '<input type="checkbox" id="' + id + '"' + (best ? "" : " checked") + '>' +
+            '<label class="m" for="' + id + '" title="' + escapeHtml(it.desc) + '">' + escapeHtml(it.note) + '</label>' +
+            '<span class="a">' + money(it.amount) + '</span>' +
+            '<div class="sub"><span class="d">' + dateFromISO(it.date).toLocaleDateString(undefined, { month: "short", day: "numeric" }) + '</span>' +
+            '<select aria-label="tag"></select></div>' +
+            (best ? '<span class="warn">already logged? ' + escapeHtml(describeSpend(best.spend)) + '</span>' : '');
+          importList.appendChild(row);
+          var box = row.querySelector("input");
+          box.addEventListener("change", function () { row.classList.toggle("off", !box.checked); updateImportCount(); });
+          importRows.push({ item: it, box: box, select: row.querySelector("select"), tag: tag });
+        });
+
+        importRows.forEach(function (x) {
+          state.categories.forEach(function (cat) { x.select.add(new Option(cat.name, cat.id)); });
+          Object.keys(tagNames).forEach(function (k) { x.select.add(new Option(tagNames[k] + " (new)", k)); });
+          x.select.value = x.tag;
+        });
+
+        var bits = [];
+        var skippedTotal = Object.keys(parsed.skipped).reduce(function (n, k) { return n + parsed.skipped[k]; }, 0);
+        bits.push("Found " + (parsed.items.length - already) + " new purchase" + (parsed.items.length - already === 1 ? "" : "s") + " in " + fileName + ".");
+        if (skippedTotal) bits.push("Skipped " + skippedTotal + " other rows (" + Object.keys(parsed.skipped).map(function (k) { return parsed.skipped[k] + " " + k; }).join(", ") + ").");
+        if (already) bits.push(already + " were already imported before.");
+        if (flagged) bits.push(flagged + " look already logged, so they're unticked.");
+        document.getElementById("importSummary").textContent = bits.join(" ");
+        if (!importRows.length) { closeImport(); toast("nothing new to import from this statement"); return; }
+        updateImportCount();
+        importSheet.classList.add("show");
+      }
+
+      importConfirmBtn.addEventListener("click", function () {
+        var created = {};
+        var added = [];
+        var now = Date.now();
+        importRows.forEach(function (x) {
+          if (!x.box.checked) return;
+          var catId = x.select.value;
+          if (catId.indexOf("new:") === 0) catId = created[catId] || (created[catId] = addCategory(catId.slice(4)));
+          var spend = { id: uid(), categoryId: catId, amount: x.item.amount, note: x.item.note, date: x.item.date, createdAt: now, source: "import", ref: x.item.ref };
+          state.spendings.push(spend);
+          added.push(spend.id);
+        });
+        closeImport();
+        refreshAllCategorySelects();
+        afterSpendChange();
+        toast("imported " + added.length + " spends", function () {
+          state.spendings = state.spendings.filter(function (s) { return added.indexOf(s.id) === -1; });
+          afterSpendChange();
+        });
+      });
+
+      document.getElementById("importFile").addEventListener("change", function (e) {
+        var file = e.target.files && e.target.files[0];
+        e.target.value = "";
+        if (!file) return;
+        toast("reading " + file.name + "…");
+        Promise.all([loadSheetJS(), file.arrayBuffer()]).then(function (res) {
+          var wb = res[0].read(new Uint8Array(res[1]), { type: "array", cellDates: true });
+          var parsed = null;
+          wb.SheetNames.some(function (n) {
+            var rows = res[0].utils.sheet_to_json(wb.Sheets[n], { header: 1, raw: true, defval: "" });
+            parsed = parseStatement(rows);
+            return parsed && parsed.items.length;
+          });
+          if (!parsed) { toast("couldn't find a date / description / amount table in that file"); return; }
+          showImportReview(parsed, file.name);
+        }).catch(function (err) { console.error(err); toast(err && err.message ? err.message : "couldn't read that file"); });
+      });
 
       /* ---------- history ---------- */
       var historyList = document.getElementById("historyList");
