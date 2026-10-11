@@ -1481,6 +1481,273 @@
       padding: 0;
     }
 
+    /* ---------- Quick log ---------- */
+    .quick-log {
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 12px;
+      margin-bottom: 16px;
+    }
+
+    .quick-row {
+      display: grid;
+      grid-template-columns: 1fr 46px;
+      gap: 8px;
+    }
+
+    .quick-row input[type="text"] {
+      font-size: 16px;
+      padding: 11px 12px;
+    }
+
+    .quick-preview {
+      min-height: 18px;
+      margin-top: 8px;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      color: var(--ink-faint);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .quick-preview b {
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    .quick-preview .guess {
+      color: var(--ink-faint);
+      font-style: italic;
+    }
+
+    .quick-recents {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      margin-top: 8px;
+      padding-bottom: 2px;
+      scrollbar-width: none;
+    }
+
+    .quick-recents:empty {
+      display: none;
+    }
+
+    .quick-recents::-webkit-scrollbar {
+      display: none;
+    }
+
+    .recent-chip {
+      flex: 0 0 auto;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      padding: 6px 11px;
+      border-radius: 999px;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      cursor: pointer;
+      color: var(--ink-soft);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: border-color .15s ease, background .15s ease;
+    }
+
+    .recent-chip .sw {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+    }
+
+    .recent-chip b {
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    .recent-chip:hover {
+      border-color: var(--accent);
+      background: var(--accent-wash);
+    }
+
+    /* ---------- Duplicate sheet ---------- */
+    #dupSheet {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      background: rgba(23, 24, 26, .35);
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    #dupSheet.show {
+      display: flex;
+    }
+
+    .dup-card {
+      width: 100%;
+      max-width: 420px;
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 20px;
+      animation: fadeUp .25s ease;
+    }
+
+    .dup-card h3 {
+      font-family: var(--font-display);
+      font-size: 17px;
+      margin: 0 0 6px;
+    }
+
+    .dup-card p {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--ink-soft);
+      line-height: 1.6;
+      margin: 0 0 6px;
+    }
+
+    .dup-card .dup-match {
+      background: var(--bg);
+      border: 1px dashed var(--line);
+      border-radius: 9px;
+      padding: 8px 10px;
+      color: var(--ink);
+    }
+
+    .dup-card .plan-actions {
+      margin-top: 14px;
+    }
+
+    /* ---------- Statement import ---------- */
+    .quick-foot {
+      margin-top: 8px;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .import-link {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--ink-soft);
+      cursor: pointer;
+      border-bottom: 1px dashed var(--line);
+    }
+
+    .import-link:hover {
+      color: var(--accent-ink);
+      border-color: var(--accent);
+    }
+
+    #importSheet {
+      position: fixed;
+      inset: 0;
+      z-index: 75;
+      background: rgba(23, 24, 26, .35);
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    #importSheet.show {
+      display: flex;
+    }
+
+    .import-card {
+      max-width: 560px;
+      max-height: calc(100vh - 32px);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .import-list {
+      flex: 1;
+      overflow-y: auto;
+      margin-top: 10px;
+      border-top: 1px dashed var(--line);
+      min-height: 120px;
+    }
+
+    .imp-row {
+      display: grid;
+      grid-template-columns: 22px 1fr auto;
+      grid-template-areas: "box name amt" ". sub sub" ". warn warn";
+      column-gap: 8px;
+      row-gap: 4px;
+      align-items: center;
+      padding: 9px 2px;
+      border-bottom: 1px solid var(--line-soft);
+      font-size: 13.5px;
+    }
+
+    .imp-row input[type="checkbox"] {
+      grid-area: box;
+      accent-color: var(--accent-ink);
+      width: 16px;
+      height: 16px;
+      margin: 0;
+    }
+
+    .imp-row .m {
+      grid-area: name;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .imp-row .a {
+      grid-area: amt;
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      text-align: right;
+    }
+
+    .imp-row .sub {
+      grid-area: sub;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .imp-row .d {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--ink-faint);
+    }
+
+    .imp-row select {
+      width: auto;
+      padding: 4px 22px 4px 8px;
+      font-size: 12px;
+    }
+
+    .imp-row .warn {
+      grid-area: warn;
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      color: var(--amber);
+    }
+
+    .imp-row.off .m,
+    .imp-row.off .a {
+      color: var(--ink-faint);
+    }
+
+    @media (min-width: 521px) {
+      #dupSheet,
+      #importSheet {
+        align-items: center;
+      }
+    }
+
     @media (max-width: 520px) {
 
       .add-row,
@@ -1589,6 +1856,19 @@
       <div class="trial-banner" id="trialBanner">
         <span id="trialBannerText"></span>
         <a class="btn-text primary" id="trialBannerBtn" target="_blank" rel="noopener">Upgrade — $5/mo</a>
+      </div>
+
+      <div class="quick-log" id="quickLog">
+        <div class="quick-row">
+          <input type="text" id="quickInput" placeholder="4.50 coffee · 12 uber #transport · 30 lunch yesterday" maxlength="80" autocomplete="off" enterkeyhint="done" aria-label="Quick log a spend">
+          <button class="btn-add" id="quickAddBtn" title="Log it">+</button>
+        </div>
+        <div class="quick-preview" id="quickPreview">type an amount and what it was for, then hit enter</div>
+        <div class="quick-recents" id="quickRecents"></div>
+        <div class="quick-foot">
+          <label class="import-link" for="importFile">&#8613; import bank statement</label>
+          <input type="file" id="importFile" accept=".xls,.xlsx,.csv,.txt,.htm,.html" hidden>
+        </div>
       </div>
 
       <div class="tabs" role="tablist">
@@ -1743,6 +2023,30 @@
       </section>
 
       <footer class="tip" id="footerTip">stored locally in this browser · nothing leaves your device</footer>
+    </div>
+  </div>
+
+  <div id="importSheet" role="dialog" aria-modal="true" aria-labelledby="importTitle">
+    <div class="dup-card import-card">
+      <h3 id="importTitle">Import statement</h3>
+      <p id="importSummary"></p>
+      <div class="import-list" id="importList"></div>
+      <div class="plan-actions">
+        <button class="btn-text" id="importCancelBtn">Cancel</button>
+        <button class="btn-text primary" id="importConfirmBtn">Import</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="dupSheet" role="dialog" aria-modal="true" aria-labelledby="dupTitle">
+    <div class="dup-card">
+      <h3 id="dupTitle">Already logged?</h3>
+      <p id="dupWhy"></p>
+      <p class="dup-match" id="dupMatch"></p>
+      <div class="plan-actions">
+        <button class="btn-text" id="dupSkipBtn">Don't add</button>
+        <button class="btn-text primary" id="dupAddBtn">Add anyway</button>
+      </div>
     </div>
   </div>
 
@@ -2141,20 +2445,23 @@
             ledgerList.appendChild(row);
 
             row.querySelector(".checkbox").addEventListener("click", function () {
-              item.checked = !item.checked;
-              if (item.checked) {
+              if (!item.checked) {
                 var spend = { id: uid(), categoryId: item.categoryId, amount: item.price, note: item.label, date: todayISO(), createdAt: Date.now(), fromChecklist: true };
-                state.spendings.push(spend);
-                item.linkedSpendId = spend.id;
-              } else if (item.linkedSpendId) {
+                checkDuplicate(spend, function () {
+                  item.checked = true;
+                  state.spendings.push(spend);
+                  item.linkedSpendId = spend.id;
+                  afterSpendChange();
+                  if (state.checklist.every(function (i) { return i.checked; })) toast("all logged for today ✓");
+                });
+                return;
+              }
+              item.checked = false;
+              if (item.linkedSpendId) {
                 state.spendings = state.spendings.filter(function (s) { return s.id !== item.linkedSpendId; });
                 item.linkedSpendId = null;
               }
-              save();
-              renderChecklist();
-              renderAnalytics(false);
-              renderHistory();
-              if (item.checked && state.checklist.every(function (i) { return i.checked; })) toast("all logged for today ✓");
+              afterSpendChange();
             });
             row.querySelector(".row-del").addEventListener("click", function () {
               var idx = state.checklist.indexOf(item);
@@ -2314,14 +2621,16 @@
         });
 
         spendLog.innerHTML = "";
-        var sorted = inCycle.slice().sort(function (a, b) { return b.createdAt - a.createdAt; });
+        var sorted = inCycle.slice().sort(function (a, b) { return (b.createdAt - a.createdAt) || (a.date < b.date ? 1 : a.date > b.date ? -1 : 0); });
         if (sorted.length === 0) spendLog.innerHTML = '<div class="empty-state" style="padding:6px 0;">nothing logged yet — add a spend below</div>';
         sorted.forEach(function (s) {
           var cat = categoryById(s.categoryId);
           var row = document.createElement("div");
           row.className = "spend-item";
           var d = dateFromISO(s.date);
-          var sourceBadge = s.fromChecklist ? '<span class="src-badge" title="logged from today\u2019s ledger">ledger</span>' : '';
+          var sourceBadge = s.fromChecklist ? '<span class="src-badge" title="logged from today\u2019s ledger">ledger</span>'
+            : s.source === "shortcut" ? '<span class="src-badge" title="logged by an Apple Pay / Shortcuts automation">auto</span>'
+            : s.source === "import" ? '<span class="src-badge" title="imported from a bank statement">bank</span>' : '';
           row.innerHTML =
             '<span class="sw" style="background:' + (cat ? cat.color : "#999") + '"></span>' +
             '<span class="lab">' + sourceBadge + escapeHtml(cat ? cat.name : "unknown") + (s.note ? ' <span style="color:var(--ink-faint)">— ' + escapeHtml(s.note) + '</span>' : '') + '</span>' +
@@ -2337,6 +2646,7 @@
             renderAnalytics(false);
             renderHistory();
             renderChecklist();
+            renderQuickRecents();
             toast("spend removed", function () {
               state.spendings.splice(Math.min(idx, state.spendings.length), 0, s);
               if (linkedItem) { linkedItem.checked = true; linkedItem.linkedSpendId = s.id; }
@@ -2361,14 +2671,570 @@
         if (isNaN(amount) || amount <= 0) { toast("enter a valid amount"); amountInput.focus(); return; }
         if (!dateVal) { toast("pick a date"); return; }
 
-        state.spendings.push({ id: uid(), categoryId: catId, amount: amount, note: noteInput.value.trim(), date: dateVal, createdAt: Date.now() });
-        save();
-        noteInput.value = ""; amountInput.value = "";
-        renderAnalytics(true);
-        renderHistory();
+        var spend = { id: uid(), categoryId: catId, amount: amount, note: noteInput.value.trim(), date: dateVal, createdAt: Date.now() };
+        checkDuplicate(spend, function () {
+          state.spendings.push(spend);
+          save();
+          noteInput.value = ""; amountInput.value = "";
+          renderAnalytics(true);
+          renderHistory();
+          renderQuickRecents();
+        });
       });
       [document.getElementById("spendNote"), document.getElementById("spendAmount")].forEach(function (el) {
         el.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); document.getElementById("addSpendBtn").click(); } });
+      });
+
+      /* ---------- duplicate detection ----------
+         A new spend is compared against spends already logged on the same date
+         with the same amount. Extra evidence adds to a score:
+           - how close the two entries were logged in time
+           - how similar the note/merchant text is
+           - same tag
+           - logged through different routes (e.g. Apple Pay automation + by hand)
+         An exact `ref` match (sent by a Shortcut) is always a duplicate. */
+      var DUP_THRESHOLD = 2.5;
+
+      function normText(s) {
+        return String(s || "").toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "")
+          .replace(/[^a-z؀-ۿ\s]/g, " ").replace(/\s+/g, " ").trim();
+      }
+      function textSimilarity(a, b) {
+        a = normText(a); b = normText(b);
+        if (!a || !b) return 0;
+        if (a === b) return 1;
+        if (a.indexOf(b) !== -1 || b.indexOf(a) !== -1) return 0.8;
+        var ta = a.split(" "), tb = b.split(" ");
+        var shared = ta.filter(function (t) { return t.length > 1 && tb.indexOf(t) !== -1; }).length;
+        return shared / Math.max(ta.length, tb.length);
+      }
+      function sameAmount(a, b) {
+        var d = (state.currency && state.currency.decimals) || 2;
+        return Math.abs(a - b) < 0.5 / Math.pow(10, d);
+      }
+      function spendSource(s) { return s.fromChecklist ? "checklist" : (s.source || "form"); }
+      var SOURCE_NAMES = { import: "a bank statement", checklist: "your checklist", quick: "quick log", recent: "a recent chip", shortcut: "Apple Pay / Shortcuts", form: "the analytics form" };
+      // createdAt is only the purchase time when the entry wasn't backdated
+      function knowsTime(s) { return s.source !== "import" && s.createdAt && s.date === isoOfDate(new Date(s.createdAt)); }
+
+      function duplicateScore(cand, s) {
+        if (cand.ref && s.ref && cand.ref === s.ref) return { score: Infinity, reasons: ["same automation reference"] };
+        if (!sameAmount(s.amount, cand.amount)) return { score: 0, reasons: [] };
+        // bank statements can post a purchase a day after it happened
+        var dayGap = Math.round(Math.abs(dateFromISO(s.date) - dateFromISO(cand.date)) / 86400000);
+        if (dayGap > ((cand.source === "import" || s.source === "import") ? 1 : 0)) return { score: 0, reasons: [] };
+        var score = 0, reasons = [dayGap ? "same amount a day apart" : "same amount on the same day"];
+        if (knowsTime(s) && knowsTime(cand)) {
+          var mins = Math.abs(cand.createdAt - s.createdAt) / 60000;
+          if (mins <= 2) score += 2.5; else if (mins <= 15) score += 1.5; else if (mins <= 60) score += 1;
+          if (mins <= 60) reasons.push("logged " + (mins < 1 ? "under a minute" : Math.round(mins) + " min") + " apart");
+        } else if (!dayGap) {
+          score += 1;
+        }
+        var sim = textSimilarity(cand.note, s.note);
+        if (sim >= 0.99) { score += 1.5; reasons.push("same note"); }
+        else if (sim >= 0.5) { score += 1; reasons.push("similar note"); }
+        else if (!normText(cand.note) && !normText(s.note)) score += 0.5;
+        if (cand.categoryId && cand.categoryId === s.categoryId) { score += 0.5; reasons.push("same tag"); }
+        if (spendSource(cand) !== spendSource(s)) { score += 1; reasons.push("one came from " + SOURCE_NAMES[spendSource(s)]); }
+        return { score: score, reasons: reasons };
+      }
+      function findDuplicate(cand) {
+        var best = null;
+        state.spendings.forEach(function (s) {
+          var r = duplicateScore(cand, s);
+          if (r.score >= DUP_THRESHOLD && (!best || r.score > best.score)) best = { spend: s, score: r.score, reasons: r.reasons };
+        });
+        return best;
+      }
+
+      var dupSheet = document.getElementById("dupSheet");
+      var dupPending = null;
+      function closeDupSheet(add) {
+        dupSheet.classList.remove("show");
+        var p = dupPending; dupPending = null;
+        if (p) (add ? p.onAdd : p.onSkip)();
+      }
+      document.getElementById("dupAddBtn").addEventListener("click", function () { closeDupSheet(true); });
+      document.getElementById("dupSkipBtn").addEventListener("click", function () { closeDupSheet(false); });
+      dupSheet.addEventListener("click", function (e) { if (e.target === dupSheet) closeDupSheet(false); });
+      document.addEventListener("keydown", function (e) { if (e.key === "Escape" && dupSheet.classList.contains("show")) closeDupSheet(false); });
+
+      function describeSpend(s) {
+        var cat = categoryById(s.categoryId);
+        var when = knowsTime(s) ? new Date(s.createdAt).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }) : dateFromISO(s.date).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+        return money(s.amount) + " · " + (cat ? cat.name : "untagged") + (s.note ? " — " + s.note : "") + " · " + when;
+      }
+
+      // Calls onAdd() unless the user decides the spend is a duplicate (then onSkip()).
+      function checkDuplicate(cand, onAdd, onSkip) {
+        onSkip = onSkip || function () { };
+        var dup = findDuplicate(cand);
+        if (!dup) { onAdd(); return; }
+        if (dup.score === Infinity) { toast("already logged from this purchase — skipped"); onSkip(); return; }
+        document.getElementById("dupWhy").textContent = "This looks like something you already logged: " + dup.reasons.join(", ") + ".";
+        document.getElementById("dupMatch").textContent = describeSpend(dup.spend);
+        dupPending = { onAdd: onAdd, onSkip: onSkip };
+        dupSheet.classList.add("show");
+        document.getElementById("dupSkipBtn").focus();
+      }
+
+      /* ---------- quick log ---------- */
+      var quickInput = document.getElementById("quickInput");
+      var quickPreview = document.getElementById("quickPreview");
+      var quickRecents = document.getElementById("quickRecents");
+      var QUICK_HINT = "type an amount and what it was for, then hit enter";
+
+      function parseAmount(token) {
+        var m = String(token).match(/\d[\d.,]*/);
+        if (!m) return NaN;
+        var raw = m[0].replace(/[.,]$/, "");
+        var d = (state.currency && state.currency.decimals) || 2;
+        var lastSep = Math.max(raw.lastIndexOf("."), raw.lastIndexOf(","));
+        if (lastSep === -1) return parseFloat(raw);
+        var frac = raw.slice(lastSep + 1);
+        // "1,200" with a 2-decimal currency is a thousands separator; "4,50" / "1.250 KD" are decimals
+        if (frac.length === 3 && d !== 3) return parseFloat(raw.replace(/[.,]/g, ""));
+        return parseFloat(raw.slice(0, lastSep).replace(/[.,]/g, "") + "." + frac);
+      }
+
+      // Most recent tag used with a similar note (learned from your own history, on device).
+      function guessCategory(note) {
+        if (!normText(note)) return null;
+        var best = null, bestSim = 0;
+        var pool = state.spendings.slice().sort(function (a, b) { return b.createdAt - a.createdAt; })
+          .concat(state.checklist.map(function (i) { return { note: i.label, categoryId: i.categoryId }; }));
+        pool.forEach(function (s) {
+          if (!categoryById(s.categoryId)) return;
+          var sim = textSimilarity(note, s.note);
+          if (sim >= 0.5 && sim > bestSim) { best = s.categoryId; bestSim = sim; }
+        });
+        return best;
+      }
+      function lastUsedCategory() {
+        var latest = state.spendings.slice().sort(function (a, b) { return b.createdAt - a.createdAt; })
+          .find(function (s) { return s.source !== "import" && categoryById(s.categoryId); });
+        return latest ? latest.categoryId : (state.categories[0] ? state.categories[0].id : null);
+      }
+      function findCategoryByName(name) {
+        name = name.toLowerCase();
+        return state.categories.find(function (c) { return c.name.toLowerCase() === name; });
+      }
+
+      // "4.50 coffee", "uber 12 #transport", "$30 lunch yesterday", "KD 1.250 shawarma"
+      function parseQuick(text) {
+        var out = { amount: NaN, note: "", categoryId: null, newTag: null, date: todayISO(), guessed: false };
+        var words = [];
+        String(text || "").trim().split(/\s+/).forEach(function (tok) {
+          if (!tok) return;
+          var low = tok.toLowerCase();
+          if (isNaN(out.amount) && /\d/.test(tok) && /^[^a-z]*\d[\d.,]*[^a-z]*$/i.test(tok.replace(/^(kd|bd|sr|qr|aed|omr|egp|usd|eur|gbp)/i, ""))) {
+            out.amount = parseAmount(tok); return;
+          }
+          if (/^(kd|bd|sr|qr|aed|omr|egp|usd|eur|gbp)$/i.test(tok)) return;
+          if (low === "yesterday" || low === "yday") { var y = new Date(); y.setDate(y.getDate() - 1); out.date = isoOfDate(y); return; }
+          if (low === "today") return;
+          if (tok.charAt(0) === "#" && tok.length > 1) {
+            var tagName = tok.slice(1).replace(/[-_]/g, " ");
+            var c = findCategoryByName(tagName);
+            if (c) out.categoryId = c.id; else out.newTag = tagName.charAt(0).toUpperCase() + tagName.slice(1);
+            return;
+          }
+          words.push(tok);
+        });
+        if (!out.categoryId && !out.newTag) {
+          var idx = words.findIndex(function (w) { return findCategoryByName(w); });
+          if (idx !== -1) { out.categoryId = findCategoryByName(words[idx]).id; if (words.length > 1) words.splice(idx, 1); }
+        }
+        out.note = words.join(" ").slice(0, 40);
+        if (!out.categoryId && !out.newTag) {
+          out.categoryId = guessCategory(out.note) || lastUsedCategory();
+          out.guessed = !!out.categoryId;
+          if (!out.categoryId) out.newTag = "General";
+        }
+        return out;
+      }
+
+      function renderQuickPreview() {
+        var v = quickInput.value.trim();
+        if (!v) { quickPreview.textContent = QUICK_HINT; return; }
+        var p = parseQuick(v);
+        if (isNaN(p.amount) || p.amount <= 0) { quickPreview.textContent = "add an amount, e.g. “4.50 " + (v.replace(/[\d.,]/g, "").trim() || "coffee") + "”"; return; }
+        var cat = categoryById(p.categoryId);
+        var color = cat ? cat.color : PALETTE[state.categories.length % PALETTE.length];
+        var tagName = cat ? cat.name : p.newTag + " (new)";
+        quickPreview.innerHTML = "&gt; <b>" + money(p.amount) + "</b>" +
+          '<span class="tag-chip" style="--chip-bg:' + hexToWash(color) + '; --chip-color:' + color + '"><span class="sw"></span>' + escapeHtml(tagName) + '</span>' +
+          (p.note ? escapeHtml(p.note) : "") +
+          (p.date !== todayISO() ? " · yesterday" : "") +
+          (p.guessed ? ' <span class="guess">tag guessed · type #tag to change</span>' : "");
+      }
+
+      function afterSpendChange() {
+        save();
+        renderChecklist();
+        renderAnalytics(false);
+        renderHistory();
+        renderQuickRecents();
+      }
+
+      // Adds a spend (after the duplicate check) and offers undo.
+      function logSpend(fields, onDone) {
+        var spend = { id: uid(), categoryId: fields.categoryId, amount: fields.amount, note: fields.note || "", date: fields.date || todayISO(), createdAt: Date.now(), source: fields.source };
+        if (fields.ref) spend.ref = fields.ref; // Firestore rejects undefined fields
+        checkDuplicate(spend, function () {
+          state.spendings.push(spend);
+          afterSpendChange();
+          var cat = categoryById(spend.categoryId);
+          toast("logged " + money(spend.amount) + (cat ? " · " + cat.name : ""), function () {
+            state.spendings = state.spendings.filter(function (s) { return s.id !== spend.id; });
+            afterSpendChange();
+          });
+          if (onDone) onDone(true);
+        }, function () { if (onDone) onDone(false); });
+      }
+
+      function submitQuick() {
+        var p = parseQuick(quickInput.value);
+        if (isNaN(p.amount) || p.amount <= 0) { toast("start with an amount, e.g. 4.50 coffee"); quickInput.focus(); return; }
+        if (p.newTag) { p.categoryId = addCategory(p.newTag); refreshAllCategorySelects(); }
+        logSpend({ categoryId: p.categoryId, amount: p.amount, note: p.note, date: p.date, source: "quick" }, function (added) {
+          if (added) { quickInput.value = ""; renderQuickPreview(); }
+          quickInput.focus();
+        });
+      }
+      quickInput.addEventListener("input", renderQuickPreview);
+      quickInput.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); submitQuick(); } });
+      document.getElementById("quickAddBtn").addEventListener("click", submitQuick);
+
+      // One-tap chips for what you log most often (last 45 days).
+      function renderQuickRecents() {
+        var cutoff = Date.now() - 45 * 86400000;
+        var groups = {};
+        state.spendings.forEach(function (s) {
+          if (!s.createdAt || s.createdAt < cutoff || s.source === "import" || !categoryById(s.categoryId)) return;
+          var key = normText(s.note) + "|" + s.amount + "|" + s.categoryId;
+          var g = groups[key] || (groups[key] = { note: s.note, amount: s.amount, categoryId: s.categoryId, count: 0, last: 0 });
+          g.count++; g.last = Math.max(g.last, s.createdAt);
+        });
+        var top = Object.keys(groups).map(function (k) { return groups[k]; })
+          .sort(function (a, b) { return (b.count - a.count) || (b.last - a.last); }).slice(0, 6);
+        quickRecents.innerHTML = "";
+        top.forEach(function (g) {
+          var cat = categoryById(g.categoryId);
+          var chip = document.createElement("button");
+          chip.type = "button";
+          chip.className = "recent-chip";
+          chip.title = "log " + money(g.amount) + " " + (g.note || cat.name) + " again";
+          chip.innerHTML = '<span class="sw" style="background:' + cat.color + '"></span>' + escapeHtml(g.note || cat.name) + " <b>" + money(g.amount) + "</b>";
+          chip.addEventListener("click", function () {
+            logSpend({ categoryId: g.categoryId, amount: g.amount, note: g.note, source: "recent" });
+          });
+          quickRecents.appendChild(chip);
+        });
+      }
+
+      /* Deep link for iOS Shortcuts / Android automations, handled once per page load:
+           ?amount=4.50&merchant=Starbucks[&tag=Food][&ref=<unique id>]   logs straight away
+           ?q=4.50 coffee                                                 logs a quick-log line
+           ?quick=1                                                       focuses the quick-log box
+         Everything is parsed in the browser; the params are then removed from the URL. */
+      var deepLinkHandled = false;
+      function handleDeepLink() {
+        if (deepLinkHandled) return;
+        deepLinkHandled = true;
+        var params = new URLSearchParams(location.search);
+        if (!params.has("amount") && !params.has("q") && !params.has("quick")) return;
+        history.replaceState(null, "", location.pathname + location.hash);
+        if (isLocked()) return;
+        if (params.has("amount")) {
+          var amount = parseAmount(params.get("amount"));
+          if (isNaN(amount) || amount <= 0) { toast("couldn't read the amount from that shortcut"); return; }
+          var note = (params.get("merchant") || params.get("note") || "").trim().slice(0, 40);
+          var tag = (params.get("tag") || "").trim();
+          var catId = tag ? (findCategoryByName(tag) ? findCategoryByName(tag).id : addCategory(tag)) : null;
+          if (!catId) catId = guessCategory(note) || lastUsedCategory() || addCategory("General");
+          refreshAllCategorySelects();
+          logSpend({ categoryId: catId, amount: amount, note: note, source: "shortcut", ref: (params.get("ref") || "").slice(0, 80) || null });
+        } else if (params.has("q")) {
+          quickInput.value = params.get("q");
+          renderQuickPreview();
+          submitQuick();
+        } else {
+          quickInput.focus();
+        }
+      }
+
+      /* ---------- bank statement import ----------
+         The file is read in the browser and never uploaded. SheetJS (loaded on
+         first use) turns .xls / .xlsx / .csv / HTML-table exports into rows; we
+         find the header, keep only money going out to a merchant, and skip
+         transfers, income, cash withdrawals and totals. */
+      var SHEETJS_URL = "https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js";
+      function loadSheetJS() {
+        return new Promise(function (resolve, reject) {
+          if (window.XLSX) { resolve(window.XLSX); return; }
+          var el = document.createElement("script");
+          el.src = SHEETJS_URL;
+          el.onload = function () { window.XLSX ? resolve(window.XLSX) : reject(new Error("reader missing")); };
+          el.onerror = function () { reject(new Error("couldn't load the file reader")); };
+          document.head.appendChild(el);
+        });
+      }
+
+      var SKIP_RULES = [
+        [/transfer|\btrf\b|standing order|own account/i, "transfers"],
+        [/salary|payroll|refund|reversal|cashback|interest|dividend/i, "income & refunds"],
+        [/\batm\b|cash withdrawal/i, "cash withdrawals"],
+        [/opening balance|closing balance|brought forward|carried forward|^total/i, "totals"]
+      ];
+      var MERCHANT_TAGS = [
+        [/coffee|coffe\b|cafe|café|roast|starbucks|espresso|\btea\b|bak(ery|eries)|juice|restaur|\bres\b|\brest\b|burger|pizza|grill|kitchen|wingstop|shake ?shack|chopsters|sushi|maki|chocolate|keeta|talabat|deliveroo|mcdonald|\bkfc\b|food/i, "Food"],
+        [/\bknpc\b|\boula\b|\balfa\b|\bsoot\b|petrol|fuel|gas station|taxi|uber|careem|parking/i, "Transport"],
+        [/\bzain\b|ooredoo|\bstc\b|\bviva\b|electric|internet|telecom/i, "Bills"],
+        [/sultan cent|\btsc\b|co-?op|\blulu\b|carrefour|market|grocer|supermarket|\boldi\b|daily picks/i, "Groceries"],
+        [/pharma|clinic|hospital|fitness|\bgym\b|nutrition|health|medical/i, "Health"]
+      ];
+
+      function findStatementHeader(rows) {
+        for (var r = 0; r < Math.min(rows.length, 60); r++) {
+          var cols = { date: -1, desc: -1, debit: -1, credit: -1, amount: -1, balance: -1 };
+          (rows[r] || []).forEach(function (c, i) {
+            var t = String(c).trim().toLowerCase();
+            if (!t || t.length > 40) return;
+            if (cols.date < 0 && /^((transaction|posting|trans\.?|txn|booking)\s+)?date$/.test(t)) cols.date = i;
+            else if (cols.desc < 0 && /description|details|narrative|particulars|merchant|payee|transaction/.test(t)) cols.desc = i;
+            else if (cols.debit < 0 && /debit|withdraw|money out|paid out/.test(t)) cols.debit = i;
+            else if (cols.credit < 0 && /credit|deposit|money in|paid in/.test(t)) cols.credit = i;
+            else if (cols.amount < 0 && /amount/.test(t)) cols.amount = i;
+            else if (cols.balance < 0 && /balance/.test(t)) cols.balance = i;
+          });
+          if (cols.date >= 0 && cols.desc >= 0 && (cols.debit >= 0 || cols.amount >= 0)) return { row: r, cols: cols };
+        }
+        return null;
+      }
+
+      function stmtAmount(v) {
+        if (typeof v === "number") return v;
+        var s = String(v || "").trim();
+        if (!s) return NaN;
+        var neg = /^-|-$|^\(.*\)$/.test(s);
+        s = s.replace(/[^\d.,]/g, "");
+        // "1.234,56" style uses a comma for decimals; otherwise commas are thousands
+        s = /,\d{1,2}$/.test(s) ? s.replace(/\./g, "").replace(",", ".") : s.replace(/,/g, "");
+        var n = parseFloat(s);
+        return isNaN(n) ? NaN : (neg ? -n : n);
+      }
+
+      function stmtDate(v, dayFirst) {
+        if (v instanceof Date && !isNaN(v)) return isoOfDate(v);
+        if (typeof v === "number" && v > 20000 && v < 80000) {
+          var d = new Date(Math.round((v - 25569) * 86400000));
+          return d.getUTCFullYear() + "-" + pad(d.getUTCMonth() + 1) + "-" + pad(d.getUTCDate());
+        }
+        var s = String(v || "").trim(), m;
+        if ((m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/))) return m[1] + "-" + pad(+m[2]) + "-" + pad(+m[3]);
+        if ((m = s.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2,4})\b/))) {
+          var y = m[3].length === 2 ? "20" + m[3] : m[3];
+          var day = dayFirst ? +m[1] : +m[2], mon = dayFirst ? +m[2] : +m[1];
+          if (mon < 1 || mon > 12 || day < 1 || day > 31) return null;
+          return y + "-" + pad(mon) + "-" + pad(day);
+        }
+        if (/[a-z]{3}/i.test(s) && /\d{4}/.test(s) && !isNaN(Date.parse(s))) return isoOfDate(new Date(Date.parse(s)));
+        return null;
+      }
+
+      // dd/mm unless the file proves mm/dd (a middle number above 12)
+      function statementDayFirst(values) {
+        var dayFirst = null;
+        values.forEach(function (v) {
+          var m = String(v).match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-]\d{2,4}/);
+          if (!m || dayFirst !== null) return;
+          if (+m[1] > 12) dayFirst = true; else if (+m[2] > 12) dayFirst = false;
+        });
+        return dayFirst === null ? !/^en-US/.test(navigator.language || "") : dayFirst;
+      }
+
+      function titleCase(s) {
+        if (/[a-z]/.test(s)) return s;
+        return s.toLowerCase().replace(/(^|[\s\-&\/(])([a-z])/g, function (_, a, b) { return a + b.toUpperCase(); });
+      }
+
+      // "UTap KNET POS    @STARBUCKS NUZHA COOP" -> "Starbucks Nuzha Coop"
+      // "POS PAYMENT @MyFatoorahAP |PixelTechnology-" -> "Pixel Technology"
+      // "VISA POS,28/9/26,IHERB IHERB.COM 49.770000,414,..." -> "Iherb Iherb.com" (+ its own purchase date)
+      function statementMerchant(desc) {
+        var d = String(desc || "").replace(/\s+/g, " ").trim(), m, name, when = null;
+        if ((m = d.match(/^(?:visa|mastercard|master card|mada|card)\s*pos\s*,\s*([\d\/.\-]+)\s*,\s*(.+?)\s+[\d.]+\s*,/i))) { when = m[1]; name = m[2]; }
+        else if (d.indexOf("@") !== -1) {
+          name = d.slice(d.indexOf("@") + 1);
+          if (/^pos payment/i.test(d) || name.indexOf("|") !== -1) {
+            var g = name.match(/^(.+?)AP(?=[\s|\-]|$)\s*\|?\s*(.*?)[\s\-]*$/);
+            if (g) name = g[2] || g[1];
+          }
+        }
+        else if ((m = d.match(/^mobile payment\s+([a-z]+)/i))) name = m[1];
+        else name = d.replace(/^(pos|purchase|card purchase|debit card( purchase)?|visa|mastercard|apple pay|contactless)[\s:,\-]+/i, "");
+        name = name.replace(/^[A-Z]{2,4}\*/, "").replace(/\s[*#]?\d{5,}.*$/, "").replace(/[\s\-|,]+$/, "")
+          .replace(/([a-z])([A-Z])/g, "$1 $2").trim();
+        return { name: titleCase(name || d).slice(0, 40), when: when };
+      }
+
+      function hashRef(str) {
+        var h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+        for (var i = 0; i < str.length; i++) {
+          var c = str.charCodeAt(i);
+          h1 = Math.imul(h1 ^ c, 2654435761); h2 = Math.imul(h2 ^ c, 1597334677);
+        }
+        h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+        h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+        return "stmt:" + (h2 >>> 0).toString(36) + (h1 >>> 0).toString(36);
+      }
+
+      function parseStatement(rows) {
+        var head = findStatementHeader(rows);
+        if (!head) return null;
+        var c = head.cols, body = rows.slice(head.row + 1);
+        var dayFirst = statementDayFirst(body.map(function (r) { return r[c.date]; }));
+        // single amount column: negatives are spending if the file has any, else everything is
+        var signed = c.debit < 0 && body.some(function (r) { return stmtAmount(r[c.amount]) < 0; });
+        var items = [], skipped = {}, seen = {};
+        body.forEach(function (r) {
+          var date = stmtDate(r[c.date], dayFirst);
+          if (!date) return; // footer, notes, blank lines
+          var desc = String(r[c.desc] || "").trim();
+          var amt = c.debit >= 0 ? stmtAmount(r[c.debit]) : stmtAmount(r[c.amount]);
+          if (c.debit < 0 && signed) amt = amt < 0 ? -amt : NaN;
+          amt = Math.abs(amt);
+          if (!amt) { skipped["income & refunds"] = (skipped["income & refunds"] || 0) + 1; return; }
+          var rule = SKIP_RULES.find(function (x) { return x[0].test(desc); });
+          if (rule) { skipped[rule[1]] = (skipped[rule[1]] || 0) + 1; return; }
+          var merchant = statementMerchant(desc);
+          var bal = c.balance >= 0 ? String(r[c.balance]) : "";
+          var key = [date, desc, amt, bal].join("|");
+          seen[key] = (seen[key] || 0) + 1;
+          items.push({
+            date: (merchant.when && stmtDate(merchant.when, dayFirst)) || date,
+            note: merchant.name, amount: amt, desc: desc,
+            ref: hashRef(key + "|" + seen[key])
+          });
+        });
+        return { items: items, skipped: skipped };
+      }
+
+      function suggestTag(merchant) {
+        var fromHistory = guessCategory(merchant);
+        if (fromHistory) return fromHistory;
+        var hit = MERCHANT_TAGS.find(function (x) { return x[0].test(merchant); });
+        var name = hit ? hit[1] : "Other";
+        var existing = findCategoryByName(name);
+        return existing ? existing.id : "new:" + name;
+      }
+
+      var importSheet = document.getElementById("importSheet");
+      var importList = document.getElementById("importList");
+      var importConfirmBtn = document.getElementById("importConfirmBtn");
+      var importRows = [];
+
+      function closeImport() { importSheet.classList.remove("show"); importRows = []; importList.innerHTML = ""; }
+      document.getElementById("importCancelBtn").addEventListener("click", closeImport);
+      function updateImportCount() {
+        var n = importRows.filter(function (x) { return x.box.checked; }).length;
+        importConfirmBtn.textContent = "Import " + n + (n === 1 ? " spend" : " spends");
+        importConfirmBtn.disabled = !n;
+      }
+
+      function showImportReview(parsed, fileName) {
+        var others = state.spendings.filter(function (s) { return s.source !== "import"; });
+        var knownRefs = {};
+        state.spendings.forEach(function (s) { if (s.ref) knownRefs[s.ref] = true; });
+        var already = 0, flagged = 0;
+        var tagNames = {};
+        importRows = [];
+        importList.innerHTML = "";
+        parsed.items.forEach(function (it, i) {
+          if (knownRefs[it.ref]) { already++; return; }
+          var cand = { amount: it.amount, date: it.date, note: it.note, categoryId: null, source: "import", ref: it.ref };
+          var tag = suggestTag(it.note);
+          cand.categoryId = tag;
+          var best = null;
+          others.forEach(function (s) {
+            var r = duplicateScore(cand, s);
+            if (r.score >= DUP_THRESHOLD && (!best || r.score > best.score)) best = { spend: s, score: r.score };
+          });
+          if (best) flagged++;
+          if (tag.indexOf("new:") === 0) tagNames[tag] = tag.slice(4);
+
+          var row = document.createElement("div");
+          row.className = "imp-row" + (best ? " off" : "");
+          var id = "imp" + i;
+          row.innerHTML = '<input type="checkbox" id="' + id + '"' + (best ? "" : " checked") + '>' +
+            '<label class="m" for="' + id + '" title="' + escapeHtml(it.desc) + '">' + escapeHtml(it.note) + '</label>' +
+            '<span class="a">' + money(it.amount) + '</span>' +
+            '<div class="sub"><span class="d">' + dateFromISO(it.date).toLocaleDateString(undefined, { month: "short", day: "numeric" }) + '</span>' +
+            '<select aria-label="tag"></select></div>' +
+            (best ? '<span class="warn">already logged? ' + escapeHtml(describeSpend(best.spend)) + '</span>' : '');
+          importList.appendChild(row);
+          var box = row.querySelector("input");
+          box.addEventListener("change", function () { row.classList.toggle("off", !box.checked); updateImportCount(); });
+          importRows.push({ item: it, box: box, select: row.querySelector("select"), tag: tag });
+        });
+
+        importRows.forEach(function (x) {
+          state.categories.forEach(function (cat) { x.select.add(new Option(cat.name, cat.id)); });
+          Object.keys(tagNames).forEach(function (k) { x.select.add(new Option(tagNames[k] + " (new)", k)); });
+          x.select.value = x.tag;
+        });
+
+        var bits = [];
+        var skippedTotal = Object.keys(parsed.skipped).reduce(function (n, k) { return n + parsed.skipped[k]; }, 0);
+        bits.push("Found " + (parsed.items.length - already) + " new purchase" + (parsed.items.length - already === 1 ? "" : "s") + " in " + fileName + ".");
+        if (skippedTotal) bits.push("Skipped " + skippedTotal + " other rows (" + Object.keys(parsed.skipped).map(function (k) { return parsed.skipped[k] + " " + k; }).join(", ") + ").");
+        if (already) bits.push(already + " were already imported before.");
+        if (flagged) bits.push(flagged + " look already logged, so they're unticked.");
+        document.getElementById("importSummary").textContent = bits.join(" ");
+        if (!importRows.length) { closeImport(); toast("nothing new to import from this statement"); return; }
+        updateImportCount();
+        importSheet.classList.add("show");
+      }
+
+      importConfirmBtn.addEventListener("click", function () {
+        var created = {};
+        var added = [];
+        var now = Date.now();
+        importRows.forEach(function (x) {
+          if (!x.box.checked) return;
+          var catId = x.select.value;
+          if (catId.indexOf("new:") === 0) catId = created[catId] || (created[catId] = addCategory(catId.slice(4)));
+          var spend = { id: uid(), categoryId: catId, amount: x.item.amount, note: x.item.note, date: x.item.date, createdAt: now, source: "import", ref: x.item.ref };
+          state.spendings.push(spend);
+          added.push(spend.id);
+        });
+        closeImport();
+        refreshAllCategorySelects();
+        afterSpendChange();
+        toast("imported " + added.length + " spends", function () {
+          state.spendings = state.spendings.filter(function (s) { return added.indexOf(s.id) === -1; });
+          afterSpendChange();
+        });
+      });
+
+      document.getElementById("importFile").addEventListener("change", function (e) {
+        var file = e.target.files && e.target.files[0];
+        e.target.value = "";
+        if (!file) return;
+        toast("reading " + file.name + "…");
+        Promise.all([loadSheetJS(), file.arrayBuffer()]).then(function (res) {
+          var wb = res[0].read(new Uint8Array(res[1]), { type: "array", cellDates: true });
+          var parsed = null;
+          wb.SheetNames.some(function (n) {
+            var rows = res[0].utils.sheet_to_json(wb.Sheets[n], { header: 1, raw: true, defval: "" });
+            parsed = parseStatement(rows);
+            return parsed && parsed.items.length;
+          });
+          if (!parsed) { toast("couldn't find a date / description / amount table in that file"); return; }
+          showImportReview(parsed, file.name);
+        }).catch(function (err) { console.error(err); toast(err && err.message ? err.message : "couldn't read that file"); });
       });
 
       /* ---------- history ---------- */
@@ -2667,6 +3533,8 @@
         renderChecklist();
         renderAnalytics(false);
         renderHistory();
+        renderQuickRecents();
+        renderQuickPreview();
         renderAccountCard();
         renderBilling();
         footerTip.textContent = cloudEnabled
@@ -2675,6 +3543,7 @@
         appRoot.classList.add("ready");
         authGate.classList.remove("show");
         hideBootLoader();
+        handleDeepLink();
       }
 
       function startLocalOnly() {
