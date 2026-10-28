@@ -781,6 +781,43 @@
       min-width: 190px;
     }
 
+    .cycle-nav .cycle-date {
+      position: relative;
+      display: inline-block;
+      cursor: pointer;
+      border-bottom: 1px dashed var(--line);
+      padding: 0 1px;
+      transition: border-color .15s ease;
+    }
+
+    .cycle-nav .cycle-date:hover {
+      border-color: var(--ink);
+    }
+
+    /* the real date input sits invisibly on top of the text, so a tap opens the native picker */
+    .cycle-nav .cycle-date input[type="date"] {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      padding: 0;
+      border: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .cycle-nav .cycle-date .open-tag {
+      font-size: 9.5px;
+      color: var(--ink-soft);
+      margin-left: 3px;
+    }
+
+    .cycle-nav button.add-cycle {
+      font-size: 17px;
+      border-color: var(--accent);
+      color: var(--accent-ink);
+    }
+
     .cycle-nav .lbl .badge {
       display: block;
       font-size: 9.5px;
@@ -2271,7 +2308,12 @@
 
         <div class="cycle-nav">
           <button id="cyclePrev" title="previous cycle">‹</button>
-          <div class="lbl" id="cycleLabelBox">—<span class="badge" id="cycleBadge"></span></div>
+          <div class="lbl" id="cycleLabelBox">
+            <label class="cycle-date" title="change start date"><span id="cycleStartText">—</span><input type="date" id="cycleStartPick" aria-label="cycle start date"></label>
+            –
+            <label class="cycle-date" title="change end date"><span id="cycleEndText">—</span><input type="date" id="cycleEndPick" aria-label="cycle end date"></label>
+            <span class="badge" id="cycleBadge"></span>
+          </div>
           <button id="cycleNext" title="next cycle">›</button>
         </div>
 
@@ -2486,8 +2528,9 @@
           <span class="field-label">Salary / cycle start day</span>
           <input type="number" id="salaryDayInput" min="1" max="31" step="1">
           <p class="helper-text">Your budgeting "month" runs from this day of the month to the day before it next
-            occurs. e.g. day 28 → Jun 28 – Jul 27. This only affects Analytics &amp; History — the daily checklist
-            always resets at midnight.</p>
+            occurs. e.g. day 28 → Jun 28 – Jul 27. Paid on a different day each month? On Analytics, tap a cycle's
+            dates to move them, or tap + to start the next cycle when your salary lands; cycles you set there
+            override this day. The daily checklist always resets at midnight.</p>
         </div>
 
         <div class="card">
@@ -2579,7 +2622,7 @@
       function todayISO() { return isoOfDate(new Date()); }
       function daysInMonth(y, m) { return new Date(y, m + 1, 0).getDate(); }
 
-      function cycleStartForDate(dateObj, salaryDay) {
+      function fixedCycleStartForDate(dateObj, salaryDay) {
         var y = dateObj.getFullYear(), m = dateObj.getMonth();
         var cand = new Date(y, m, Math.min(salaryDay, daysInMonth(y, m)));
         cand.setHours(0, 0, 0, 0);
@@ -2590,7 +2633,7 @@
         pcand.setHours(0, 0, 0, 0);
         return pcand;
       }
-      function cycleEndForStart(startDate, salaryDay) {
+      function fixedCycleEndForStart(startDate, salaryDay) {
         var nm = startDate.getMonth() + 1, ny = startDate.getFullYear();
         if (nm > 11) { nm = 0; ny++; }
         var nstart = new Date(ny, nm, Math.min(salaryDay, daysInMonth(ny, nm)));
@@ -2598,14 +2641,53 @@
         end.setHours(0, 0, 0, 0);
         return end;
       }
+      function addDays(d, n) { var x = new Date(d); x.setDate(x.getDate() + n); x.setHours(0, 0, 0, 0); return x; }
+      // same day next month, minus one day (Jan 31 -> Feb 28)
+      function defaultCycleEnd(start) {
+        var y = start.getFullYear(), m = start.getMonth() + 1;
+        if (m > 11) { m = 0; y++; }
+        return addDays(new Date(y, m, Math.min(start.getDate(), daysInMonth(y, m))), -1);
+      }
+
+      /* custom cycles: state.cycles = [{ start: "YYYY-MM-DD", end: "YYYY-MM-DD" | null }], sorted by start.
+         A cycle runs until its own end or the day before the next one starts. The last cycle with no end
+         stays open (a month by default, longer if today is past that). Dates outside every custom cycle
+         fall back to the fixed salary-day cycles, clipped so they never overlap a custom one. */
+      function customCycles() { return (state && state.cycles) ? state.cycles : []; }
+      function customCycleEndISO(cycles, i) {
+        var nextStartISO = cycles[i + 1] ? isoOfDate(addDays(dateFromISO(cycles[i + 1].start), -1)) : null;
+        if (cycles[i].end) return nextStartISO && nextStartISO < cycles[i].end ? nextStartISO : cycles[i].end;
+        return nextStartISO; // null = open
+      }
+      function cycleBoundsForDate(dateObj, salaryDay) {
+        var d = new Date(dateObj); d.setHours(0, 0, 0, 0);
+        var dISO = isoOfDate(d), cycles = customCycles();
+        var gapStart = null, gapEnd = null;
+        for (var i = 0; i < cycles.length; i++) {
+          if (cycles[i].start > dISO) { gapEnd = addDays(dateFromISO(cycles[i].start), -1); break; }
+          var endISO = customCycleEndISO(cycles, i);
+          if (endISO === null) {
+            var start = dateFromISO(cycles[i].start), end = defaultCycleEnd(start), today = dateFromISO(todayISO());
+            if (today > end) end = today;
+            if (d > end) end = d;
+            return { start: start, end: end, custom: true, open: true, index: i };
+          }
+          if (dISO <= endISO) return { start: dateFromISO(cycles[i].start), end: dateFromISO(endISO), custom: true, open: false, index: i };
+          gapStart = addDays(dateFromISO(endISO), 1);
+        }
+        var fs = fixedCycleStartForDate(d, salaryDay), fe = fixedCycleEndForStart(fs, salaryDay);
+        if (gapStart && fs < gapStart) fs = gapStart;
+        if (gapEnd && fe > gapEnd) fe = gapEnd;
+        return { start: fs, end: fe, custom: false, open: false, index: -1 };
+      }
+      function cycleStartForDate(dateObj, salaryDay) { return cycleBoundsForDate(dateObj, salaryDay).start; }
+      function cycleEndForStart(startDate, salaryDay) { return cycleBoundsForDate(startDate, salaryDay).end; }
       function prevCycleStart(start, salaryDay) {
         var d = new Date(start); d.setDate(d.getDate() - 1);
         return cycleStartForDate(d, salaryDay);
       }
       function nextCycleStart(start, salaryDay) {
-        var end = cycleEndForStart(start, salaryDay);
-        var d = new Date(end); d.setDate(d.getDate() + 1);
-        return cycleStartForDate(d, salaryDay);
+        return addDays(cycleEndForStart(start, salaryDay), 1);
       }
       var MO = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
       function cycleLabel(start, end) {
@@ -2629,6 +2711,7 @@
           salaryByCycle: {},
           wishlist: [],
           subscriptions: [],
+          cycles: [],
           extraCurrencies: [],
           lastReset: todayISO(),
           trialStart: null,
@@ -2657,6 +2740,9 @@
           }
           s.wishlist = raw.wishlist || [];
           s.subscriptions = raw.subscriptions || [];
+          s.cycles = (raw.cycles || []).filter(function (c) { return c && /^\d{4}-\d{2}-\d{2}$/.test(c.start); })
+            .map(function (c) { return { start: c.start, end: (c.end && c.end >= c.start) ? c.end : null }; })
+            .sort(function (a, b) { return a.start < b.start ? -1 : 1; });
           s.extraCurrencies = (raw.extraCurrencies || []).filter(function (c) { return c && c.code !== s.currency.code; });
           s.lastReset = raw.lastReset || s.lastReset;
           s.trialStart = raw.trialStart || null;
@@ -3153,7 +3239,134 @@
       });
 
       cyclePrevBtn.addEventListener("click", function () { viewingCycleStart = prevCycleStart(viewingCycleStart, state.salaryDay); renderAnalytics(true); });
-      cycleNextBtn.addEventListener("click", function () { viewingCycleStart = nextCycleStart(viewingCycleStart, state.salaryDay); renderAnalytics(true); });
+      cycleNextBtn.addEventListener("click", function () {
+        if (cycleNextBtn.classList.contains("add-cycle")) { openNewCycleModal(); return; }
+        viewingCycleStart = nextCycleStart(viewingCycleStart, state.salaryDay);
+        renderAnalytics(true);
+      });
+
+      /* ---------- custom cycle editing ---------- */
+      var cycleStartPick = document.getElementById("cycleStartPick");
+      var cycleEndPick = document.getElementById("cycleEndPick");
+      var cycleStartText = document.getElementById("cycleStartText");
+      var cycleEndText = document.getElementById("cycleEndText");
+
+      function shortDate(d, withYear) { return MO[d.getMonth()] + " " + d.getDate() + (withYear ? ", " + d.getFullYear() : ""); }
+      function hasCycleAfter(start) {
+        var next = nextCycleStart(start, state.salaryDay);
+        if (isoOfDate(next) <= todayISO()) return true;
+        var nISO = isoOfDate(next);
+        return state.cycles.some(function (c) { return c.start === nISO; });
+      }
+
+      // turn the cycle being viewed into a custom one (if it isn't already) and return its index
+      function ensureCustomCycle(start) {
+        var b = cycleBoundsForDate(start, state.salaryDay);
+        if (b.custom) return b.index;
+        var startISO = isoOfDate(b.start);
+        // the current fixed cycle becomes open-ended; a past one keeps its dates
+        var keepEnd = hasCycleAfter(b.start) ? isoOfDate(b.end) : null;
+        state.cycles.push({ start: startISO, end: keepEnd });
+        sortCycles();
+        return state.cycles.findIndex(function (c) { return c.start === startISO; });
+      }
+      function sortCycles() { state.cycles.sort(function (a, b) { return a.start < b.start ? -1 : 1; }); }
+      function moveCycleSalary(oldISO, newISO) {
+        if (oldISO === newISO || !(oldISO in state.salaryByCycle)) return;
+        if (!(newISO in state.salaryByCycle)) state.salaryByCycle[newISO] = state.salaryByCycle[oldISO];
+        delete state.salaryByCycle[oldISO];
+      }
+      function afterCycleChange(newViewStartISO, msg) {
+        save();
+        viewingCycleStart = dateFromISO(newViewStartISO);
+        renderAnalytics(true); renderHistory(); renderReports(); renderAdvice();
+        toast(msg);
+      }
+
+      function changeCycleStart(newISO) {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(newISO)) { renderAnalytics(false); return; }
+        var i = ensureCustomCycle(viewingCycleStart);
+        var c = state.cycles[i], prev = state.cycles[i - 1], next = state.cycles[i + 1];
+        var err = null;
+        if (prev && newISO <= prev.start) err = "that's inside an earlier cycle (" + shortDate(dateFromISO(prev.start), true) + ")";
+        else if (next && newISO >= next.start) err = "the next cycle already starts " + shortDate(dateFromISO(next.start), true);
+        else if (c.end && newISO > c.end) err = "start can't be after the end date";
+        if (err) { toast(err); renderAnalytics(false); return; }
+        moveCycleSalary(c.start, newISO);
+        c.start = newISO;
+        if (prev && prev.end && prev.end >= newISO) prev.end = isoOfDate(addDays(dateFromISO(newISO), -1));
+        afterCycleChange(newISO, "cycle now starts " + shortDate(dateFromISO(newISO), false));
+      }
+
+      function changeCycleEnd(newISO) {
+        var i = ensureCustomCycle(viewingCycleStart);
+        var c = state.cycles[i], next = state.cycles[i + 1], afterNext = state.cycles[i + 2];
+        if (!newISO) {
+          // cleared: open-ended again (only meaningful for the latest cycle)
+          c.end = null;
+          afterCycleChange(c.start, next ? "ends when the next cycle starts" : "cycle is open-ended again");
+          return;
+        }
+        if (newISO < c.start) { toast("end can't be before the start date"); renderAnalytics(false); return; }
+        if (next) {
+          // keep cycles back to back: the next one starts the day after this ends
+          var nextStartISO = isoOfDate(addDays(dateFromISO(newISO), 1));
+          if ((afterNext && nextStartISO >= afterNext.start) || (next.end && nextStartISO > next.end)) {
+            toast("that would swallow the next cycle"); renderAnalytics(false); return;
+          }
+          moveCycleSalary(next.start, nextStartISO);
+          next.start = nextStartISO;
+          c.end = null;
+        } else {
+          c.end = newISO;
+        }
+        afterCycleChange(c.start, "cycle now ends " + shortDate(dateFromISO(newISO), false));
+      }
+
+      cycleStartPick.addEventListener("change", function () { changeCycleStart(cycleStartPick.value); });
+      cycleEndPick.addEventListener("change", function () { changeCycleEnd(cycleEndPick.value); });
+
+      function openNewCycleModal() {
+        var cur = cycleBoundsForDate(viewingCycleStart, state.salaryDay);
+        var minStart = addDays(cur.start, 1);
+        var t = dateFromISO(todayISO());
+        var defStart = t >= minStart ? t : addDays(cur.end, 1);
+        var html =
+          '<div class="modal-head"><h3>Start a new cycle</h3><button class="modal-close" type="button">&times;</button></div>' +
+          '<div class="modal-error" id="mError"></div>' +
+          '<p class="modal-sub">Salary just landed? Start the next cycle here. The current one ends the day before.</p>' +
+          '<div class="modal-field"><label>Starts</label><input type="date" id="mCycleStart" min="' + isoOfDate(minStart) + '" value="' + isoOfDate(defStart) + '"></div>' +
+          '<div class="modal-field"><label>Ends (optional)</label><input type="date" id="mCycleEnd"></div>' +
+          '<p class="helper-text" id="mCycleHint"></p>' +
+          '<div class="modal-actions"><button class="btn-text primary" id="mSave" type="button" style="flex:2;">Start cycle</button><button class="btn-text" type="button" data-modal-cancel>Cancel</button></div>';
+        openModal(html);
+        var startIn = document.getElementById("mCycleStart"), endIn = document.getElementById("mCycleEnd"), hint = document.getElementById("mCycleHint");
+        function updateHint() {
+          if (!startIn.value) { hint.textContent = ""; return; }
+          var st = dateFromISO(startIn.value);
+          endIn.min = startIn.value;
+          hint.textContent = endIn.value
+            ? "Runs " + shortDate(st, false) + " – " + shortDate(dateFromISO(endIn.value), true) + "."
+            : "Open-ended: shown as " + shortDate(st, false) + " – " + shortDate(defaultCycleEnd(st), true) + " and keeps going until you start the next one.";
+        }
+        startIn.addEventListener("change", updateHint); endIn.addEventListener("change", updateHint);
+        updateHint();
+        document.getElementById("mSave").addEventListener("click", function () {
+          var sISO = startIn.value, eISO = endIn.value || null;
+          if (!sISO) { showModalError("pick a start date"); return; }
+          if (sISO < isoOfDate(minStart)) { showModalError("start has to be after " + shortDate(cur.start, true)); return; }
+          if (eISO && eISO < sISO) { showModalError("end can't be before the start"); return; }
+          var i = ensureCustomCycle(viewingCycleStart);
+          var later = state.cycles.slice(i + 1).find(function (c) { return c.start <= sISO || (eISO && c.start <= eISO); });
+          if (later) { showModalError("there's already a cycle starting " + shortDate(dateFromISO(later.start), true)); return; }
+          var c = state.cycles[i];
+          if (c.end && c.end >= sISO) c.end = null;
+          state.cycles.push({ start: sISO, end: eISO });
+          sortCycles();
+          closeModal();
+          afterCycleChange(sISO, "new cycle started " + shortDate(dateFromISO(sISO), false));
+        });
+      }
 
       function setSpendSort(key) {
         if (spendSort.key === key) spendSort.dir = spendSort.dir === "desc" ? "asc" : "desc";
@@ -3180,10 +3393,19 @@
         var end = cycleEndForStart(start, state.salaryDay);
         var curStart = cycleStartForDate(new Date(), state.salaryDay);
         var isCurrent = isoOfDate(start) === isoOfDate(curStart);
+        var bounds = cycleBoundsForDate(start, state.salaryDay);
+        var canGoNext = hasCycleAfter(start);
 
-        cycleLabelBox.childNodes[0].nodeValue = cycleLabel(start, end);
-        cycleBadge.textContent = isCurrent ? "current cycle" : "";
-        cycleNextBtn.disabled = isCurrent;
+        cycleStartText.textContent = shortDate(start, start.getFullYear() !== end.getFullYear());
+        cycleEndText.innerHTML = escapeHtml(shortDate(end, true)) + (bounds.open ? '<span class="open-tag">(open)</span>' : '');
+        cycleStartPick.value = isoOfDate(start);
+        cycleEndPick.value = bounds.open ? "" : isoOfDate(end);
+        cycleEndPick.min = isoOfDate(start);
+        cycleBadge.textContent = isCurrent ? "current cycle" : (start > new Date() ? "upcoming" : "");
+        cycleNextBtn.disabled = false;
+        cycleNextBtn.classList.toggle("add-cycle", !canGoNext);
+        cycleNextBtn.textContent = canGoNext ? "\u203a" : "+";
+        cycleNextBtn.title = canGoNext ? "next cycle" : "start a new cycle";
         cycleSubNote.textContent = "\u203a " + cycleLabel(start, end).toLowerCase() + (isCurrent ? " — your active cycle" : " — viewing history, still editable");
 
         var cycleSalary = salaryForCycle(start);
