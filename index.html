@@ -1821,6 +1821,54 @@
       white-space: nowrap;
     }
 
+    .irr-tag {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 5px;
+    }
+
+    .irr-tag select {
+      width: auto;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 4px 22px 4px 8px;
+      background-position: right 7px center;
+      border-radius: 6px;
+      max-width: 60%;
+    }
+
+    .modal-field .always-tag-row {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin: 8px 0 0;
+      text-transform: none;
+      letter-spacing: 0;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--ink-soft);
+      cursor: pointer;
+    }
+
+    .always-tag-row input {
+      width: auto;
+      margin: 0;
+      accent-color: var(--accent);
+    }
+
+    .learn-chip {
+      font-family: var(--font-mono);
+      font-size: 8.5px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      border-radius: 5px;
+      padding: 1px 5px;
+      color: var(--accent-ink);
+      background: var(--accent-wash);
+      white-space: nowrap;
+    }
+
     .irr-badges {
       display: flex;
       gap: 6px;
@@ -2134,6 +2182,112 @@
       line-height: 1.65;
     }
 
+    /* ---------- Home / this cycle's story ---------- */
+    .story-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 10px;
+    }
+
+    .story-range {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      color: var(--ink-faint);
+    }
+
+    .story-top {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .story-merchant {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13.5px;
+    }
+
+    .story-merchant .rank {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      width: 22px;
+      height: 22px;
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--line-soft);
+      color: var(--ink-soft);
+      flex-shrink: 0;
+    }
+
+    .story-merchant:first-child .rank {
+      background: var(--accent-wash-strong);
+      color: var(--accent-ink);
+    }
+
+    .story-merchant .name {
+      flex: 1;
+      min-width: 0;
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .story-merchant .visits {
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      color: var(--ink-faint);
+    }
+
+    .story-merchant .amt {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      min-width: 74px;
+      text-align: right;
+    }
+
+    .story-lines {
+      list-style: none;
+      margin: 0;
+      padding: 12px 0 0;
+      border-top: 1px dashed var(--line);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .story-lines li {
+      display: flex;
+      gap: 9px;
+      font-size: 13px;
+      line-height: 1.45;
+      color: var(--ink);
+    }
+
+    .story-lines li .g {
+      flex-shrink: 0;
+      width: 18px;
+      text-align: center;
+    }
+
+    .story-lines li.whatif {
+      margin-top: 4px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: var(--accent-wash);
+      color: var(--accent-ink);
+    }
+
+    .story-lines li.muted {
+      color: var(--ink-soft);
+    }
+
     /* ---------- Subscriptions ---------- */
     .sub-renewal {
       margin-top: 10px;
@@ -2433,6 +2587,11 @@
           </div>
         </div>
 
+        <div class="card story-card" id="cycleStoryCard">
+          <div class="story-head"><span class="field-label">This cycle</span><span class="story-range" id="cycleStoryRange"></span></div>
+          <div id="cycleStoryBody"></div>
+        </div>
+
         <div class="filter-row">
           <select id="reportRange">
             <option value="1">This cycle</option>
@@ -2712,6 +2871,7 @@
           wishlist: [],
           subscriptions: [],
           cycles: [],
+          merchantTags: {},
           extraCurrencies: [],
           lastReset: todayISO(),
           trialStart: null,
@@ -2743,6 +2903,7 @@
           s.cycles = (raw.cycles || []).filter(function (c) { return c && /^\d{4}-\d{2}-\d{2}$/.test(c.start); })
             .map(function (c) { return { start: c.start, end: (c.end && c.end >= c.start) ? c.end : null }; })
             .sort(function (a, b) { return a.start < b.start ? -1 : 1; });
+          s.merchantTags = (raw.merchantTags && typeof raw.merchantTags === "object") ? raw.merchantTags : {};
           s.extraCurrencies = (raw.extraCurrencies || []).filter(function (c) { return c && c.code !== s.currency.code; });
           s.lastReset = raw.lastReset || s.lastReset;
           s.trialStart = raw.trialStart || null;
@@ -3506,6 +3667,39 @@
         });
       }
 
+      // fill the tag from the note when it names a shop you've logged before — until you pick a tag yourself
+      function wireMerchantTagSuggest(catSel, noteInput, hintEl) {
+        var memo = merchantTagMemory(), userPicked = false;
+        catSel.addEventListener("change", function () { userPicked = true; hintEl.style.display = "none"; });
+        noteInput.addEventListener("input", function () {
+          if (userPicked) return;
+          var catId = suggestTagFor(noteInput.value, memo), cat = catId && categoryById(catId);
+          if (!cat) { hintEl.style.display = "none"; return; }
+          catSel.value = catId;
+          hintEl.textContent = "› tagged " + cat.name + " — that's what you usually use for " + merchantDisplayName(merchantKey(noteInput.value));
+          hintEl.style.display = "";
+        });
+      }
+      // "always tag <shop> like this" checkbox for the edit modal; returns a function to call on save
+      function wireAlwaysTagToggle(noteInput, rowEl, checkEl, textEl, currentCatId) {
+        function key() { return merchantKey(noteInput.value); }
+        function refresh() {
+          var k = key();
+          rowEl.style.display = k ? "" : "none";
+          if (k) textEl.textContent = "always tag " + merchantDisplayName(k) + " like this";
+        }
+        var startKey = key();
+        checkEl.checked = !!startKey && state.merchantTags[startKey] === currentCatId;
+        noteInput.addEventListener("input", refresh);
+        refresh();
+        return function apply(catId) {
+          var k = key();
+          if (!k) return;
+          if (checkEl.checked) state.merchantTags[k] = catId;
+          else if (state.merchantTags[k] === catId || (k === startKey && state.merchantTags[k] === currentCatId)) delete state.merchantTags[k];
+        };
+      }
+
       function openAddSpendModal() {
         var start = viewingCycleStart, end = cycleEndForStart(start, state.salaryDay);
         var minISO = isoOfDate(start), maxISO = isoOfDate(end);
@@ -3517,7 +3711,7 @@
           '<div class="modal-field"><label>Tag</label><select id="mCat">' + categoryOptionsHTML(null) + '</select></div>' +
           '<div class="new-cat-row" id="mNewCatRow"><input type="text" id="mNewCatName" placeholder="new label name…" maxlength="20"><button class="btn-add" type="button">✓</button></div>' +
           quickTagsHTML() +
-          '<div class="modal-field"><label>Note (optional)</label><input type="text" id="mNote" maxlength="60" placeholder="what was it?"></div>' +
+          '<div class="modal-field"><label>Note (optional)</label><input type="text" id="mNote" maxlength="60" placeholder="what was it?"><p class="helper-text" id="mTagHint" style="display:none;"></p></div>' +
           '<div class="modal-field"><label>Date</label><input type="date" id="mDate" min="' + minISO + '" max="' + maxISO + '" value="' + defaultDate + '"></div>' +
           '<div class="modal-field"><label>Amount</label><input type="number" id="mAmount" placeholder="0.00" step="0.01" min="0"></div>' +
           (availableCurrencyCodes().length > 1 ? '<div class="modal-field"><label>Currency</label><select id="mCur">' + currencySelectOptionsHTML(null) + '</select></div>' : '') +
@@ -3526,6 +3720,7 @@
         var catSel = document.getElementById("mCat"), noteInput = document.getElementById("mNote"), dateInput = document.getElementById("mDate"), amountInput = document.getElementById("mAmount"), curSel = document.getElementById("mCur");
         wireModalCategorySelect(catSel, document.getElementById("mNewCatRow"), document.getElementById("mNewCatName"));
         wireQuickTags(catSel, noteInput);
+        wireMerchantTagSuggest(catSel, noteInput, document.getElementById("mTagHint"));
         function submit() {
           var catId = catSel.value;
           var curCode = curSel ? curSel.value : state.currency.code;
@@ -3555,7 +3750,8 @@
           '<div class="modal-error" id="mError"></div>' +
           '<div class="modal-field"><label>Tag</label><select id="mCat">' + categoryOptionsHTML(s.categoryId) + '</select></div>' +
           '<div class="new-cat-row" id="mNewCatRow"><input type="text" id="mNewCatName" placeholder="new label name…" maxlength="20"><button class="btn-add" type="button">✓</button></div>' +
-          '<div class="modal-field"><label>Note (optional)</label><input type="text" id="mNote" maxlength="60" value="' + escapeHtml(s.note || "") + '"></div>' +
+          '<div class="modal-field"><label>Note (optional)</label><input type="text" id="mNote" maxlength="60" value="' + escapeHtml(s.note || "") + '">' +
+          '<label class="always-tag-row" id="mAlwaysTagRow"><input type="checkbox" id="mAlwaysTag"><span id="mAlwaysTagText"></span></label></div>' +
           '<div class="modal-field"><label>Date</label><input type="date" id="mDate" min="' + minISO + '" max="' + maxISO + '" value="' + s.date + '"></div>' +
           '<div class="modal-field"><label>Amount</label><input type="number" id="mAmount" step="0.01" min="0" value="' + s.amount + '"></div>' +
           (availableCurrencyCodes().length > 1 ? '<div class="modal-field"><label>Currency</label><select id="mCur">' + currencySelectOptionsHTML(s.currency || null) + '</select></div>' : '') +
@@ -3563,6 +3759,7 @@
         openModal(html);
         var catSel = document.getElementById("mCat"), noteInput = document.getElementById("mNote"), dateInput = document.getElementById("mDate"), amountInput = document.getElementById("mAmount"), curSel = document.getElementById("mCur");
         wireModalCategorySelect(catSel, document.getElementById("mNewCatRow"), document.getElementById("mNewCatName"));
+        var applyAlwaysTag = wireAlwaysTagToggle(noteInput, document.getElementById("mAlwaysTagRow"), document.getElementById("mAlwaysTag"), document.getElementById("mAlwaysTagText"), s.categoryId);
         function submit() {
           var catId = catSel.value;
           var curCode = curSel ? curSel.value : state.currency.code;
@@ -3572,6 +3769,7 @@
           if (catId === "__new__" || !catId) { showModalError("give this spend a tag first"); return; }
           if (amount === null) { showModalError("enter a valid amount (0 – " + MAX_LOG_AMOUNT.toLocaleString() + ")"); amountInput.focus(); return; }
           if (!dateVal) { showModalError("pick a date within that spend's cycle (" + minISO + " – " + maxISO + ")"); return; }
+          applyAlwaysTag(catId);
           s.categoryId = catId; s.amount = amount; s.currency = curCode === state.currency.code ? null : curCode; s.date = dateVal; s.note = note;
           if (s.fromChecklist) {
             var linkedItem = state.checklist.find(function (i) { return i.linkedSpendId === s.id; });
@@ -3670,13 +3868,65 @@
         return null;
       }
 
+      /* ---------- merchant memory: learn each shop's usual tag from the spends you've already logged ---------- */
+      // branch/location words and filler that shouldn't split one shop into many ("Ananas Adailiya" & "Ananas Mishref" -> "ananas")
+      var MERCHANT_NOISE_WORDS = ["al", "el", "the", "and", "of", "co", "company", "ltd", "llc", "wll", "inc", "est", "branch", "br", "mall", "store", "stores", "shop", "outlet",
+        "kuwait", "kwt", "kw", "city", "online", "intl", "international", "airport", "terminal", "avenues", "assima", "marina", "souq", "block", "street", "st", "road", "rd",
+        "salmiya", "salmiyah", "hawally", "hawalli", "jabriya", "jabriyah", "mishref", "adailiya", "adailiyah", "shuwaikh", "farwaniya", "farwaniyah", "fahaheel", "mangaf",
+        "mahboula", "fintas", "abu", "halifa", "sharq", "qibla", "dasma", "dasman", "surra", "salwa", "rumaithiya", "bayan", "hateen", "shuhada", "zahra", "siddiq",
+        "qurtuba", "yarmouk", "kaifan", "khaldiya", "shamiya", "rawda", "nuzha", "faiha", "qadsiya", "mansouriya", "bneid", "gar", "jahra", "egaila", "ahmadi",
+        "khairan", "sabah", "salem", "mubarak", "kabeer", "jleeb", "khaitan", "ardiya", "sabahiya", "messila", "funaitees", "qurain", "qusour", "adan"];
+      // leading words too generic to name a shop on their own ("Burger King" vs "Burger Boutique") — keep two words for these
+      var MERCHANT_GENERIC_WORDS = ["burger", "pizza", "cafe", "coffee", "tea", "juice", "bakery", "restaurant", "kitchen", "grill", "house", "sushi", "good", "new", "big",
+        "little", "golden", "royal", "super", "star", "mr", "dr", "my", "food", "fresh", "best", "first", "city", "green", "blue", "red", "black", "white", "pharmacy", "market"];
+      function merchantKey(note) {
+        if (!note) return "";
+        var words = String(note).toLowerCase().replace(/['\u2019`]/g, "").replace(/[0-9]/g, " ").replace(/[^a-z\u0600-\u06ff\s]/g, " ").split(/\s+/)
+          .filter(function (w) { return w.length > 1 && MERCHANT_NOISE_WORDS.indexOf(w) === -1; });
+        if (!words.length) return "";
+        var takeTwo = words.length > 1 && (words[0].length <= 3 || MERCHANT_GENERIC_WORDS.indexOf(words[0]) !== -1);
+        return words.slice(0, takeTwo ? 2 : 1).join(" ");
+      }
+      function merchantDisplayName(key) {
+        return key.replace(/(^|\s)([a-z])/g, function (m, sp, c) { return sp + c.toUpperCase(); });
+      }
+      // { merchantKey: categoryId } — the tag you've used most for each shop, with "always tag X as Y" overrides on top.
+      // Derived from state.spendings, so re-tagging a spend updates it automatically.
+      function merchantTagMemory() {
+        var counts = {};
+        state.spendings.forEach(function (s) {
+          var k = merchantKey(s.note);
+          if (!k || !categoryById(s.categoryId)) return;
+          counts[k] = counts[k] || {};
+          counts[k][s.categoryId] = (counts[k][s.categoryId] || 0) + 1;
+        });
+        var memo = {};
+        Object.keys(counts).forEach(function (k) {
+          var best = null;
+          Object.keys(counts[k]).forEach(function (catId) { if (!best || counts[k][catId] > counts[k][best]) best = catId; });
+          memo[k] = best;
+        });
+        Object.keys(state.merchantTags || {}).forEach(function (k) { if (categoryById(state.merchantTags[k])) memo[k] = state.merchantTags[k]; });
+        return memo;
+      }
+      function suggestTagFor(note, memo) {
+        var k = merchantKey(note);
+        return (k && memo && memo[k]) || null;
+      }
+
+      /* duplicate check: same day + same amount + same shop. When either side has no note we can't tell shops apart,
+         so date + amount alone counts as a match. */
       function spendFingerprint(dateISO, amount, currency) {
         return dateISO + "|" + amount.toFixed(4) + "|" + (currency || state.currency.code);
       }
       function existingFingerprints() {
-        var set = {};
-        state.spendings.forEach(function (s) { set[spendFingerprint(s.date, s.amount, s.currency)] = true; });
-        return set;
+        var map = {};
+        state.spendings.forEach(function (s) { addFingerprint(map, spendFingerprint(s.date, s.amount, s.currency), merchantKey(s.note)); });
+        return map;
+      }
+      function addFingerprint(map, fp, key) { (map[fp] = map[fp] || []).push(key || ""); }
+      function hasFingerprint(map, fp, key) {
+        return (map[fp] || []).some(function (k) { return !k || !key || k === key; });
       }
       var DELAYED_KEYWORDS = ["installment", "installments", "deferred", "delayed", "pay later", "buy now pay later", "bnpl", "layaway", "due date", "postponed", "later payment", "part payment", "partial payment"];
       function detectDelayedPayment(rawText) {
@@ -3702,6 +3952,7 @@
       function buildImportRows(parsed, mapping) {
         var existing = existingFingerprints();
         var seenInBatch = {};
+        var memo = merchantTagMemory();
         return parsed.rows.map(function (r) {
           var dateRaw = mapping.dateIdx >= 0 ? r[mapping.dateIdx] : null;
           var amountRaw = mapping.amountIdx >= 0 ? r[mapping.amountIdx] : null;
@@ -3723,11 +3974,13 @@
           if (amount === null) valid = false;
 
           var noteText = noteRaw ? String(noteRaw).trim() : "";
+          var note = extractStoreName(noteText);
+          var mKey = merchantKey(note);
           var duplicate = false;
           if (valid) {
             var fp = spendFingerprint(dateISO, amount, currency);
-            duplicate = !!existing[fp] || !!seenInBatch[fp];
-            seenInBatch[fp] = true;
+            duplicate = hasFingerprint(existing, fp, mKey) || hasFingerprint(seenInBatch, fp, mKey);
+            addFingerprint(seenInBatch, fp, mKey);
           }
 
           return {
@@ -3739,20 +3992,30 @@
             amount: amount,
             currency: currency,
             categoryName: catRaw ? String(catRaw).trim() : "",
-            note: extractStoreName(noteText)
+            suggestedCatId: memo[mKey] || null,
+            merchantKey: mKey,
+            note: note
           };
         });
       }
-      function commitImportRows(rows, defaultCatId) {
+      // each review row carries a catId: an existing tag's id, or "new:<name>" for a tag-column value we haven't created yet
+      function importRowCatId(r, defaultCatId) {
+        if (r.categoryName) {
+          var existing = state.categories.find(function (c) { return c.name.toLowerCase() === r.categoryName.toLowerCase(); });
+          return existing ? existing.id : "new:" + r.categoryName;
+        }
+        return r.suggestedCatId || defaultCatId;
+      }
+      function commitImportRows(rows) {
         var added = 0, catCache = {};
         rows.forEach(function (r) {
-          var catId = defaultCatId;
-          if (r.categoryName) {
-            var key = r.categoryName.toLowerCase();
-            if (catCache[key]) catId = catCache[key];
-            else { var id = addCategory(r.categoryName); if (id) { catCache[key] = id; catId = id; } }
+          var catId = r.catId;
+          if (catId && catId.indexOf("new:") === 0) {
+            var key = catId.slice(4).toLowerCase();
+            if (!catCache[key]) catCache[key] = addCategory(catId.slice(4));
+            catId = catCache[key];
           }
-          if (!catId) return;
+          if (!catId || !categoryById(catId)) return;
           var spend = { id: uid(), categoryId: catId, amount: r.amount, currency: r.currency, note: r.note, date: r.date, createdAt: Date.now(), fromImport: true };
           if (r.delayedPayment) spend.delayedPayment = true;
           state.spendings.push(spend);
@@ -3828,20 +4091,35 @@
           var built = buildImportRows(parsed, currentMapping());
           var validRows = built.filter(function (r) { return r.valid; });
           if (!validRows.length) { showModalError("no valid rows to import — check your column choices"); return; }
-          var needsDefault = validRows.some(function (r) { return !r.categoryName; });
+          var needsDefault = validRows.some(function (r) { return !r.categoryName && !r.suggestedCatId; });
           if (needsDefault && !defaultCatId) { showModalError("some rows have no tag — pick a default tag to use for them"); return; }
-          renderImportReview(validRows, defaultCatId);
+          validRows.forEach(function (r) {
+            r.catId = importRowCatId(r, defaultCatId);
+            r.autoTagged = !r.categoryName && !!r.suggestedCatId;
+          });
+          renderImportReview(validRows);
         });
       }
 
-      function renderImportReview(rows, defaultCatId) {
+      function importRowTagOptionsHTML(r) {
+        var html = "";
+        if (r.catId && r.catId.indexOf("new:") === 0) html += '<option value="' + escapeHtml(r.catId) + '" selected>' + escapeHtml(r.catId.slice(4)) + ' (new)</option>';
+        state.categories.forEach(function (c) {
+          html += '<option value="' + c.id + '"' + (c.id === r.catId ? " selected" : "") + '>' + escapeHtml(c.name) + '</option>';
+        });
+        return html;
+      }
+
+      function renderImportReview(rows) {
         var pending = rows.slice();
         var body = document.getElementById("mImportBody");
 
         function summaryText() {
           var dupCount = pending.filter(function (r) { return r.duplicate; }).length;
           var delayCount = pending.filter(function (r) { return r.delayedPayment; }).length;
+          var autoCount = pending.filter(function (r) { return r.autoTagged; }).length;
           var bits = [pending.length + " spend" + (pending.length === 1 ? "" : "s") + " ready to add"];
+          if (autoCount) bits.push(autoCount + " tagged from your past spends");
           if (dupCount) bits.push(dupCount + " possible duplicate" + (dupCount === 1 ? "" : "s"));
           if (delayCount) bits.push(delayCount + " delayed payment" + (delayCount === 1 ? "" : "s"));
           return bits.join("  ·  ");
@@ -3855,7 +4133,9 @@
             return '<div class="import-review-row">' +
               '<div class="irr-main">' +
               '<div class="irr-top"><span class="irr-date">' + r.date + '</span><span class="irr-amt">' + formatIn(r.amount, r.currency || state.currency.code) + '</span></div>' +
-              '<div class="irr-sub">' + escapeHtml(r.categoryName || "(default tag)") + (r.note ? " — " + escapeHtml(r.note) : "") + '</div>' +
+              '<div class="irr-sub">' + (r.note ? escapeHtml(r.note) : "(no note)") + '</div>' +
+              '<div class="irr-tag"><select data-row-tag="' + r._id + '">' + importRowTagOptionsHTML(r) + '</select>' +
+              (r.autoTagged ? '<span class="learn-chip" title="you usually tag this shop like this">learned</span>' : "") + '</div>' +
               (badges ? '<div class="irr-badges">' + badges + '</div>' : "") +
               '</div>' +
               '<button class="row-del" type="button" title="remove" data-remove="' + r._id + '">✕</button>' +
@@ -3872,6 +4152,20 @@
               renderList();
             });
           });
+          body.querySelectorAll("[data-row-tag]").forEach(function (sel) {
+            sel.addEventListener("change", function () {
+              var row = pending.find(function (r) { return r._id === sel.getAttribute("data-row-tag"); });
+              if (!row) return;
+              row.catId = sel.value; row.autoTagged = false; row.userTagged = true;
+              // re-tagging one shop re-tags its other rows too, unless you've set those by hand
+              var others = 0;
+              if (row.merchantKey) pending.forEach(function (r) {
+                if (r !== row && r.merchantKey === row.merchantKey && !r.userTagged && !r.categoryName && r.catId !== row.catId) { r.catId = row.catId; r.autoTagged = false; others++; }
+              });
+              if (others) { renderList(); toast("also re-tagged " + others + " other " + merchantDisplayName(row.merchantKey) + " row" + (others === 1 ? "" : "s")); }
+              else body.querySelector("#mReviewSummary").textContent = summaryText();
+            });
+          });
         }
 
         body.innerHTML =
@@ -3882,7 +4176,7 @@
 
         document.getElementById("mImportConfirm").addEventListener("click", function () {
           if (!pending.length) return;
-          var added = commitImportRows(pending, defaultCatId);
+          var added = commitImportRows(pending);
           renderAnalytics(true); renderHistory(); renderReports(); renderAdvice();
           closeModal();
           toast("imported " + added + " spend" + (added === 1 ? "" : "s"));
@@ -4581,6 +4875,124 @@
         }
       }
 
+      /* ---------- home / this cycle's story: top shops + a few friendly comparisons with last cycle ---------- */
+      function summarizeSpends(minISO, maxISO) {
+        var byMerchant = {}, byCat = {}, total = 0;
+        state.spendings.forEach(function (s) {
+          if (s.date < minISO || s.date > maxISO) return;
+          var amt = toMain(s.amount, s.currency);
+          total += amt;
+          byCat[s.categoryId] = (byCat[s.categoryId] || 0) + amt;
+          var k = merchantKey(s.note);
+          if (!k) return;
+          var m = byMerchant[k] || (byMerchant[k] = { key: k, name: merchantDisplayName(k), visits: 0, total: 0 });
+          m.visits++; m.total += amt;
+        });
+        var ranked = Object.keys(byMerchant).map(function (k) { return byMerchant[k]; })
+          .sort(function (a, b) { return b.visits - a.visits || b.total - a.total; });
+        return { byMerchant: byMerchant, ranked: ranked, byCat: byCat, total: total };
+      }
+      function visitsWord(n) { return n + " visit" + (n === 1 ? "" : "s"); }
+
+      function computeCycleStory() {
+        var today = dateFromISO(todayISO());
+        var cur = cycleBoundsForDate(today, state.salaryDay);
+        var prevStart = prevCycleStart(cur.start, state.salaryDay), prev = cycleBoundsForDate(prevStart, state.salaryDay);
+        var curMin = isoOfDate(cur.start), todayStr = isoOfDate(today);
+        var cycleLen = Math.round((cur.end - cur.start) / 86400000) + 1;
+        var daysElapsed = Math.max(1, Math.round((today - cur.start) / 86400000) + 1);
+        var daysLeft = Math.max(0, cycleLen - daysElapsed);
+        // "same point last cycle" keeps a half-finished cycle from looking artificially thrifty
+        var prevSamePointISO = isoOfDate(addDays(prev.start, daysElapsed - 1));
+        if (prevSamePointISO > isoOfDate(prev.end)) prevSamePointISO = isoOfDate(prev.end);
+
+        var now = summarizeSpends(curMin, todayStr);
+        var last = summarizeSpends(isoOfDate(prev.start), isoOfDate(prev.end));
+        var lastSoFar = summarizeSpends(isoOfDate(prev.start), prevSamePointISO);
+        var lines = [], whatIf = null;
+        var top = now.ranked[0];
+        var hasPrev = last.total > 0;
+
+        if (top && hasPrev) {
+          var lastTop = last.ranked[0];
+          if (lastTop && lastTop.key === top.key) lines.push({ g: "🏆", t: top.name + " is still your #1 — " + visitsWord(top.visits) + ", " + money(top.total) });
+          else lines.push({ g: "🏆", t: top.name + " is your #1 this cycle — " + visitsWord(top.visits) + ", " + money(top.total) });
+
+          // a regular from last cycle that's showing up a lot less, compared at the same point in the cycle
+          var backedDown = last.ranked.slice(0, 3).filter(function (m) {
+            var then = lastSoFar.byMerchant[m.key], nowM = now.byMerchant[m.key];
+            var thenVisits = then ? then.visits : 0, nowVisits = nowM ? nowM.visits : 0;
+            return thenVisits >= 3 && nowVisits <= thenVisits * 0.6;
+          })[0];
+          if (backedDown) {
+            var bdNow = now.byMerchant[backedDown.key], bdThen = lastSoFar.byMerchant[backedDown.key];
+            lines.push({ g: "🌱", t: backedDown.name + " backed down: " + visitsWord(bdNow ? bdNow.visits : 0) + " vs " + bdThen.visits + " by this point last cycle" });
+          }
+
+          var newFav = now.ranked.slice(0, 5).filter(function (m) {
+            var then = last.byMerchant[m.key];
+            return m.visits >= 2 && (!then || then.visits <= 1);
+          })[0];
+          if (newFav) lines.push({ g: "✨", t: "New favourite: " + newFav.name + " (" + visitsWord(newFav.visits) + ")" });
+        }
+
+        if (hasPrev && lines.length < 4) {
+          // the tag with the biggest swing vs the same point last cycle
+          var swing = null;
+          Object.keys(now.byCat).forEach(function (catId) {
+            var cat = categoryById(catId), was = lastSoFar.byCat[catId] || 0, is = now.byCat[catId];
+            if (!cat || was <= 0 || is < now.total * 0.05) return;
+            var pct = Math.round(((is - was) / was) * 100);
+            if (Math.abs(pct) >= 20 && (!swing || Math.abs(pct) > Math.abs(swing.pct))) swing = { name: cat.name, pct: pct };
+          });
+          if (swing && swing.pct > 0) lines.push({ g: "📈", t: "You enjoyed more " + swing.name + " this cycle (+" + swing.pct + "% vs this point last cycle)" });
+          else if (swing) lines.push({ g: "👏", t: "You've spent less on " + swing.name + " than at this point last cycle (" + swing.pct + "%)" });
+        }
+
+        if (lines.length < 4 && now.total > 0) {
+          var bigCat = null;
+          Object.keys(now.byCat).forEach(function (catId) { if (categoryById(catId) && (!bigCat || now.byCat[catId] > now.byCat[bigCat])) bigCat = catId; });
+          var share = bigCat ? Math.round((now.byCat[bigCat] / now.total) * 100) : 0;
+          if (bigCat && share >= 15 && share < 100) lines.push({ g: "🥧", t: categoryById(bigCat).name + " is " + share + "% of your spending" });
+        }
+
+        // what if: one fewer visit to your top habit, priced at its average
+        if (top && top.visits >= 3) {
+          var avg = top.total / top.visits, perDay = top.visits / daysElapsed;
+          if (perDay >= 0.7) {
+            whatIf = "One fewer " + top.name + " a day ≈ " + money(avg * cycleLen) + " saved per cycle" +
+              (daysLeft > 0 ? " — or " + money(avg * daysLeft) + " over the " + daysLeft + " days left" : "");
+          } else {
+            whatIf = "One fewer " + top.name + " a week ≈ " + money(avg * cycleLen / 7) + " saved per cycle";
+          }
+        }
+
+        return { cur: cur, now: now, hasPrev: hasPrev, lines: lines.slice(0, 4), whatIf: whatIf };
+      }
+
+      function renderCycleStory() {
+        var st = computeCycleStory();
+        var body = document.getElementById("cycleStoryBody");
+        document.getElementById("cycleStoryRange").textContent = cycleLabel(st.cur.start, st.cur.end);
+        if (!st.now.total) {
+          body.innerHTML = '<div class="empty-state" style="padding:10px 0 4px;">◌ nothing logged this cycle yet — add a few spends with a shop name and your cycle story shows up here</div>';
+          return;
+        }
+        var html = "";
+        if (st.now.ranked.length) {
+          html += '<div class="story-top">' + st.now.ranked.slice(0, 3).map(function (m, i) {
+            return '<div class="story-merchant"><span class="rank">' + (i + 1) + '</span><span class="name">' + escapeHtml(m.name) + '</span>' +
+              '<span class="visits">' + visitsWord(m.visits) + '</span><span class="amt">' + money(m.total) + '</span></div>';
+          }).join("") + '</div>';
+        }
+        var items = st.lines.map(function (l) { return '<li><span class="g">' + l.g + '</span><span>' + escapeHtml(l.t) + '</span></li>'; });
+        if (!st.hasPrev) items.push('<li class="muted"><span class="g">◌</span><span>No spends from last cycle to compare with yet — next cycle I\'ll show you how this one stacks up.</span></li>');
+        else if (!st.now.ranked.length) items.push('<li class="muted"><span class="g">◌</span><span>Add a note (like the shop name) when you log spends and I\'ll spot your favourite places.</span></li>');
+        if (st.whatIf) items.push('<li class="whatif"><span class="g">💡</span><span>' + escapeHtml(st.whatIf) + '</span></li>');
+        if (items.length) html += '<ul class="story-lines">' + items.join("") + '</ul>';
+        body.innerHTML = html;
+      }
+
       function renderAdvice() {
         var a = computeAdvice();
         var card = document.getElementById("adviceCard");
@@ -4589,6 +5001,7 @@
         document.getElementById("adviceHeadline").textContent = a.headline;
         document.getElementById("adviceDetail").textContent = a.detail;
         renderHomeQuickStats(a);
+        renderCycleStory();
 
         document.getElementById("homeHeading").textContent = state.username ? ("Welcome back, " + state.username) : "Welcome back";
         document.getElementById("homeSubNote").textContent = "› here's where things stand";
