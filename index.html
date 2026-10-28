@@ -149,9 +149,53 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      flex-wrap: wrap;
+      row-gap: 10px;
       padding: 6px 4px 20px;
       border-bottom: 1px solid var(--line);
       margin-bottom: 22px;
+    }
+
+    .tabs-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      row-gap: 10px;
+      column-gap: 10px;
+      margin-bottom: 26px;
+    }
+
+    .tabs-icons {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .icon-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid var(--line);
+      background: var(--bg-card);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--ink-soft);
+      flex-shrink: 0;
+      padding: 0;
+      transition: border-color .15s ease, color .15s ease, background .15s ease;
+    }
+
+    .icon-btn:hover {
+      border-color: var(--ink);
+      color: var(--ink);
+    }
+
+    .icon-btn svg {
+      width: 15px;
+      height: 15px;
     }
 
     .brand {
@@ -228,7 +272,6 @@
       border-radius: 999px;
       padding: 4px;
       gap: 2px;
-      margin-bottom: 26px;
     }
 
     .tab-btn {
@@ -738,6 +781,43 @@
       min-width: 190px;
     }
 
+    .cycle-nav .cycle-date {
+      position: relative;
+      display: inline-block;
+      cursor: pointer;
+      border-bottom: 1px dashed var(--line);
+      padding: 0 1px;
+      transition: border-color .15s ease;
+    }
+
+    .cycle-nav .cycle-date:hover {
+      border-color: var(--ink);
+    }
+
+    /* the real date input sits invisibly on top of the text, so a tap opens the native picker */
+    .cycle-nav .cycle-date input[type="date"] {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      padding: 0;
+      border: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .cycle-nav .cycle-date .open-tag {
+      font-size: 9.5px;
+      color: var(--ink-soft);
+      margin-left: 3px;
+    }
+
+    .cycle-nav button.add-cycle {
+      font-size: 17px;
+      border-color: var(--accent);
+      color: var(--accent-ink);
+    }
+
     .cycle-nav .lbl .badge {
       display: block;
       font-size: 9.5px;
@@ -930,6 +1010,56 @@
       border-radius: 5px;
       padding: 1px 5px;
       margin-right: 6px;
+    }
+
+    .cur-chip {
+      font-family: var(--font-mono);
+      font-size: 8.5px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: var(--ink-soft);
+      background: var(--line-soft);
+      border-radius: 5px;
+      padding: 1px 5px;
+      margin-left: 6px;
+      white-space: nowrap;
+    }
+
+    .currency-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px dashed var(--line);
+    }
+
+    .currency-row:last-child {
+      border-bottom: none;
+    }
+
+    .currency-row .code {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    .currency-row .rate {
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      color: var(--ink-faint);
+      margin-top: 2px;
+    }
+
+    .currency-row .actions {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .currency-row .actions button {
+      font-size: 10.5px;
+      padding: 5px 10px;
     }
 
     /* ---------- History ---------- */
@@ -1525,6 +1655,688 @@
         transition-duration: .001ms !important;
       }
     }
+
+    /* ---------- Modal ---------- */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 120;
+      background: rgba(23, 24, 26, 0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-overlay.show {
+      display: flex;
+    }
+
+    .modal-card {
+      width: 100%;
+      max-width: 420px;
+      max-height: 88vh;
+      overflow-y: auto;
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 22px 22px 20px;
+      animation: fadeUp .25s ease;
+    }
+
+    .modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      gap: 10px;
+    }
+
+    .modal-head h3 {
+      font-family: var(--font-display);
+      font-size: 17px;
+      margin: 0;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--ink-faint);
+      font-size: 20px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 2px 4px;
+      flex-shrink: 0;
+    }
+
+    .modal-close:hover {
+      color: var(--ink);
+    }
+
+    .modal-field {
+      margin-bottom: 12px;
+    }
+
+    .modal-field label {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: var(--ink-faint);
+      margin-bottom: 6px;
+    }
+
+    .modal-error {
+      display: none;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      color: var(--danger);
+      background: rgba(226, 88, 74, 0.08);
+      border: 1px solid rgba(226, 88, 74, 0.25);
+      border-radius: 8px;
+      padding: 8px 10px;
+      margin-bottom: 12px;
+    }
+
+    .modal-error.show {
+      display: block;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+
+    .modal-actions .btn-text {
+      flex: 1;
+      text-align: center;
+    }
+
+    .modal-sub {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--ink-soft);
+      line-height: 1.6;
+      margin: -6px 0 16px;
+    }
+
+    .add-trigger-btn {
+      width: 100%;
+      background: none;
+      border: 1.5px dashed var(--line);
+      color: var(--ink-soft);
+      border-radius: 10px;
+      padding: 12px;
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      cursor: pointer;
+      transition: border-color .15s ease, color .15s ease, background .15s ease;
+    }
+
+    .add-trigger-btn:hover {
+      border-color: var(--accent);
+      color: var(--ink);
+      background: var(--accent-wash);
+      border-style: solid;
+    }
+
+    .import-review-list {
+      max-height: 300px;
+      overflow-y: auto;
+      margin: 2px 0 10px;
+      border-top: 1px dashed var(--line);
+    }
+
+    .import-review-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 10px 2px;
+      border-bottom: 1px dashed var(--line);
+    }
+
+    .irr-main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .irr-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      font-weight: 600;
+    }
+
+    .irr-sub {
+      font-size: 12px;
+      color: var(--ink-soft);
+      margin-top: 2px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .irr-tag {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 5px;
+    }
+
+    .irr-tag select {
+      width: auto;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 4px 22px 4px 8px;
+      background-position: right 7px center;
+      border-radius: 6px;
+      max-width: 60%;
+    }
+
+    .modal-field .always-tag-row {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin: 8px 0 0;
+      text-transform: none;
+      letter-spacing: 0;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--ink-soft);
+      cursor: pointer;
+    }
+
+    .always-tag-row input {
+      width: auto;
+      margin: 0;
+      accent-color: var(--accent);
+    }
+
+    .learn-chip {
+      font-family: var(--font-mono);
+      font-size: 8.5px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      border-radius: 5px;
+      padding: 1px 5px;
+      color: var(--accent-ink);
+      background: var(--accent-wash);
+      white-space: nowrap;
+    }
+
+    .irr-badges {
+      display: flex;
+      gap: 6px;
+      margin-top: 5px;
+      flex-wrap: wrap;
+    }
+
+    .dup-chip,
+    .delay-chip {
+      font-family: var(--font-mono);
+      font-size: 8.5px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      border-radius: 5px;
+      padding: 1px 5px;
+      white-space: nowrap;
+    }
+
+    .dup-chip {
+      color: var(--danger);
+      background: rgba(226, 88, 74, 0.12);
+    }
+
+    .delay-chip {
+      color: var(--amber);
+      background: rgba(217, 154, 43, 0.14);
+    }
+
+    /* ---------- edit affordance ---------- */
+    .row-edit {
+      background: none;
+      border: none;
+      color: var(--ink-faint);
+      cursor: pointer;
+      font-size: 13px;
+      opacity: 0;
+      transition: opacity .15s ease, color .15s ease;
+      width: 20px;
+      flex-shrink: 0;
+    }
+
+    .ledger-row:hover .row-edit,
+    .spend-item:hover .row-edit {
+      opacity: 1;
+    }
+
+    .row-edit:hover {
+      color: var(--accent-ink);
+    }
+
+    @media (hover: none) {
+      .row-edit {
+        opacity: 1 !important;
+      }
+    }
+
+    /* ---------- sort controls ---------- */
+    .sort-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 16px 0 2px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--ink-faint);
+      flex-wrap: wrap;
+    }
+
+    .sort-btn {
+      background: none;
+      border: 1px solid var(--line);
+      color: var(--ink-soft);
+      border-radius: 999px;
+      padding: 5px 12px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: border-color .15s ease, color .15s ease, background .15s ease;
+    }
+
+    .sort-btn:hover {
+      border-color: var(--ink);
+      color: var(--ink);
+    }
+
+    .sort-btn.active {
+      background: var(--ink);
+      color: #fff;
+      border-color: var(--ink);
+    }
+
+    /* ---------- Wish list ---------- */
+    .wish-card {
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      animation: rowIn .3s ease;
+    }
+
+    .wish-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .wish-name {
+      font-weight: 600;
+      font-size: 14.5px;
+    }
+
+    .wish-price {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 15px;
+      white-space: nowrap;
+    }
+
+    .wish-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+
+    .wish-actions .btn-text {
+      padding: 6px 12px;
+      font-size: 11px;
+    }
+
+    .wish-decision {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 9px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      line-height: 1.55;
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+    }
+
+    .wish-decision.plan {
+      background: var(--accent-wash);
+      color: var(--accent-ink);
+    }
+
+    .wish-decision.nice {
+      background: rgba(217, 154, 43, 0.12);
+      color: var(--amber);
+    }
+
+    .wish-decision .g {
+      flex-shrink: 0;
+    }
+
+    /* ---------- Reports ---------- */
+    .filter-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+
+    .filter-row select {
+      width: auto;
+      min-width: 140px;
+    }
+
+    .chart-card {
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 18px;
+    }
+
+    .chart-card h4 {
+      font-family: var(--font-display);
+      font-size: 14.5px;
+      margin: 0 0 16px;
+    }
+
+    .bar-chart {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      height: 170px;
+      padding-top: 10px;
+    }
+
+    .bar-chart .bar-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      height: 100%;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .bar-chart .bar-group {
+      width: 100%;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 3px;
+      flex: 1;
+      position: relative;
+    }
+
+    .bar-chart .bar {
+      width: 100%;
+      max-width: 22px;
+      border-radius: 4px 4px 2px 2px;
+      min-height: 3px;
+      transition: height .5s cubic-bezier(.4, 0, .2, 1);
+      cursor: default;
+    }
+
+    .bar-chart .bar-label {
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      color: var(--ink-faint);
+      white-space: nowrap;
+      text-align: center;
+    }
+
+    .chart-legend {
+      display: flex;
+      gap: 16px;
+      margin-top: 16px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--ink-soft);
+      flex-wrap: wrap;
+    }
+
+    .chart-legend .item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .chart-legend .sw {
+      width: 9px;
+      height: 9px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+
+    .report-stat-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    /* ---------- Home / advice ---------- */
+    .advice-card {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      padding: 20px;
+      border-radius: var(--radius);
+      margin-bottom: 22px;
+      border: 1px solid var(--line);
+      background: var(--bg-card);
+    }
+
+    .advice-card.good {
+      background: var(--accent-wash);
+      border-color: var(--accent-wash-strong);
+    }
+
+    .advice-card.warn {
+      background: rgba(226, 88, 74, 0.08);
+      border-color: rgba(226, 88, 74, 0.25);
+    }
+
+    .advice-card.neutral {
+      background: rgba(217, 154, 43, 0.08);
+      border-color: rgba(217, 154, 43, 0.22);
+    }
+
+    .advice-glyph {
+      font-size: 26px;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .advice-headline {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 16.5px;
+      margin: 0 0 6px;
+      line-height: 1.35;
+    }
+
+    .advice-detail {
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      color: var(--ink-soft);
+      margin: 0;
+      line-height: 1.65;
+    }
+
+    /* ---------- Home / this cycle's story ---------- */
+    .story-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 10px;
+    }
+
+    .story-range {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      color: var(--ink-faint);
+    }
+
+    .story-top {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .story-merchant {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13.5px;
+    }
+
+    .story-merchant .rank {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      width: 22px;
+      height: 22px;
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--line-soft);
+      color: var(--ink-soft);
+      flex-shrink: 0;
+    }
+
+    .story-merchant:first-child .rank {
+      background: var(--accent-wash-strong);
+      color: var(--accent-ink);
+    }
+
+    .story-merchant .name {
+      flex: 1;
+      min-width: 0;
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .story-merchant .visits {
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      color: var(--ink-faint);
+    }
+
+    .story-merchant .amt {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      min-width: 74px;
+      text-align: right;
+    }
+
+    .story-lines {
+      list-style: none;
+      margin: 0;
+      padding: 12px 0 0;
+      border-top: 1px dashed var(--line);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .story-lines li {
+      display: flex;
+      gap: 9px;
+      font-size: 13px;
+      line-height: 1.45;
+      color: var(--ink);
+    }
+
+    .story-lines li .g {
+      flex-shrink: 0;
+      width: 18px;
+      text-align: center;
+    }
+
+    .story-lines li.whatif {
+      margin-top: 4px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: var(--accent-wash);
+      color: var(--accent-ink);
+    }
+
+    .story-lines li.muted {
+      color: var(--ink-soft);
+    }
+
+    /* ---------- Subscriptions ---------- */
+    .sub-renewal {
+      margin-top: 10px;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      color: var(--ink-soft);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .sub-renewal .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--ink-faint);
+      flex-shrink: 0;
+    }
+
+    .sub-renewal.soon {
+      color: var(--amber);
+    }
+
+    .sub-renewal.soon .dot {
+      background: var(--amber);
+    }
+
+    .sub-renewal.today {
+      color: var(--accent-ink);
+    }
+
+    .sub-renewal.today .dot {
+      background: var(--accent);
+    }
+
+    @media (max-width: 520px) {
+      .report-stat-strip {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .report-stat-strip .stat-box:nth-child(3) {
+        grid-column: 1 / -1;
+      }
+
+      .filter-row select {
+        flex: 1;
+        min-width: 0;
+      }
+    }
   </style>
 </head>
 
@@ -1541,6 +2353,10 @@
       <div class="auth-brand"><span class="dot"></span>Everything<b>Budgeted</b></div>
       <p class="auth-sub" id="authSub">&gt; sign in to sync your data across devices</p>
       <div class="auth-error" id="authError"></div>
+      <div class="auth-field" id="authNameField" style="display:none;">
+        <label>Name</label>
+        <input type="text" id="authName" placeholder="what should we call you?" maxlength="40" autocomplete="name">
+      </div>
       <div class="auth-field">
         <label>Email</label>
         <input type="email" id="authEmail" placeholder="you@example.com" autocomplete="email">
@@ -1570,6 +2386,7 @@
       <div class="plan-actions" style="justify-content:center;">
         <a class="btn-text primary" id="lockUpgradeBtn" target="_blank" rel="noopener">Upgrade to Pro</a>
         <button class="btn-text" id="lockRecheckBtn">I've subscribed</button>
+        <button class="btn-text danger" id="lockSignOutBtn">Sign out</button>
       </div>
     </div>
   </div>
@@ -1591,15 +2408,26 @@
         <a class="btn-text primary" id="trialBannerBtn" target="_blank" rel="noopener">Upgrade — $5/mo</a>
       </div>
 
-      <div class="tabs" role="tablist">
-        <button class="tab-btn active" data-tab="checklist" role="tab"><span class="pill-bg"></span>CHECKLIST</button>
-        <button class="tab-btn" data-tab="analytics" role="tab"><span class="pill-bg"></span>ANALYTICS</button>
-        <button class="tab-btn" data-tab="history" role="tab"><span class="pill-bg"></span>HISTORY</button>
-        <button class="tab-btn" data-tab="settings" role="tab"><span class="pill-bg"></span>SETTINGS</button>
+      <div class="tabs-row">
+        <div class="tabs" role="tablist">
+          <button class="tab-btn active" data-tab="home" role="tab"><span class="pill-bg"></span>HOME</button>
+          <button class="tab-btn" data-tab="checklist" role="tab"><span class="pill-bg"></span>LEDGER</button>
+          <button class="tab-btn" data-tab="analytics" role="tab"><span class="pill-bg"></span>ANALYTICS</button>
+          <button class="tab-btn" data-tab="subscriptions" role="tab"><span class="pill-bg"></span>SUBSCRIPTIONS</button>
+          <button class="tab-btn" data-tab="wishlist" role="tab"><span class="pill-bg"></span>WISH LIST</button>
+        </div>
+        <div class="tabs-icons">
+          <button class="icon-btn" id="historyIconBtn" title="History" aria-label="History">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+          </button>
+          <button class="icon-btn" id="settingsIconBtn" title="Settings" aria-label="Settings">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </button>
+        </div>
       </div>
 
       <!-- CHECKLIST PANEL -->
-      <section class="panel active" id="panel-checklist">
+      <section class="panel" id="panel-checklist">
         <div class="section-head">
           <h2 class="hl"><span>Today's Ledger</span></h2>
         </div>
@@ -1619,17 +2447,7 @@
           </div>
           <div class="progress-label" id="spentTodayLabel" style="margin-top:6px;">Spent today: <b>$0.00</b></div>
 
-          <div class="add-row">
-            <select id="itemCategory"></select>
-            <input type="text" id="itemLabel" placeholder="e.g. groceries, gym, coffee…" maxlength="40">
-            <input type="number" id="itemPrice" placeholder="0.00" step="0.01" min="0">
-            <button class="btn-add" id="addItemBtn" title="Add item">+</button>
-          </div>
-          <div class="new-cat-row" id="newCatRowChecklist">
-            <input type="text" id="newCatNameChecklist" placeholder="new tag name…" maxlength="20">
-            <button class="btn-add" id="confirmNewCatChecklist">✓</button>
-          </div>
-          <div class="quick-tags" id="quickTags"></div>
+          <button class="add-trigger-btn" id="openAddItemBtn" type="button">+ log a recurring item</button>
 
           <div class="ledger" id="ledgerList"></div>
         </div>
@@ -1644,7 +2462,12 @@
 
         <div class="cycle-nav">
           <button id="cyclePrev" title="previous cycle">‹</button>
-          <div class="lbl" id="cycleLabelBox">—<span class="badge" id="cycleBadge"></span></div>
+          <div class="lbl" id="cycleLabelBox">
+            <label class="cycle-date" title="change start date"><span id="cycleStartText">—</span><input type="date" id="cycleStartPick" aria-label="cycle start date"></label>
+            –
+            <label class="cycle-date" title="change end date"><span id="cycleEndText">—</span><input type="date" id="cycleEndPick" aria-label="cycle end date"></label>
+            <span class="badge" id="cycleBadge"></span>
+          </div>
           <button id="cycleNext" title="next cycle">›</button>
         </div>
 
@@ -1677,22 +2500,152 @@
         </div>
 
         <div class="card">
-          <span class="field-label">Log a spend</span>
-          <div class="add-row analytics">
-            <select id="spendCategory"></select>
-            <input type="text" id="spendNote" placeholder="note (optional)" maxlength="40">
-          </div>
-          <div class="new-cat-row" id="newCatRowSpend">
-            <input type="text" id="newCatNameSpend" placeholder="new label name…" maxlength="20">
-            <button class="btn-add" id="confirmNewCatSpend">✓</button>
-          </div>
-          <div class="add-row-2">
-            <input type="date" id="spendDate">
-            <input type="number" id="spendAmount" placeholder="0.00" step="0.01" min="0">
-            <button class="btn-add" id="addSpendBtn" title="Add spending">+</button>
+          <span class="field-label">Spending log</span>
+          <button class="add-trigger-btn" id="openAddSpendBtn" type="button">+ log a spend</button>
+          <button class="add-trigger-btn" id="openImportBtn" type="button" style="margin-top:8px;">⇪ import from CSV / Excel</button>
+
+          <div class="sort-row" id="spendSortRow">
+            <span>sort:</span>
+            <button class="sort-btn" id="sortByDateBtn" type="button" data-dir="desc">date <span class="arrow"></span></button>
+            <button class="sort-btn" id="sortByPriceBtn" type="button" data-dir="desc">price <span class="arrow"></span></button>
           </div>
 
           <div class="spend-log" id="spendLog"></div>
+        </div>
+      </section>
+
+      <!-- SUBSCRIPTIONS PANEL -->
+      <section class="panel" id="panel-subscriptions">
+        <div class="section-head">
+          <h2 class="hl"><span>Subscriptions</span></h2>
+        </div>
+        <p class="sub-note">&gt; every recurring bill in one place — Netflix on the 17th, and everything else</p>
+
+        <div class="stat-strip">
+          <div class="stat-box">
+            <div class="k">Monthly Total</div>
+            <div class="v" id="subMonthlyTotalStat">$0.00</div>
+          </div>
+          <div class="stat-box">
+            <div class="k">Yearly Total</div>
+            <div class="v" id="subYearlyTotalStat">$0.00</div>
+          </div>
+          <div class="stat-box" id="subNextBox">
+            <div class="k">Next Renewal</div>
+            <div class="v" id="subNextStat">—</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <button class="add-trigger-btn" id="openAddSubBtn" type="button">+ add a subscription</button>
+        </div>
+
+        <div id="subList"></div>
+      </section>
+
+      <!-- WISH LIST PANEL -->
+      <section class="panel" id="panel-wishlist">
+        <div class="section-head">
+          <h2 class="hl"><span>Wish List</span></h2>
+        </div>
+        <p class="sub-note">&gt; save up for things you actually want — we'll tell you the smart way to get them</p>
+
+        <div class="card">
+          <button class="add-trigger-btn" id="openAddWishBtn" type="button">+ add something you want</button>
+        </div>
+
+        <div id="wishList"></div>
+      </section>
+
+      <!-- HOME PANEL -->
+      <section class="panel active" id="panel-home">
+        <div class="section-head">
+          <h2 class="hl"><span id="homeHeading">Welcome</span></h2>
+        </div>
+        <p class="sub-note" id="homeSubNote">&gt; here's where things stand</p>
+
+        <div class="advice-card" id="adviceCard">
+          <div class="advice-glyph" id="adviceGlyph">👋</div>
+          <div>
+            <p class="advice-headline" id="adviceHeadline">Loading your numbers…</p>
+            <p class="advice-detail" id="adviceDetail"></p>
+          </div>
+        </div>
+
+        <div class="report-stat-strip">
+          <div class="stat-box">
+            <div class="k">Cycle Days Left</div>
+            <div class="v" id="homeDaysLeftStat">—</div>
+          </div>
+          <div class="stat-box">
+            <div class="k">Daily Avg (cycle)</div>
+            <div class="v" id="homeDailyAvgStat">$0.00</div>
+          </div>
+          <div class="stat-box" id="homeNextRenewBox">
+            <div class="k">Next Renewal</div>
+            <div class="v" id="homeNextRenewStat">—</div>
+          </div>
+        </div>
+
+        <div class="card story-card" id="cycleStoryCard">
+          <div class="story-head"><span class="field-label">This cycle</span><span class="story-range" id="cycleStoryRange"></span></div>
+          <div id="cycleStoryBody"></div>
+        </div>
+
+        <div class="filter-row">
+          <select id="reportRange">
+            <option value="1">This cycle</option>
+            <option value="3">Last 3 cycles</option>
+            <option value="6">Last 6 cycles</option>
+            <option value="12">Last 12 cycles</option>
+            <option value="all">All time</option>
+          </select>
+          <select id="reportCategory">
+            <option value="all">All tags</option>
+          </select>
+        </div>
+
+        <div class="report-stat-strip">
+          <div class="stat-box">
+            <div class="k">Total Spent</div>
+            <div class="v" id="reportTotalStat">$0.00</div>
+          </div>
+          <div class="stat-box">
+            <div class="k">Avg / Cycle</div>
+            <div class="v" id="reportAvgStat">$0.00</div>
+          </div>
+          <div class="stat-box" id="reportSavedBox">
+            <div class="k">Avg Saved / Cycle</div>
+            <div class="v" id="reportSavedStat">—</div>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <h4>Spend by cycle</h4>
+          <div class="bar-chart" id="cycleBarChart"></div>
+        </div>
+
+        <div class="chart-card" id="salaryChartCard">
+          <h4>Salary vs. spent</h4>
+          <div class="bar-chart" id="salarySpendChart"></div>
+          <div class="chart-legend">
+            <span class="item"><span class="sw" style="background:var(--ink-faint)"></span>Salary</span>
+            <span class="item"><span class="sw" style="background:var(--accent)"></span>Spent</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <span class="field-label">By tag</span>
+          <div class="donut-wrap">
+            <div class="donut-svg-box">
+              <svg viewBox="0 0 190 190" width="190" height="190" id="reportDonutSvg"></svg>
+              <div class="donut-center">
+                <div class="amt" id="reportDonutAmt">$0</div>
+                <div class="lbl">filtered</div>
+              </div>
+            </div>
+            <div class="legend" id="reportLegendBox"></div>
+          </div>
         </div>
       </section>
 
@@ -1713,16 +2666,30 @@
         <p class="sub-note">&gt; configure currency, pay cycle, and cloud sync</p>
 
         <div class="card">
+          <span class="field-label">Your name</span>
+          <input type="text" id="usernameInput" placeholder="what should we call you?" maxlength="40">
+        </div>
+
+        <div class="card">
           <span class="field-label">Currency</span>
           <select id="currencySelect"></select>
+          <p class="helper-text">Your main currency — used for totals, salary, and budgets everywhere.</p>
+        </div>
+
+        <div class="card">
+          <span class="field-label">Other currencies</span>
+          <p class="helper-text" style="margin-top:0;">Log a spend or subscription in a different currency (e.g. USD) while keeping totals in your main currency. Set the exchange rate yourself, and update it whenever it changes.</p>
+          <div id="extraCurrencyList"></div>
+          <button class="add-trigger-btn" id="openAddCurrencyBtn" type="button">+ add a currency</button>
         </div>
 
         <div class="card">
           <span class="field-label">Salary / cycle start day</span>
           <input type="number" id="salaryDayInput" min="1" max="31" step="1">
           <p class="helper-text">Your budgeting "month" runs from this day of the month to the day before it next
-            occurs. e.g. day 28 → Jun 28 – Jul 27. This only affects Analytics &amp; History — the daily checklist
-            always resets at midnight.</p>
+            occurs. e.g. day 28 → Jun 28 – Jul 27. Paid on a different day each month? On Analytics, tap a cycle's
+            dates to move them, or tap + to start the next cycle when your salary lands; cycles you set there
+            override this day. The daily checklist always resets at midnight.</p>
         </div>
 
         <div class="card">
@@ -1747,6 +2714,11 @@
   </div>
 
   <div class="toast" id="toast"><span class="dot"></span><span id="toastMsg"></span></div>
+
+  <!-- ===================== GENERIC MODAL ===================== -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-card" id="modalCard"></div>
+  </div>
 
   <!-- Firebase (compat) — only used if you fill in firebaseConfig below -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -1809,7 +2781,7 @@
       function todayISO() { return isoOfDate(new Date()); }
       function daysInMonth(y, m) { return new Date(y, m + 1, 0).getDate(); }
 
-      function cycleStartForDate(dateObj, salaryDay) {
+      function fixedCycleStartForDate(dateObj, salaryDay) {
         var y = dateObj.getFullYear(), m = dateObj.getMonth();
         var cand = new Date(y, m, Math.min(salaryDay, daysInMonth(y, m)));
         cand.setHours(0, 0, 0, 0);
@@ -1820,7 +2792,7 @@
         pcand.setHours(0, 0, 0, 0);
         return pcand;
       }
-      function cycleEndForStart(startDate, salaryDay) {
+      function fixedCycleEndForStart(startDate, salaryDay) {
         var nm = startDate.getMonth() + 1, ny = startDate.getFullYear();
         if (nm > 11) { nm = 0; ny++; }
         var nstart = new Date(ny, nm, Math.min(salaryDay, daysInMonth(ny, nm)));
@@ -1828,14 +2800,53 @@
         end.setHours(0, 0, 0, 0);
         return end;
       }
+      function addDays(d, n) { var x = new Date(d); x.setDate(x.getDate() + n); x.setHours(0, 0, 0, 0); return x; }
+      // same day next month, minus one day (Jan 31 -> Feb 28)
+      function defaultCycleEnd(start) {
+        var y = start.getFullYear(), m = start.getMonth() + 1;
+        if (m > 11) { m = 0; y++; }
+        return addDays(new Date(y, m, Math.min(start.getDate(), daysInMonth(y, m))), -1);
+      }
+
+      /* custom cycles: state.cycles = [{ start: "YYYY-MM-DD", end: "YYYY-MM-DD" | null }], sorted by start.
+         A cycle runs until its own end or the day before the next one starts. The last cycle with no end
+         stays open (a month by default, longer if today is past that). Dates outside every custom cycle
+         fall back to the fixed salary-day cycles, clipped so they never overlap a custom one. */
+      function customCycles() { return (state && state.cycles) ? state.cycles : []; }
+      function customCycleEndISO(cycles, i) {
+        var nextStartISO = cycles[i + 1] ? isoOfDate(addDays(dateFromISO(cycles[i + 1].start), -1)) : null;
+        if (cycles[i].end) return nextStartISO && nextStartISO < cycles[i].end ? nextStartISO : cycles[i].end;
+        return nextStartISO; // null = open
+      }
+      function cycleBoundsForDate(dateObj, salaryDay) {
+        var d = new Date(dateObj); d.setHours(0, 0, 0, 0);
+        var dISO = isoOfDate(d), cycles = customCycles();
+        var gapStart = null, gapEnd = null;
+        for (var i = 0; i < cycles.length; i++) {
+          if (cycles[i].start > dISO) { gapEnd = addDays(dateFromISO(cycles[i].start), -1); break; }
+          var endISO = customCycleEndISO(cycles, i);
+          if (endISO === null) {
+            var start = dateFromISO(cycles[i].start), end = defaultCycleEnd(start), today = dateFromISO(todayISO());
+            if (today > end) end = today;
+            if (d > end) end = d;
+            return { start: start, end: end, custom: true, open: true, index: i };
+          }
+          if (dISO <= endISO) return { start: dateFromISO(cycles[i].start), end: dateFromISO(endISO), custom: true, open: false, index: i };
+          gapStart = addDays(dateFromISO(endISO), 1);
+        }
+        var fs = fixedCycleStartForDate(d, salaryDay), fe = fixedCycleEndForStart(fs, salaryDay);
+        if (gapStart && fs < gapStart) fs = gapStart;
+        if (gapEnd && fe > gapEnd) fe = gapEnd;
+        return { start: fs, end: fe, custom: false, open: false, index: -1 };
+      }
+      function cycleStartForDate(dateObj, salaryDay) { return cycleBoundsForDate(dateObj, salaryDay).start; }
+      function cycleEndForStart(startDate, salaryDay) { return cycleBoundsForDate(startDate, salaryDay).end; }
       function prevCycleStart(start, salaryDay) {
         var d = new Date(start); d.setDate(d.getDate() - 1);
         return cycleStartForDate(d, salaryDay);
       }
       function nextCycleStart(start, salaryDay) {
-        var end = cycleEndForStart(start, salaryDay);
-        var d = new Date(end); d.setDate(d.getDate() + 1);
-        return cycleStartForDate(d, salaryDay);
+        return addDays(cycleEndForStart(start, salaryDay), 1);
       }
       var MO = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
       function cycleLabel(start, end) {
@@ -1849,13 +2860,19 @@
 
       function defaultState() {
         return {
+          username: "",
           currency: CURRENCIES[0],
           salaryDay: 1,
           accentColor: "#17c99a",
           categories: [],
           checklist: [],
           spendings: [],
-          salary: null,
+          salaryByCycle: {},
+          wishlist: [],
+          subscriptions: [],
+          cycles: [],
+          merchantTags: {},
+          extraCurrencies: [],
           lastReset: todayISO(),
           trialStart: null,
           subscribed: false
@@ -1865,6 +2882,7 @@
       function normalizeState(raw) {
         var s = defaultState();
         if (raw && typeof raw === "object") {
+          s.username = raw.username || "";
           s.currency = raw.currency && raw.currency.symbol ? raw.currency : s.currency;
           s.salaryDay = raw.salaryDay || s.salaryDay;
           s.accentColor = raw.accentColor || s.accentColor;
@@ -1874,7 +2892,19 @@
             return it;
           });
           s.spendings = raw.spendings || [];
-          s.salary = (typeof raw.salary === "undefined") ? null : raw.salary;
+          s.salaryByCycle = (raw.salaryByCycle && typeof raw.salaryByCycle === "object") ? raw.salaryByCycle : {};
+          // migrate legacy single fixed "salary" field into the current cycle, once
+          if (typeof raw.salary === "number" && Object.keys(s.salaryByCycle).length === 0) {
+            var curCycleKey = isoOfDate(cycleStartForDate(new Date(), s.salaryDay));
+            s.salaryByCycle[curCycleKey] = raw.salary;
+          }
+          s.wishlist = raw.wishlist || [];
+          s.subscriptions = raw.subscriptions || [];
+          s.cycles = (raw.cycles || []).filter(function (c) { return c && /^\d{4}-\d{2}-\d{2}$/.test(c.start); })
+            .map(function (c) { return { start: c.start, end: (c.end && c.end >= c.start) ? c.end : null }; })
+            .sort(function (a, b) { return a.start < b.start ? -1 : 1; });
+          s.merchantTags = (raw.merchantTags && typeof raw.merchantTags === "object") ? raw.merchantTags : {};
+          s.extraCurrencies = (raw.extraCurrencies || []).filter(function (c) { return c && c.code !== s.currency.code; });
           s.lastReset = raw.lastReset || s.lastReset;
           s.trialStart = raw.trialStart || null;
           s.subscribed = !!raw.subscribed;
@@ -1929,10 +2959,37 @@
       }
 
       function money(n) {
-        var c = (state && state.currency) || CURRENCIES[0];
+        return formatIn(n, (state && state.currency && state.currency.code) || CURRENCIES[0].code);
+      }
+
+      /* ---------- multi-currency: log a spend/subscription in USD even when your main currency is KWD ---------- */
+      function currencyObjFor(code) {
+        return CURRENCIES.find(function (c) { return c.code === code; }) || (state && state.currency) || CURRENCIES[0];
+      }
+      function formatIn(n, code) {
+        var c = currencyObjFor(code);
         var rounded = Math.round((n + Number.EPSILON) * Math.pow(10, c.decimals)) / Math.pow(10, c.decimals);
         var v = rounded.toLocaleString(undefined, { minimumFractionDigits: c.decimals, maximumFractionDigits: c.decimals });
         return c.after ? (v + " " + c.symbol) : (c.symbol + v);
+      }
+      // how many main-currency units equal 1 unit of `code` — 1 for the main currency itself
+      function rateToMain(code) {
+        if (!code || code === state.currency.code) return 1;
+        var ec = state.extraCurrencies.find(function (c) { return c.code === code; });
+        return ec ? ec.rate : 1;
+      }
+      // convert an amount that was entered/stored in `code` into the main currency, for totals & charts
+      function toMain(amount, code) {
+        return amount * rateToMain(code);
+      }
+      function availableCurrencyCodes() {
+        return [state.currency.code].concat(state.extraCurrencies.map(function (c) { return c.code; }));
+      }
+      function currencySelectOptionsHTML(selectedCode) {
+        var sel = selectedCode || state.currency.code;
+        return availableCurrencyCodes().map(function (code) {
+          return '<option value="' + code + '"' + (code === sel ? " selected" : "") + '>' + code + (code === state.currency.code ? " (main)" : "") + '</option>';
+        }).join("");
       }
 
       function hexToRgba(hex, alpha) {
@@ -1992,29 +3049,150 @@
       function escapeHtml(s) { var d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
       function hexToWash(hex) { return hexToRgba(hex, 0.14); }
 
+      /* ---------- validation (nothing unreasonable gets logged) ---------- */
+      var MAX_LOG_AMOUNT = 999999; // sanity ceiling — catches fat-finger typos, not real purchases
+      function sanitizeAmountInCurrency(raw, code, opts) {
+        opts = opts || {};
+        var v = parseFloat(raw);
+        if (isNaN(v) || !isFinite(v)) return null;
+        if (v < 0) return null;
+        if (!opts.allowZero && v <= 0) return null;
+        if (v > MAX_LOG_AMOUNT) return null;
+        var c = currencyObjFor(code);
+        var f = Math.pow(10, c.decimals);
+        return Math.round((v + Number.EPSILON) * f) / f;
+      }
+      function sanitizeAmount(raw, opts) {
+        return sanitizeAmountInCurrency(raw, state.currency.code, opts);
+      }
+      function sanitizeRate(raw) {
+        var v = parseFloat(raw);
+        if (isNaN(v) || !isFinite(v) || v <= 0 || v > 1000000) return null;
+        return Math.round((v + Number.EPSILON) * 1e6) / 1e6;
+      }
+      function sanitizeLabel(raw, maxLen) {
+        maxLen = maxLen || 60;
+        var s = (raw || "").replace(/\s+/g, " ").trim();
+        if (!s) return null;
+        if (s.length > maxLen) s = s.slice(0, maxLen);
+        return s;
+      }
+      function sanitizeDateInRange(raw, minISO, maxISO) {
+        if (!raw || typeof raw !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(raw)) return null;
+        if (minISO && raw < minISO) return null;
+        if (maxISO && raw > maxISO) return null;
+        return raw;
+      }
+
+      /* ---------- generic modal ---------- */
+      var modalOverlay = document.getElementById("modalOverlay");
+      var modalCard = document.getElementById("modalCard");
+      function closeModal() {
+        modalOverlay.classList.remove("show");
+        modalCard.innerHTML = "";
+        document.body.style.overflow = "";
+      }
+      function openModal(html) {
+        modalCard.innerHTML = html;
+        modalOverlay.classList.add("show");
+        document.body.style.overflow = "hidden";
+        var closeBtn = modalCard.querySelector(".modal-close");
+        if (closeBtn) closeBtn.addEventListener("click", closeModal);
+        var cancelBtn = modalCard.querySelector("[data-modal-cancel]");
+        if (cancelBtn) cancelBtn.addEventListener("click", closeModal);
+        var firstInput = modalCard.querySelector("input, select, textarea");
+        if (firstInput) setTimeout(function () { firstInput.focus(); }, 40);
+      }
+      modalOverlay.addEventListener("click", function (e) { if (e.target === modalOverlay) closeModal(); });
+      document.addEventListener("keydown", function (e) { if (e.key === "Escape" && modalOverlay.classList.contains("show")) closeModal(); });
+      function showModalError(msg) {
+        var err = modalCard.querySelector(".modal-error");
+        if (!err) return;
+        err.textContent = msg;
+        err.classList.add("show");
+      }
+
+      /* ---------- reusable category <select> + "new tag" wiring for modals ---------- */
+      function categoryOptionsHTML(selectedId) {
+        var html = "";
+        if (state.categories.length === 0) html += '<option value="">no tags yet</option>';
+        state.categories.forEach(function (c) {
+          html += '<option value="' + c.id + '"' + (c.id === selectedId ? " selected" : "") + '>' + escapeHtml(c.name) + '</option>';
+        });
+        html += '<option value="__new__">+ new tag</option>';
+        return html;
+      }
+      function wireModalCategorySelect(selectEl, newRowEl, newInputEl) {
+        selectEl.addEventListener("change", function () {
+          if (selectEl.value === "__new__") { newRowEl.classList.add("show"); newInputEl.focus(); }
+          else newRowEl.classList.remove("show");
+        });
+        function confirmNew() {
+          var id = addCategory(newInputEl.value);
+          if (!id) return;
+          newInputEl.value = "";
+          newRowEl.classList.remove("show");
+          var opt = document.createElement("option");
+          opt.value = id; opt.textContent = categoryById(id).name;
+          selectEl.insertBefore(opt, selectEl.lastElementChild);
+          selectEl.value = id;
+        }
+        var confirmBtn = newRowEl.querySelector("button");
+        if (confirmBtn) confirmBtn.addEventListener("click", confirmNew);
+        newInputEl.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); confirmNew(); } });
+      }
+      var QUICK_TAGS = ["Food", "Transport", "Rent", "Bills", "Fun", "Health"];
+      function quickTagsHTML() {
+        if (state.categories.length > 0) return "";
+        var html = '<div class="quick-tags show" id="mQuickTags">';
+        QUICK_TAGS.forEach(function (name) { html += '<button type="button" class="quick-tag-chip" data-quick-tag="' + escapeHtml(name) + '">+ ' + escapeHtml(name) + '</button>'; });
+        html += '</div>';
+        return html;
+      }
+      function wireQuickTags(selectEl, focusNextEl) {
+        var box = modalCard.querySelector("#mQuickTags");
+        if (!box) return;
+        box.querySelectorAll(".quick-tag-chip").forEach(function (chip) {
+          chip.addEventListener("click", function () {
+            var id = addCategory(chip.dataset.quickTag);
+            var opt = document.createElement("option");
+            opt.value = id; opt.textContent = categoryById(id).name;
+            selectEl.insertBefore(opt, selectEl.lastElementChild);
+            selectEl.value = id;
+            box.classList.remove("show");
+            if (focusNextEl) focusNextEl.focus();
+          });
+        });
+      }
+
       /* ---------- tabs ---------- */
       var tabBtns = document.querySelectorAll(".tab-btn");
       var panels = {
+        home: document.getElementById("panel-home"),
         checklist: document.getElementById("panel-checklist"),
         analytics: document.getElementById("panel-analytics"),
+        subscriptions: document.getElementById("panel-subscriptions"),
+        wishlist: document.getElementById("panel-wishlist"),
         history: document.getElementById("panel-history"),
         settings: document.getElementById("panel-settings")
       };
+      function activateTab(tabKey) {
+        tabBtns.forEach(function (b) { b.classList.toggle("active", b.dataset.tab === tabKey); });
+        Object.keys(panels).forEach(function (k) { panels[k].classList.toggle("active", k === tabKey); });
+        if (tabKey === "analytics") renderAnalytics(true);
+        if (tabKey === "history") renderHistory();
+        if (tabKey === "subscriptions") renderSubscriptions();
+        if (tabKey === "wishlist") renderWishlist();
+        if (tabKey === "home") { renderReportCategoryOptions(); renderReports(); renderAdvice(); }
+      }
       tabBtns.forEach(function (btn) {
-        btn.addEventListener("click", function () {
-          tabBtns.forEach(function (b) { b.classList.remove("active"); });
-          btn.classList.add("active");
-          Object.keys(panels).forEach(function (k) { panels[k].classList.remove("active"); });
-          panels[btn.dataset.tab].classList.add("active");
-          if (btn.dataset.tab === "analytics") renderAnalytics(true);
-          if (btn.dataset.tab === "history") renderHistory();
-        });
+        btn.addEventListener("click", function () { activateTab(btn.dataset.tab); });
       });
+      document.getElementById("historyIconBtn").addEventListener("click", function () { activateTab("history"); });
+      document.getElementById("settingsIconBtn").addEventListener("click", function () { activateTab("settings"); });
       function goToAnalyticsCycle(startDate) {
         viewingCycleStart = startDate;
-        tabBtns.forEach(function (b) { b.classList.toggle("active", b.dataset.tab === "analytics"); });
-        Object.keys(panels).forEach(function (k) { panels[k].classList.toggle("active", k === "analytics"); });
-        renderAnalytics(true);
+        activateTab("analytics");
       }
 
       /* ---------- clock ---------- */
@@ -2029,85 +3207,12 @@
       tickClock();
       setInterval(tickClock, 1000);
 
-      /* ---------- category selects ---------- */
-      function fillCategorySelect(sel) {
-        var cur = sel.value;
-        sel.innerHTML = "";
-        if (state.categories.length === 0) {
-          var opt0 = document.createElement("option");
-          opt0.value = ""; opt0.textContent = "no tags yet";
-          sel.appendChild(opt0);
-        }
-        state.categories.forEach(function (c) {
-          var opt = document.createElement("option");
-          opt.value = c.id; opt.textContent = c.name;
-          sel.appendChild(opt);
-        });
-        var optNew = document.createElement("option");
-        optNew.value = "__new__"; optNew.textContent = "+ new tag";
-        sel.appendChild(optNew);
-        if (cur && [...sel.options].some(function (o) { return o.value === cur; })) sel.value = cur;
-      }
-      var itemCategorySel = document.getElementById("itemCategory");
-      var spendCategorySel = document.getElementById("spendCategory");
-      var quickTagsBox = document.getElementById("quickTags");
-      var QUICK_TAGS = ["Food", "Transport", "Rent", "Bills", "Fun", "Health"];
-      function refreshAllCategorySelects() {
-        fillCategorySelect(itemCategorySel);
-        fillCategorySelect(spendCategorySel);
-        renderQuickTags();
-      }
-      function renderQuickTags() {
-        if (state.categories.length > 0) { quickTagsBox.classList.remove("show"); return; }
-        quickTagsBox.innerHTML = "";
-        QUICK_TAGS.forEach(function (name) {
-          var chip = document.createElement("button");
-          chip.className = "quick-tag-chip";
-          chip.type = "button";
-          chip.textContent = "+ " + name;
-          chip.addEventListener("click", function () {
-            var id = addCategory(name);
-            refreshAllCategorySelects();
-            itemCategorySel.value = id;
-            document.getElementById("itemLabel").focus();
-          });
-          quickTagsBox.appendChild(chip);
-        });
-        quickTagsBox.classList.add("show");
-      }
-
       var priceHint = document.getElementById("priceHint");
       if (localStorage.getItem("budget_os_hint_dismissed")) priceHint.style.display = "none";
       document.getElementById("dismissHint").addEventListener("click", function () {
         priceHint.style.display = "none";
         localStorage.setItem("budget_os_hint_dismissed", "1");
       });
-
-      var newCatRowChecklist = document.getElementById("newCatRowChecklist");
-      var newCatNameChecklist = document.getElementById("newCatNameChecklist");
-      itemCategorySel.addEventListener("change", function () {
-        if (itemCategorySel.value === "__new__") { newCatRowChecklist.classList.add("show"); newCatNameChecklist.focus(); }
-        else newCatRowChecklist.classList.remove("show");
-      });
-      function confirmNewCat(input, select, rowEl, focusNext) {
-        var id = addCategory(input.value);
-        input.value = "";
-        rowEl.classList.remove("show");
-        refreshAllCategorySelects();
-        if (id) select.value = id;
-        if (focusNext) focusNext.focus();
-      }
-      document.getElementById("confirmNewCatChecklist").addEventListener("click", function () { confirmNewCat(newCatNameChecklist, itemCategorySel, newCatRowChecklist, document.getElementById("itemLabel")); });
-      newCatNameChecklist.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); confirmNewCat(newCatNameChecklist, itemCategorySel, newCatRowChecklist, document.getElementById("itemLabel")); } });
-
-      var newCatRowSpend = document.getElementById("newCatRowSpend");
-      var newCatNameSpend = document.getElementById("newCatNameSpend");
-      spendCategorySel.addEventListener("change", function () {
-        if (spendCategorySel.value === "__new__") { newCatRowSpend.classList.add("show"); newCatNameSpend.focus(); }
-        else newCatRowSpend.classList.remove("show");
-      });
-      document.getElementById("confirmNewCatSpend").addEventListener("click", function () { confirmNewCat(newCatNameSpend, spendCategorySel, newCatRowSpend, document.getElementById("spendNote")); });
-      newCatNameSpend.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); confirmNewCat(newCatNameSpend, spendCategorySel, newCatRowSpend, document.getElementById("spendNote")); } });
 
       /* ---------- checklist ---------- */
       var ledgerList = document.getElementById("ledgerList");
@@ -2122,7 +3227,7 @@
           empty.className = "empty-state";
           empty.innerHTML = '<span class="glyph">◌</span>no items yet — add your first recurring expense above<br><span class="cta" id="emptyChecklistCta">+ add an item</span>';
           ledgerList.appendChild(empty);
-          document.getElementById("emptyChecklistCta").addEventListener("click", function () { document.getElementById("itemLabel").focus(); });
+          document.getElementById("emptyChecklistCta").addEventListener("click", function () { openAddItemModal(); });
         } else {
           var ordered = state.checklist.slice().sort(function (a, b) { return (a.checked === b.checked) ? 0 : (a.checked ? 1 : -1); });
           ordered.forEach(function (item) {
@@ -2136,7 +3241,8 @@
               '<span class="prompt">&gt;</span>' +
               '<button class="checkbox' + (item.checked ? ' checked' : '') + '" aria-label="toggle done"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-6"/></svg></button>' +
               '<div class="row-main"><span class="row-label">' + escapeHtml(item.label) + '</span>' + chipHtml + '</div>' +
-              '<div class="row-price" data-price="' + item.price + '">' + money(item.price) + '</div>' +
+              '<div class="row-price">' + money(item.price) + '</div>' +
+              '<button class="row-edit" title="edit">✎</button>' +
               '<button class="row-del" title="remove">✕</button>';
             ledgerList.appendChild(row);
 
@@ -2167,26 +3273,7 @@
                 renderChecklist();
               });
             });
-            var priceEl = row.querySelector(".row-price");
-            priceEl.addEventListener("click", function () {
-              var input = document.createElement("input");
-              input.type = "number"; input.step = "0.01"; input.min = "0"; input.value = item.price;
-              priceEl.textContent = ""; priceEl.appendChild(input);
-              input.focus(); input.select();
-              function commit() {
-                var val = parseFloat(input.value);
-                if (!isNaN(val) && val >= 0) {
-                  item.price = val;
-                  if (item.checked && item.linkedSpendId) {
-                    var linked = state.spendings.find(function (s) { return s.id === item.linkedSpendId; });
-                    if (linked) linked.amount = val;
-                  }
-                }
-                save(); renderChecklist(); renderAnalytics(false); renderHistory();
-              }
-              input.addEventListener("blur", commit);
-              input.addEventListener("keydown", function (e) { if (e.key === "Enter") input.blur(); if (e.key === "Escape") renderChecklist(); });
-            });
+            row.querySelector(".row-edit").addEventListener("click", function () { openEditItemModal(item); });
           });
         }
         var total = state.checklist.length;
@@ -2198,23 +3285,78 @@
         spentTodayLabel.innerHTML = "Spent today: <b>" + money(spentToday) + "</b>";
       }
 
-      document.getElementById("addItemBtn").addEventListener("click", function () {
-        var labelInput = document.getElementById("itemLabel");
-        var priceInput = document.getElementById("itemPrice");
-        var label = labelInput.value.trim();
-        var price = parseFloat(priceInput.value);
-        var catId = itemCategorySel.value;
-        if (catId === "__new__" || !catId) { toast("give this item a tag first"); return; }
-        if (!label) { toast("give it a short name"); labelInput.focus(); return; }
-        if (isNaN(price) || price < 0) { toast("enter a valid price"); priceInput.focus(); return; }
-        state.checklist.push({ id: uid(), categoryId: catId, label: label, price: price, checked: false });
-        save();
-        labelInput.value = ""; priceInput.value = ""; labelInput.focus();
-        renderChecklist();
-      });
-      [document.getElementById("itemLabel"), document.getElementById("itemPrice")].forEach(function (el) {
-        el.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); document.getElementById("addItemBtn").click(); } });
-      });
+      function openAddItemModal() {
+        var html =
+          '<div class="modal-head"><h3>Log a recurring item</h3><button class="modal-close" type="button">&times;</button></div>' +
+          '<div class="modal-error" id="mError"></div>' +
+          '<div class="modal-field"><label>Tag</label><select id="mCat">' + categoryOptionsHTML(null) + '</select></div>' +
+          '<div class="new-cat-row" id="mNewCatRow"><input type="text" id="mNewCatName" placeholder="new tag name…" maxlength="20"><button class="btn-add" type="button">✓</button></div>' +
+          quickTagsHTML() +
+          '<div class="modal-field"><label>Name</label><input type="text" id="mLabel" placeholder="e.g. groceries, gym, coffee…" maxlength="60"></div>' +
+          '<div class="modal-field"><label>Price</label><input type="number" id="mPrice" placeholder="0.00" step="0.01" min="0"></div>' +
+          '<div class="modal-actions"><button class="btn-text primary" id="mSave" type="button" style="flex:2;">Add item</button><button class="btn-text" type="button" data-modal-cancel>Cancel</button></div>';
+        openModal(html);
+        var catSel = document.getElementById("mCat"), labelInput = document.getElementById("mLabel"), priceInput = document.getElementById("mPrice");
+        wireModalCategorySelect(catSel, document.getElementById("mNewCatRow"), document.getElementById("mNewCatName"));
+        wireQuickTags(catSel, labelInput);
+        function submit() {
+          var catId = catSel.value;
+          var label = sanitizeLabel(labelInput.value, 60);
+          var price = sanitizeAmount(priceInput.value, { allowZero: true });
+          if (catId === "__new__" || !catId) { showModalError("give this item a tag first"); return; }
+          if (!label) { showModalError("give it a short, real name"); labelInput.focus(); return; }
+          if (price === null) { showModalError("enter a valid price (0 – " + MAX_LOG_AMOUNT.toLocaleString() + ")"); priceInput.focus(); return; }
+          state.checklist.push({ id: uid(), categoryId: catId, label: label, price: price, checked: false });
+          save();
+          renderChecklist();
+          closeModal();
+          toast("“" + label + "” added to your checklist");
+        }
+        document.getElementById("mSave").addEventListener("click", submit);
+        [labelInput, priceInput].forEach(function (el) { el.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); submit(); } }); });
+      }
+      document.getElementById("openAddItemBtn").addEventListener("click", openAddItemModal);
+
+      function openEditItemModal(item) {
+        var html =
+          '<div class="modal-head"><h3>Edit item</h3><button class="modal-close" type="button">&times;</button></div>' +
+          '<div class="modal-error" id="mError"></div>' +
+          '<div class="modal-field"><label>Tag</label><select id="mCat">' + categoryOptionsHTML(item.categoryId) + '</select></div>' +
+          '<div class="new-cat-row" id="mNewCatRow"><input type="text" id="mNewCatName" placeholder="new tag name…" maxlength="20"><button class="btn-add" type="button">✓</button></div>' +
+          '<div class="modal-field"><label>Name</label><input type="text" id="mLabel" maxlength="60" value="' + escapeHtml(item.label) + '"></div>' +
+          '<div class="modal-field"><label>Price</label><input type="number" id="mPrice" step="0.01" min="0" value="' + item.price + '"></div>' +
+          '<div class="modal-actions"><button class="btn-text primary" id="mSave" type="button" style="flex:2;">Save</button><button class="btn-text danger" id="mDelete" type="button">Delete</button></div>';
+        openModal(html);
+        var catSel = document.getElementById("mCat"), labelInput = document.getElementById("mLabel"), priceInput = document.getElementById("mPrice");
+        wireModalCategorySelect(catSel, document.getElementById("mNewCatRow"), document.getElementById("mNewCatName"));
+        function submit() {
+          var catId = catSel.value;
+          var label = sanitizeLabel(labelInput.value, 60);
+          var price = sanitizeAmount(priceInput.value, { allowZero: true });
+          if (catId === "__new__" || !catId) { showModalError("give this item a tag first"); return; }
+          if (!label) { showModalError("give it a short, real name"); labelInput.focus(); return; }
+          if (price === null) { showModalError("enter a valid price (0 – " + MAX_LOG_AMOUNT.toLocaleString() + ")"); priceInput.focus(); return; }
+          item.categoryId = catId; item.label = label; item.price = price;
+          if (item.checked && item.linkedSpendId) {
+            var linked = state.spendings.find(function (s) { return s.id === item.linkedSpendId; });
+            if (linked) { linked.amount = price; linked.categoryId = catId; linked.note = label; }
+          }
+          save();
+          renderChecklist(); renderAnalytics(false); renderHistory();
+          closeModal();
+          toast("item updated");
+        }
+        document.getElementById("mSave").addEventListener("click", submit);
+        document.getElementById("mDelete").addEventListener("click", function () {
+          state.checklist = state.checklist.filter(function (i) { return i.id !== item.id; });
+          if (item.linkedSpendId) state.spendings = state.spendings.filter(function (s) { return s.id !== item.linkedSpendId; });
+          save();
+          renderChecklist(); renderAnalytics(false); renderHistory();
+          closeModal();
+          toast("“" + item.label + "” removed");
+        });
+        [labelInput, priceInput].forEach(function (el) { el.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); submit(); } }); });
+      }
 
       /* ---------- analytics (cycle based) ---------- */
       var viewingCycleStart = null;
@@ -2231,19 +3373,179 @@
       var cycleLabelBox = document.getElementById("cycleLabelBox");
       var cycleBadge = document.getElementById("cycleBadge");
       var cycleSubNote = document.getElementById("cycleSubNote");
-      var spendDateInput = document.getElementById("spendDate");
       var cyclePrevBtn = document.getElementById("cyclePrev");
       var cycleNextBtn = document.getElementById("cycleNext");
+      var sortByDateBtn = document.getElementById("sortByDateBtn");
+      var sortByPriceBtn = document.getElementById("sortByPriceBtn");
+      var spendSort = { key: "date", dir: "desc" };
+
+      function salaryForCycle(startDate) { var v = state.salaryByCycle[isoOfDate(startDate)]; return (typeof v === "number") ? v : null; }
+      function setSalaryForCycle(startDate, val) {
+        var key = isoOfDate(startDate);
+        if (val === null) delete state.salaryByCycle[key];
+        else state.salaryByCycle[key] = val;
+      }
+      function latestKnownSalary() {
+        var keys = Object.keys(state.salaryByCycle).filter(function (k) { return k <= isoOfDate(new Date()); }).sort();
+        if (!keys.length) return null;
+        return state.salaryByCycle[keys[keys.length - 1]];
+      }
 
       salaryInput.addEventListener("input", function () {
-        var v = parseFloat(salaryInput.value);
-        state.salary = isNaN(v) ? null : v;
+        var raw = salaryInput.value.trim();
+        var v = raw === "" ? null : sanitizeAmount(raw, { allowZero: true });
+        setSalaryForCycle(viewingCycleStart, v);
         save();
         renderAnalytics(false);
       });
 
       cyclePrevBtn.addEventListener("click", function () { viewingCycleStart = prevCycleStart(viewingCycleStart, state.salaryDay); renderAnalytics(true); });
-      cycleNextBtn.addEventListener("click", function () { viewingCycleStart = nextCycleStart(viewingCycleStart, state.salaryDay); renderAnalytics(true); });
+      cycleNextBtn.addEventListener("click", function () {
+        if (cycleNextBtn.classList.contains("add-cycle")) { openNewCycleModal(); return; }
+        viewingCycleStart = nextCycleStart(viewingCycleStart, state.salaryDay);
+        renderAnalytics(true);
+      });
+
+      /* ---------- custom cycle editing ---------- */
+      var cycleStartPick = document.getElementById("cycleStartPick");
+      var cycleEndPick = document.getElementById("cycleEndPick");
+      var cycleStartText = document.getElementById("cycleStartText");
+      var cycleEndText = document.getElementById("cycleEndText");
+
+      function shortDate(d, withYear) { return MO[d.getMonth()] + " " + d.getDate() + (withYear ? ", " + d.getFullYear() : ""); }
+      function hasCycleAfter(start) {
+        var next = nextCycleStart(start, state.salaryDay);
+        if (isoOfDate(next) <= todayISO()) return true;
+        var nISO = isoOfDate(next);
+        return state.cycles.some(function (c) { return c.start === nISO; });
+      }
+
+      // turn the cycle being viewed into a custom one (if it isn't already) and return its index
+      function ensureCustomCycle(start) {
+        var b = cycleBoundsForDate(start, state.salaryDay);
+        if (b.custom) return b.index;
+        var startISO = isoOfDate(b.start);
+        // the current fixed cycle becomes open-ended; a past one keeps its dates
+        var keepEnd = hasCycleAfter(b.start) ? isoOfDate(b.end) : null;
+        state.cycles.push({ start: startISO, end: keepEnd });
+        sortCycles();
+        return state.cycles.findIndex(function (c) { return c.start === startISO; });
+      }
+      function sortCycles() { state.cycles.sort(function (a, b) { return a.start < b.start ? -1 : 1; }); }
+      function moveCycleSalary(oldISO, newISO) {
+        if (oldISO === newISO || !(oldISO in state.salaryByCycle)) return;
+        if (!(newISO in state.salaryByCycle)) state.salaryByCycle[newISO] = state.salaryByCycle[oldISO];
+        delete state.salaryByCycle[oldISO];
+      }
+      function afterCycleChange(newViewStartISO, msg) {
+        save();
+        viewingCycleStart = dateFromISO(newViewStartISO);
+        renderAnalytics(true); renderHistory(); renderReports(); renderAdvice();
+        toast(msg);
+      }
+
+      function changeCycleStart(newISO) {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(newISO)) { renderAnalytics(false); return; }
+        var i = ensureCustomCycle(viewingCycleStart);
+        var c = state.cycles[i], prev = state.cycles[i - 1], next = state.cycles[i + 1];
+        var err = null;
+        if (prev && newISO <= prev.start) err = "that's inside an earlier cycle (" + shortDate(dateFromISO(prev.start), true) + ")";
+        else if (next && newISO >= next.start) err = "the next cycle already starts " + shortDate(dateFromISO(next.start), true);
+        else if (c.end && newISO > c.end) err = "start can't be after the end date";
+        if (err) { toast(err); renderAnalytics(false); return; }
+        moveCycleSalary(c.start, newISO);
+        c.start = newISO;
+        if (prev && prev.end && prev.end >= newISO) prev.end = isoOfDate(addDays(dateFromISO(newISO), -1));
+        afterCycleChange(newISO, "cycle now starts " + shortDate(dateFromISO(newISO), false));
+      }
+
+      function changeCycleEnd(newISO) {
+        var i = ensureCustomCycle(viewingCycleStart);
+        var c = state.cycles[i], next = state.cycles[i + 1], afterNext = state.cycles[i + 2];
+        if (!newISO) {
+          // cleared: open-ended again (only meaningful for the latest cycle)
+          c.end = null;
+          afterCycleChange(c.start, next ? "ends when the next cycle starts" : "cycle is open-ended again");
+          return;
+        }
+        if (newISO < c.start) { toast("end can't be before the start date"); renderAnalytics(false); return; }
+        if (next) {
+          // keep cycles back to back: the next one starts the day after this ends
+          var nextStartISO = isoOfDate(addDays(dateFromISO(newISO), 1));
+          if ((afterNext && nextStartISO >= afterNext.start) || (next.end && nextStartISO > next.end)) {
+            toast("that would swallow the next cycle"); renderAnalytics(false); return;
+          }
+          moveCycleSalary(next.start, nextStartISO);
+          next.start = nextStartISO;
+          c.end = null;
+        } else {
+          c.end = newISO;
+        }
+        afterCycleChange(c.start, "cycle now ends " + shortDate(dateFromISO(newISO), false));
+      }
+
+      cycleStartPick.addEventListener("change", function () { changeCycleStart(cycleStartPick.value); });
+      cycleEndPick.addEventListener("change", function () { changeCycleEnd(cycleEndPick.value); });
+
+      function openNewCycleModal() {
+        var cur = cycleBoundsForDate(viewingCycleStart, state.salaryDay);
+        var minStart = addDays(cur.start, 1);
+        var t = dateFromISO(todayISO());
+        var defStart = t >= minStart ? t : addDays(cur.end, 1);
+        var html =
+          '<div class="modal-head"><h3>Start a new cycle</h3><button class="modal-close" type="button">&times;</button></div>' +
+          '<div class="modal-error" id="mError"></div>' +
+          '<p class="modal-sub">Salary just landed? Start the next cycle here. The current one ends the day before.</p>' +
+          '<div class="modal-field"><label>Starts</label><input type="date" id="mCycleStart" min="' + isoOfDate(minStart) + '" value="' + isoOfDate(defStart) + '"></div>' +
+          '<div class="modal-field"><label>Ends (optional)</label><input type="date" id="mCycleEnd"></div>' +
+          '<p class="helper-text" id="mCycleHint"></p>' +
+          '<div class="modal-actions"><button class="btn-text primary" id="mSave" type="button" style="flex:2;">Start cycle</button><button class="btn-text" type="button" data-modal-cancel>Cancel</button></div>';
+        openModal(html);
+        var startIn = document.getElementById("mCycleStart"), endIn = document.getElementById("mCycleEnd"), hint = document.getElementById("mCycleHint");
+        function updateHint() {
+          if (!startIn.value) { hint.textContent = ""; return; }
+          var st = dateFromISO(startIn.value);
+          endIn.min = startIn.value;
+          hint.textContent = endIn.value
+            ? "Runs " + shortDate(st, false) + " – " + shortDate(dateFromISO(endIn.value), true) + "."
+            : "Open-ended: shown as " + shortDate(st, false) + " – " + shortDate(defaultCycleEnd(st), true) + " and keeps going until you start the next one.";
+        }
+        startIn.addEventListener("change", updateHint); endIn.addEventListener("change", updateHint);
+        updateHint();
+        document.getElementById("mSave").addEventListener("click", function () {
+          var sISO = startIn.value, eISO = endIn.value || null;
+          if (!sISO) { showModalError("pick a start date"); return; }
+          if (sISO < isoOfDate(minStart)) { showModalError("start has to be after " + shortDate(cur.start, true)); return; }
+          if (eISO && eISO < sISO) { showModalError("end can't be before the start"); return; }
+          var i = ensureCustomCycle(viewingCycleStart);
+          var later = state.cycles.slice(i + 1).find(function (c) { return c.start <= sISO || (eISO && c.start <= eISO); });
+          if (later) { showModalError("there's already a cycle starting " + shortDate(dateFromISO(later.start), true)); return; }
+          var c = state.cycles[i];
+          if (c.end && c.end >= sISO) c.end = null;
+          state.cycles.push({ start: sISO, end: eISO });
+          sortCycles();
+          closeModal();
+          afterCycleChange(sISO, "new cycle started " + shortDate(dateFromISO(sISO), false));
+        });
+      }
+
+      function setSpendSort(key) {
+        if (spendSort.key === key) spendSort.dir = spendSort.dir === "desc" ? "asc" : "desc";
+        else { spendSort.key = key; spendSort.dir = "desc"; }
+        renderSortButtons();
+        renderAnalytics(false);
+      }
+      function renderSortButtons() {
+        [sortByDateBtn, sortByPriceBtn].forEach(function (btn) {
+          var key = btn === sortByDateBtn ? "date" : "price";
+          var active = spendSort.key === key;
+          btn.classList.toggle("active", active);
+          btn.querySelector(".arrow").textContent = active ? (spendSort.dir === "desc" ? "▾" : "▴") : "";
+        });
+      }
+      sortByDateBtn.addEventListener("click", function () { setSpendSort("date"); });
+      sortByPriceBtn.addEventListener("click", function () { setSpendSort("price"); });
+      renderSortButtons();
 
       var lastDonutTotal = 0;
 
@@ -2252,28 +3554,35 @@
         var end = cycleEndForStart(start, state.salaryDay);
         var curStart = cycleStartForDate(new Date(), state.salaryDay);
         var isCurrent = isoOfDate(start) === isoOfDate(curStart);
+        var bounds = cycleBoundsForDate(start, state.salaryDay);
+        var canGoNext = hasCycleAfter(start);
 
-        cycleLabelBox.childNodes[0].nodeValue = cycleLabel(start, end);
-        cycleBadge.textContent = isCurrent ? "current cycle" : "";
-        cycleNextBtn.disabled = isCurrent;
+        cycleStartText.textContent = shortDate(start, start.getFullYear() !== end.getFullYear());
+        cycleEndText.innerHTML = escapeHtml(shortDate(end, true)) + (bounds.open ? '<span class="open-tag">(open)</span>' : '');
+        cycleStartPick.value = isoOfDate(start);
+        cycleEndPick.value = bounds.open ? "" : isoOfDate(end);
+        cycleEndPick.min = isoOfDate(start);
+        cycleBadge.textContent = isCurrent ? "current cycle" : (start > new Date() ? "upcoming" : "");
+        cycleNextBtn.disabled = false;
+        cycleNextBtn.classList.toggle("add-cycle", !canGoNext);
+        cycleNextBtn.textContent = canGoNext ? "\u203a" : "+";
+        cycleNextBtn.title = canGoNext ? "next cycle" : "start a new cycle";
         cycleSubNote.textContent = "\u203a " + cycleLabel(start, end).toLowerCase() + (isCurrent ? " — your active cycle" : " — viewing history, still editable");
 
-        salaryInput.value = state.salary === null ? "" : state.salary;
+        var cycleSalary = salaryForCycle(start);
+        salaryInput.value = cycleSalary === null ? "" : cycleSalary;
 
         var minISO = isoOfDate(start), maxISO = isoOfDate(end);
-        spendDateInput.min = minISO; spendDateInput.max = maxISO;
-        var t = todayISO();
-        spendDateInput.value = (t >= minISO && t <= maxISO) ? t : maxISO;
 
         var inCycle = state.spendings.filter(function (s) { return s.date >= minISO && s.date <= maxISO; });
 
         var totalsByCat = {};
-        inCycle.forEach(function (s) { totalsByCat[s.categoryId] = (totalsByCat[s.categoryId] || 0) + s.amount; });
-        var total = inCycle.reduce(function (s, x) { return s + x.amount; }, 0);
+        inCycle.forEach(function (s) { totalsByCat[s.categoryId] = (totalsByCat[s.categoryId] || 0) + toMain(s.amount, s.currency); });
+        var total = inCycle.reduce(function (s, x) { return s + toMain(x.amount, x.currency); }, 0);
 
         totalSpentStat.textContent = money(total);
-        if (state.salary !== null && state.salary > 0) {
-          var remaining = state.salary - total;
+        if (cycleSalary !== null && cycleSalary > 0) {
+          var remaining = cycleSalary - total;
           remainingStat.textContent = money(remaining);
           remainingBox.classList.toggle("warn", remaining < 0);
           remainingBox.classList.toggle("good", remaining >= 0);
@@ -2314,20 +3623,28 @@
         });
 
         spendLog.innerHTML = "";
-        var sorted = inCycle.slice().sort(function (a, b) { return b.createdAt - a.createdAt; });
+        var sorted = inCycle.slice().sort(function (a, b) {
+          var res = spendSort.key === "price" ? (toMain(a.amount, a.currency) - toMain(b.amount, b.currency)) : (a.date === b.date ? a.createdAt - b.createdAt : (a.date < b.date ? -1 : 1));
+          return spendSort.dir === "desc" ? -res : res;
+        });
         if (sorted.length === 0) spendLog.innerHTML = '<div class="empty-state" style="padding:6px 0;">nothing logged yet — add a spend below</div>';
         sorted.forEach(function (s) {
           var cat = categoryById(s.categoryId);
           var row = document.createElement("div");
           row.className = "spend-item";
           var d = dateFromISO(s.date);
-          var sourceBadge = s.fromChecklist ? '<span class="src-badge" title="logged from today\u2019s ledger">ledger</span>' : '';
+          var sourceBadge = s.fromChecklist ? '<span class="src-badge" title="logged from today’s ledger">ledger</span>' : '';
+          var foreign = s.currency && s.currency !== state.currency.code;
+          var curChip = foreign ? '<span class="cur-chip" title="logged as ' + formatIn(s.amount, s.currency) + '">' + s.currency + '</span>' : '';
+          var delayChip = s.delayedPayment ? '<span class="delay-chip" title="flagged as a delayed payment on import">delayed</span>' : '';
           row.innerHTML =
             '<span class="sw" style="background:' + (cat ? cat.color : "#999") + '"></span>' +
-            '<span class="lab">' + sourceBadge + escapeHtml(cat ? cat.name : "unknown") + (s.note ? ' <span style="color:var(--ink-faint)">— ' + escapeHtml(s.note) + '</span>' : '') + '</span>' +
+            '<span class="lab">' + sourceBadge + escapeHtml(cat ? cat.name : "unknown") + (s.note ? ' <span style="color:var(--ink-faint)">— ' + escapeHtml(s.note) + '</span>' : '') + curChip + delayChip + '</span>' +
             '<span class="date">' + d.toLocaleDateString(undefined, { month: "short", day: "numeric" }) + '</span>' +
-            '<span class="amt">' + money(s.amount) + '</span>' +
+            '<span class="amt">' + money(toMain(s.amount, s.currency)) + '</span>' +
+            '<button class="row-edit" title="edit">✎</button>' +
             '<button class="row-del" title="remove">✕</button>';
+          row.querySelector(".row-edit").addEventListener("click", function () { openEditSpendModal(s); });
           row.querySelector(".row-del").addEventListener("click", function () {
             var idx = state.spendings.indexOf(s);
             state.spendings = state.spendings.filter(function (x) { return x.id !== s.id; });
@@ -2350,26 +3667,567 @@
         });
       }
 
-      document.getElementById("addSpendBtn").addEventListener("click", function () {
-        var noteInput = document.getElementById("spendNote");
-        var amountInput = document.getElementById("spendAmount");
-        var amount = parseFloat(amountInput.value);
-        var catId = spendCategorySel.value;
-        var dateVal = spendDateInput.value;
+      // fill the tag from the note when it names a shop you've logged before — until you pick a tag yourself
+      function wireMerchantTagSuggest(catSel, noteInput, hintEl) {
+        var memo = merchantTagMemory(), userPicked = false;
+        catSel.addEventListener("change", function () { userPicked = true; hintEl.style.display = "none"; });
+        noteInput.addEventListener("input", function () {
+          if (userPicked) return;
+          var catId = suggestTagFor(noteInput.value, memo), cat = catId && categoryById(catId);
+          if (!cat) { hintEl.style.display = "none"; return; }
+          catSel.value = catId;
+          hintEl.textContent = "› tagged " + cat.name + " — that's what you usually use for " + merchantDisplayName(merchantKey(noteInput.value));
+          hintEl.style.display = "";
+        });
+      }
+      // "always tag <shop> like this" checkbox for the edit modal; returns a function to call on save
+      function wireAlwaysTagToggle(noteInput, rowEl, checkEl, textEl, currentCatId) {
+        function key() { return merchantKey(noteInput.value); }
+        function refresh() {
+          var k = key();
+          rowEl.style.display = k ? "" : "none";
+          if (k) textEl.textContent = "always tag " + merchantDisplayName(k) + " like this";
+        }
+        var startKey = key();
+        checkEl.checked = !!startKey && state.merchantTags[startKey] === currentCatId;
+        noteInput.addEventListener("input", refresh);
+        refresh();
+        return function apply(catId) {
+          var k = key();
+          if (!k) return;
+          if (checkEl.checked) state.merchantTags[k] = catId;
+          else if (state.merchantTags[k] === catId || (k === startKey && state.merchantTags[k] === currentCatId)) delete state.merchantTags[k];
+        };
+      }
 
-        if (catId === "__new__" || !catId) { toast("give this spend a label first"); return; }
-        if (isNaN(amount) || amount <= 0) { toast("enter a valid amount"); amountInput.focus(); return; }
-        if (!dateVal) { toast("pick a date"); return; }
+      function openAddSpendModal() {
+        var start = viewingCycleStart, end = cycleEndForStart(start, state.salaryDay);
+        var minISO = isoOfDate(start), maxISO = isoOfDate(end);
+        var t = todayISO();
+        var defaultDate = (t >= minISO && t <= maxISO) ? t : maxISO;
+        var html =
+          '<div class="modal-head"><h3>Log a spend</h3><button class="modal-close" type="button">&times;</button></div>' +
+          '<div class="modal-error" id="mError"></div>' +
+          '<div class="modal-field"><label>Tag</label><select id="mCat">' + categoryOptionsHTML(null) + '</select></div>' +
+          '<div class="new-cat-row" id="mNewCatRow"><input type="text" id="mNewCatName" placeholder="new label name…" maxlength="20"><button class="btn-add" type="button">✓</button></div>' +
+          quickTagsHTML() +
+          '<div class="modal-field"><label>Note (optional)</label><input type="text" id="mNote" maxlength="60" placeholder="what was it?"><p class="helper-text" id="mTagHint" style="display:none;"></p></div>' +
+          '<div class="modal-field"><label>Date</label><input type="date" id="mDate" min="' + minISO + '" max="' + maxISO + '" value="' + defaultDate + '"></div>' +
+          '<div class="modal-field"><label>Amount</label><input type="number" id="mAmount" placeholder="0.00" step="0.01" min="0"></div>' +
+          (availableCurrencyCodes().length > 1 ? '<div class="modal-field"><label>Currency</label><select id="mCur">' + currencySelectOptionsHTML(null) + '</select></div>' : '') +
+          '<div class="modal-actions"><button class="btn-text primary" id="mSave" type="button" style="flex:2;">Log spend</button><button class="btn-text" type="button" data-modal-cancel>Cancel</button></div>';
+        openModal(html);
+        var catSel = document.getElementById("mCat"), noteInput = document.getElementById("mNote"), dateInput = document.getElementById("mDate"), amountInput = document.getElementById("mAmount"), curSel = document.getElementById("mCur");
+        wireModalCategorySelect(catSel, document.getElementById("mNewCatRow"), document.getElementById("mNewCatName"));
+        wireQuickTags(catSel, noteInput);
+        wireMerchantTagSuggest(catSel, noteInput, document.getElementById("mTagHint"));
+        function submit() {
+          var catId = catSel.value;
+          var curCode = curSel ? curSel.value : state.currency.code;
+          var amount = sanitizeAmountInCurrency(amountInput.value, curCode);
+          var dateVal = sanitizeDateInRange(dateInput.value, minISO, maxISO);
+          var note = sanitizeLabel(noteInput.value, 60) || "";
+          if (catId === "__new__" || !catId) { showModalError("give this spend a tag first"); return; }
+          if (amount === null) { showModalError("enter a valid amount (0 – " + MAX_LOG_AMOUNT.toLocaleString() + ")"); amountInput.focus(); return; }
+          if (!dateVal) { showModalError("pick a date within this cycle (" + minISO + " – " + maxISO + ")"); return; }
+          state.spendings.push({ id: uid(), categoryId: catId, amount: amount, currency: curCode === state.currency.code ? null : curCode, note: note, date: dateVal, createdAt: Date.now() });
+          save();
+          renderAnalytics(true);
+          renderHistory();
+          closeModal();
+          toast("spend logged");
+        }
+        document.getElementById("mSave").addEventListener("click", submit);
+        [noteInput, amountInput].forEach(function (el) { el.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); submit(); } }); });
+      }
+      document.getElementById("openAddSpendBtn").addEventListener("click", openAddSpendModal);
 
-        state.spendings.push({ id: uid(), categoryId: catId, amount: amount, note: noteInput.value.trim(), date: dateVal, createdAt: Date.now() });
+      function openEditSpendModal(s) {
+        var start = cycleStartForDate(dateFromISO(s.date), state.salaryDay), end = cycleEndForStart(start, state.salaryDay);
+        var minISO = isoOfDate(start), maxISO = isoOfDate(end);
+        var html =
+          '<div class="modal-head"><h3>Edit spend</h3><button class="modal-close" type="button">&times;</button></div>' +
+          '<div class="modal-error" id="mError"></div>' +
+          '<div class="modal-field"><label>Tag</label><select id="mCat">' + categoryOptionsHTML(s.categoryId) + '</select></div>' +
+          '<div class="new-cat-row" id="mNewCatRow"><input type="text" id="mNewCatName" placeholder="new label name…" maxlength="20"><button class="btn-add" type="button">✓</button></div>' +
+          '<div class="modal-field"><label>Note (optional)</label><input type="text" id="mNote" maxlength="60" value="' + escapeHtml(s.note || "") + '">' +
+          '<label class="always-tag-row" id="mAlwaysTagRow"><input type="checkbox" id="mAlwaysTag"><span id="mAlwaysTagText"></span></label></div>' +
+          '<div class="modal-field"><label>Date</label><input type="date" id="mDate" min="' + minISO + '" max="' + maxISO + '" value="' + s.date + '"></div>' +
+          '<div class="modal-field"><label>Amount</label><input type="number" id="mAmount" step="0.01" min="0" value="' + s.amount + '"></div>' +
+          (availableCurrencyCodes().length > 1 ? '<div class="modal-field"><label>Currency</label><select id="mCur">' + currencySelectOptionsHTML(s.currency || null) + '</select></div>' : '') +
+          '<div class="modal-actions"><button class="btn-text primary" id="mSave" type="button" style="flex:2;">Save</button><button class="btn-text danger" id="mDelete" type="button">Delete</button></div>';
+        openModal(html);
+        var catSel = document.getElementById("mCat"), noteInput = document.getElementById("mNote"), dateInput = document.getElementById("mDate"), amountInput = document.getElementById("mAmount"), curSel = document.getElementById("mCur");
+        wireModalCategorySelect(catSel, document.getElementById("mNewCatRow"), document.getElementById("mNewCatName"));
+        var applyAlwaysTag = wireAlwaysTagToggle(noteInput, document.getElementById("mAlwaysTagRow"), document.getElementById("mAlwaysTag"), document.getElementById("mAlwaysTagText"), s.categoryId);
+        function submit() {
+          var catId = catSel.value;
+          var curCode = curSel ? curSel.value : state.currency.code;
+          var amount = sanitizeAmountInCurrency(amountInput.value, curCode);
+          var dateVal = sanitizeDateInRange(dateInput.value, minISO, maxISO);
+          var note = sanitizeLabel(noteInput.value, 60) || "";
+          if (catId === "__new__" || !catId) { showModalError("give this spend a tag first"); return; }
+          if (amount === null) { showModalError("enter a valid amount (0 – " + MAX_LOG_AMOUNT.toLocaleString() + ")"); amountInput.focus(); return; }
+          if (!dateVal) { showModalError("pick a date within that spend's cycle (" + minISO + " – " + maxISO + ")"); return; }
+          applyAlwaysTag(catId);
+          s.categoryId = catId; s.amount = amount; s.currency = curCode === state.currency.code ? null : curCode; s.date = dateVal; s.note = note;
+          if (s.fromChecklist) {
+            var linkedItem = state.checklist.find(function (i) { return i.linkedSpendId === s.id; });
+            if (linkedItem) { linkedItem.price = toMain(amount, curCode); linkedItem.categoryId = catId; }
+          }
+          save();
+          renderAnalytics(false); renderHistory(); renderChecklist();
+          closeModal();
+          toast("spend updated");
+        }
+        document.getElementById("mSave").addEventListener("click", submit);
+        document.getElementById("mDelete").addEventListener("click", function () {
+          state.spendings = state.spendings.filter(function (x) { return x.id !== s.id; });
+          var linkedItem = s.fromChecklist ? state.checklist.find(function (i) { return i.linkedSpendId === s.id; }) : null;
+          if (linkedItem) { linkedItem.checked = false; linkedItem.linkedSpendId = null; }
+          save();
+          renderAnalytics(false); renderHistory(); renderChecklist();
+          closeModal();
+          toast("spend removed");
+        });
+        [noteInput, amountInput].forEach(function (el) { el.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); submit(); } }); });
+      }
+
+      /* ---------- import spends from CSV / Excel ---------- */
+      var SHEETJS_URL = "https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js";
+      var sheetJsLoaded = typeof XLSX !== "undefined";
+      var sheetJsLoading = null;
+      function ensureSheetJs() {
+        if (sheetJsLoaded) return Promise.resolve();
+        if (sheetJsLoading) return sheetJsLoading;
+        sheetJsLoading = new Promise(function (resolve, reject) {
+          var s = document.createElement("script");
+          s.src = SHEETJS_URL;
+          s.onload = function () { sheetJsLoaded = true; resolve(); };
+          s.onerror = function () { sheetJsLoading = null; reject(new Error("failed to load xlsx library")); };
+          document.head.appendChild(s);
+        });
+        return sheetJsLoading;
+      }
+
+      var IMPORT_MAX_ROWS = 2000;
+      var DATE_HEADERS = ["date", "transaction date", "posted date", "when"];
+      var AMOUNT_HEADERS = ["amount", "price", "cost", "value", "total", "debit"];
+      var CATEGORY_HEADERS = ["category", "tag", "type"];
+      var NOTE_HEADERS = ["note", "notes", "description", "memo", "merchant", "details"];
+      var CURRENCY_HEADERS = ["currency", "cur", "ccy"];
+
+      function parseCSV(text) {
+        var rows = [], row = [], field = "", inQuotes = false;
+        for (var i = 0; i < text.length; i++) {
+          var ch = text[i];
+          if (inQuotes) {
+            if (ch === '"') {
+              if (text[i + 1] === '"') { field += '"'; i++; } else { inQuotes = false; }
+            } else field += ch;
+          } else if (ch === '"') { inQuotes = true; }
+          else if (ch === ",") { row.push(field); field = ""; }
+          else if (ch === "\r") { /* skip */ }
+          else if (ch === "\n") { row.push(field); rows.push(row); row = []; field = ""; }
+          else field += ch;
+        }
+        row.push(field);
+        if (!(row.length === 1 && row[0] === "")) rows.push(row);
+        rows = rows.filter(function (r) { return !(r.length === 1 && r[0].trim() === ""); });
+        if (!rows.length) return { headers: [], rows: [] };
+        return { headers: rows[0], rows: rows.slice(1, 1 + IMPORT_MAX_ROWS) };
+      }
+      function parseXLSXArrayBuffer(buf) {
+        var wb = XLSX.read(buf, { type: "array", cellDates: true });
+        var sheet = wb.Sheets[wb.SheetNames[0]];
+        var rows2d = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false, dateNF: "yyyy-mm-dd" });
+        var headers = (rows2d[0] || []).map(function (h) { return h === null || typeof h === "undefined" ? "" : String(h); });
+        return { headers: headers, rows: rows2d.slice(1, 1 + IMPORT_MAX_ROWS) };
+      }
+
+      function guessColumnIndex(headers, candidates) {
+        var lower = headers.map(function (h) { return (h || "").toString().trim().toLowerCase(); });
+        for (var c = 0; c < candidates.length; c++) {
+          var idx = lower.indexOf(candidates[c]);
+          if (idx !== -1) return idx;
+        }
+        return -1;
+      }
+      function parseLooseNumber(raw) {
+        if (raw === null || typeof raw === "undefined") return NaN;
+        var s = String(raw).replace(/[^0-9.\-]/g, "");
+        return parseFloat(s);
+      }
+      function parseLooseDate(raw) {
+        if (!raw && raw !== 0) return null;
+        var s = String(raw).trim();
+        if (!s) return null;
+        if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+        var d = new Date(s);
+        if (!isNaN(d.getTime())) return isoOfDate(d);
+        return null;
+      }
+
+      /* ---------- merchant memory: learn each shop's usual tag from the spends you've already logged ---------- */
+      // branch/location words and filler that shouldn't split one shop into many ("Ananas Adailiya" & "Ananas Mishref" -> "ananas")
+      var MERCHANT_NOISE_WORDS = ["al", "el", "the", "and", "of", "co", "company", "ltd", "llc", "wll", "inc", "est", "branch", "br", "mall", "store", "stores", "shop", "outlet",
+        "kuwait", "kwt", "kw", "city", "online", "intl", "international", "airport", "terminal", "avenues", "assima", "marina", "souq", "block", "street", "st", "road", "rd",
+        "salmiya", "salmiyah", "hawally", "hawalli", "jabriya", "jabriyah", "mishref", "adailiya", "adailiyah", "shuwaikh", "farwaniya", "farwaniyah", "fahaheel", "mangaf",
+        "mahboula", "fintas", "abu", "halifa", "sharq", "qibla", "dasma", "dasman", "surra", "salwa", "rumaithiya", "bayan", "hateen", "shuhada", "zahra", "siddiq",
+        "qurtuba", "yarmouk", "kaifan", "khaldiya", "shamiya", "rawda", "nuzha", "faiha", "qadsiya", "mansouriya", "bneid", "gar", "jahra", "egaila", "ahmadi",
+        "khairan", "sabah", "salem", "mubarak", "kabeer", "jleeb", "khaitan", "ardiya", "sabahiya", "messila", "funaitees", "qurain", "qusour", "adan"];
+      // leading words too generic to name a shop on their own ("Burger King" vs "Burger Boutique") — keep two words for these
+      var MERCHANT_GENERIC_WORDS = ["burger", "pizza", "cafe", "coffee", "tea", "juice", "bakery", "restaurant", "kitchen", "grill", "house", "sushi", "good", "new", "big",
+        "little", "golden", "royal", "super", "star", "mr", "dr", "my", "food", "fresh", "best", "first", "city", "green", "blue", "red", "black", "white", "pharmacy", "market"];
+      function merchantKey(note) {
+        if (!note) return "";
+        var words = String(note).toLowerCase().replace(/['\u2019`]/g, "").replace(/[0-9]/g, " ").replace(/[^a-z\u0600-\u06ff\s]/g, " ").split(/\s+/)
+          .filter(function (w) { return w.length > 1 && MERCHANT_NOISE_WORDS.indexOf(w) === -1; });
+        if (!words.length) return "";
+        var takeTwo = words.length > 1 && (words[0].length <= 3 || MERCHANT_GENERIC_WORDS.indexOf(words[0]) !== -1);
+        return words.slice(0, takeTwo ? 2 : 1).join(" ");
+      }
+      function merchantDisplayName(key) {
+        return key.replace(/(^|\s)([a-z])/g, function (m, sp, c) { return sp + c.toUpperCase(); });
+      }
+      // { merchantKey: categoryId } — the tag you've used most for each shop, with "always tag X as Y" overrides on top.
+      // Derived from state.spendings, so re-tagging a spend updates it automatically.
+      function merchantTagMemory() {
+        var counts = {};
+        state.spendings.forEach(function (s) {
+          var k = merchantKey(s.note);
+          if (!k || !categoryById(s.categoryId)) return;
+          counts[k] = counts[k] || {};
+          counts[k][s.categoryId] = (counts[k][s.categoryId] || 0) + 1;
+        });
+        var memo = {};
+        Object.keys(counts).forEach(function (k) {
+          var best = null;
+          Object.keys(counts[k]).forEach(function (catId) { if (!best || counts[k][catId] > counts[k][best]) best = catId; });
+          memo[k] = best;
+        });
+        Object.keys(state.merchantTags || {}).forEach(function (k) { if (categoryById(state.merchantTags[k])) memo[k] = state.merchantTags[k]; });
+        return memo;
+      }
+      function suggestTagFor(note, memo) {
+        var k = merchantKey(note);
+        return (k && memo && memo[k]) || null;
+      }
+
+      /* duplicate check: same day + same amount + same shop. When either side has no note we can't tell shops apart,
+         so date + amount alone counts as a match. */
+      function spendFingerprint(dateISO, amount, currency) {
+        return dateISO + "|" + amount.toFixed(4) + "|" + (currency || state.currency.code);
+      }
+      function existingFingerprints() {
+        var map = {};
+        state.spendings.forEach(function (s) { addFingerprint(map, spendFingerprint(s.date, s.amount, s.currency), merchantKey(s.note)); });
+        return map;
+      }
+      function addFingerprint(map, fp, key) { (map[fp] = map[fp] || []).push(key || ""); }
+      function hasFingerprint(map, fp, key) {
+        return (map[fp] || []).some(function (k) { return !k || !key || k === key; });
+      }
+      var DELAYED_KEYWORDS = ["installment", "installments", "deferred", "delayed", "pay later", "buy now pay later", "bnpl", "layaway", "due date", "postponed", "later payment", "part payment", "partial payment"];
+      function detectDelayedPayment(rawText) {
+        if (!rawText) return false;
+        var lower = String(rawText).toLowerCase();
+        return DELAYED_KEYWORDS.some(function (kw) { return lower.indexOf(kw) !== -1; });
+      }
+      // messy bank/card descriptions ("SQ *STARBUCKS #4821 SEATTLE WA") -> a clean store name for the note
+      var STORE_NAME_STRIP_RE = /^(SQ\s*\*|TST\s*\*|PAYPAL\s*\*|POS\s+(DEBIT|PURCHASE)?\s*-?\s*|PURCHASE\s+(AT|FROM)?\s*|PAYMENT\s+TO\s*|DEBIT\s+CARD\s+PURCHASE\s*-?\s*|ACH\s+DEBIT\s*-?\s*|CARD\s+PURCHASE\s*-?\s*|WWW\.)/i;
+      function extractStoreName(rawText) {
+        if (!rawText) return "";
+        var s = String(rawText).trim();
+        s = s.replace(STORE_NAME_STRIP_RE, "");
+        s = s.replace(/\s*#\d+.*$/, "");
+        s = s.replace(/\s+\d{3,}.*$/, "");
+        s = s.replace(/\s+[A-Z]{2}$/, "");
+        s = s.replace(/\s{2,}/g, " ").trim();
+        if (s.length < 2) s = String(rawText).trim();
+        s = s.toLowerCase().replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+        return s.slice(0, 60);
+      }
+
+      function buildImportRows(parsed, mapping) {
+        var existing = existingFingerprints();
+        var seenInBatch = {};
+        var memo = merchantTagMemory();
+        return parsed.rows.map(function (r) {
+          var dateRaw = mapping.dateIdx >= 0 ? r[mapping.dateIdx] : null;
+          var amountRaw = mapping.amountIdx >= 0 ? r[mapping.amountIdx] : null;
+          var catRaw = mapping.catIdx >= 0 ? r[mapping.catIdx] : null;
+          var noteRaw = mapping.noteIdx >= 0 ? r[mapping.noteIdx] : null;
+          var curRaw = mapping.curIdx >= 0 ? r[mapping.curIdx] : null;
+
+          var dateISO = parseLooseDate(dateRaw);
+          var rawAmount = parseLooseNumber(amountRaw);
+          var currency = null, valid = dateISO !== null && !isNaN(rawAmount) && rawAmount > 0;
+          if (curRaw) {
+            var code = String(curRaw).trim().toUpperCase();
+            if (code && code !== state.currency.code) {
+              if (availableCurrencyCodes().indexOf(code) !== -1) currency = code;
+              else valid = false;
+            }
+          }
+          var amount = valid ? sanitizeAmountInCurrency(rawAmount, currency || state.currency.code) : null;
+          if (amount === null) valid = false;
+
+          var noteText = noteRaw ? String(noteRaw).trim() : "";
+          var note = extractStoreName(noteText);
+          var mKey = merchantKey(note);
+          var duplicate = false;
+          if (valid) {
+            var fp = spendFingerprint(dateISO, amount, currency);
+            duplicate = hasFingerprint(existing, fp, mKey) || hasFingerprint(seenInBatch, fp, mKey);
+            addFingerprint(seenInBatch, fp, mKey);
+          }
+
+          return {
+            _id: uid(),
+            valid: valid,
+            duplicate: duplicate,
+            delayedPayment: detectDelayedPayment(noteText),
+            date: dateISO,
+            amount: amount,
+            currency: currency,
+            categoryName: catRaw ? String(catRaw).trim() : "",
+            suggestedCatId: memo[mKey] || null,
+            merchantKey: mKey,
+            note: note
+          };
+        });
+      }
+      // each review row carries a catId: an existing tag's id, or "new:<name>" for a tag-column value we haven't created yet
+      function importRowCatId(r, defaultCatId) {
+        if (r.categoryName) {
+          var existing = state.categories.find(function (c) { return c.name.toLowerCase() === r.categoryName.toLowerCase(); });
+          return existing ? existing.id : "new:" + r.categoryName;
+        }
+        return r.suggestedCatId || defaultCatId;
+      }
+      function commitImportRows(rows) {
+        var added = 0, catCache = {};
+        rows.forEach(function (r) {
+          var catId = r.catId;
+          if (catId && catId.indexOf("new:") === 0) {
+            var key = catId.slice(4).toLowerCase();
+            if (!catCache[key]) catCache[key] = addCategory(catId.slice(4));
+            catId = catCache[key];
+          }
+          if (!catId || !categoryById(catId)) return;
+          var spend = { id: uid(), categoryId: catId, amount: r.amount, currency: r.currency, note: r.note, date: r.date, createdAt: Date.now(), fromImport: true };
+          if (r.delayedPayment) spend.delayedPayment = true;
+          state.spendings.push(spend);
+          added++;
+        });
         save();
-        noteInput.value = ""; amountInput.value = "";
-        renderAnalytics(true);
-        renderHistory();
-      });
-      [document.getElementById("spendNote"), document.getElementById("spendAmount")].forEach(function (el) {
-        el.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); document.getElementById("addSpendBtn").click(); } });
-      });
+        return added;
+      }
+
+      function renderImportMapping(parsed) {
+        var body = document.getElementById("mImportBody");
+        if (!parsed.headers.length || !parsed.rows.length) {
+          body.innerHTML = '<div class="modal-error show">no rows found in that file</div>';
+          return;
+        }
+        var dateIdx = guessColumnIndex(parsed.headers, DATE_HEADERS);
+        var amountIdx = guessColumnIndex(parsed.headers, AMOUNT_HEADERS);
+        var catIdx = guessColumnIndex(parsed.headers, CATEGORY_HEADERS);
+        var noteIdx = guessColumnIndex(parsed.headers, NOTE_HEADERS);
+        var curIdx = guessColumnIndex(parsed.headers, CURRENCY_HEADERS);
+
+        function colOptions(selected, allowNone) {
+          var html = allowNone ? '<option value="-1">(none)</option>' : "";
+          parsed.headers.forEach(function (h, i) {
+            html += '<option value="' + i + '"' + (i === selected ? " selected" : "") + '>' + escapeHtml(h || ("Column " + (i + 1))) + '</option>';
+          });
+          return html;
+        }
+
+        body.innerHTML =
+          '<div class="modal-field"><label>Date column</label><select id="mColDate">' + colOptions(dateIdx, false) + '</select></div>' +
+          '<div class="modal-field"><label>Amount column</label><select id="mColAmount">' + colOptions(amountIdx, false) + '</select></div>' +
+          '<div class="modal-field"><label>Tag column (optional)</label><select id="mColCat">' + colOptions(catIdx, true) + '</select></div>' +
+          '<div class="modal-field"><label>Note / description column (optional)</label><select id="mColNote">' + colOptions(noteIdx, true) + '</select></div>' +
+          (availableCurrencyCodes().length > 1 ? '<div class="modal-field"><label>Currency column (optional)</label><select id="mColCur">' + colOptions(curIdx, true) + '</select></div>' : "") +
+          '<div class="modal-field"><label>Default tag (for rows with no tag)</label><select id="mDefaultCat">' + categoryOptionsHTML(null) + '</select></div>' +
+          '<div class="new-cat-row" id="mNewCatRow"><input type="text" id="mNewCatName" placeholder="new tag name…" maxlength="20"><button class="btn-add" type="button">✓</button></div>' +
+          '<p class="helper-text" id="mMappingSummary"></p>' +
+          '<div class="modal-actions"><button class="btn-text primary" id="mImportContinue" type="button" style="flex:2;">Review rows</button><button class="btn-text" type="button" data-modal-cancel>Cancel</button></div>';
+
+        var defaultCatSel = document.getElementById("mDefaultCat");
+        wireModalCategorySelect(defaultCatSel, document.getElementById("mNewCatRow"), document.getElementById("mNewCatName"));
+
+        var selDate = document.getElementById("mColDate"), selAmount = document.getElementById("mColAmount"),
+          selCat = document.getElementById("mColCat"), selNote = document.getElementById("mColNote"),
+          selCur = document.getElementById("mColCur");
+
+        function currentMapping() {
+          return {
+            dateIdx: parseInt(selDate.value, 10),
+            amountIdx: parseInt(selAmount.value, 10),
+            catIdx: selCat ? parseInt(selCat.value, 10) : -1,
+            noteIdx: selNote ? parseInt(selNote.value, 10) : -1,
+            curIdx: selCur ? parseInt(selCur.value, 10) : -1
+          };
+        }
+        function updateSummary() {
+          var built = buildImportRows(parsed, currentMapping());
+          var validCount = built.filter(function (r) { return r.valid; }).length;
+          var dupCount = built.filter(function (r) { return r.valid && r.duplicate; }).length;
+          var truncatedNote = parsed.rows.length >= IMPORT_MAX_ROWS ? (" (first " + IMPORT_MAX_ROWS + " rows only)") : "";
+          document.getElementById("mMappingSummary").textContent =
+            validCount + " of " + built.length + " rows look valid" + (dupCount ? " · " + dupCount + " possible duplicate" + (dupCount === 1 ? "" : "s") : "") + truncatedNote + ".";
+        }
+        [selDate, selAmount, selCat, selNote].concat(selCur ? [selCur] : []).forEach(function (el) {
+          el.addEventListener("change", updateSummary);
+        });
+        updateSummary();
+
+        document.getElementById("mImportContinue").addEventListener("click", function () {
+          var defaultCatId = defaultCatSel.value;
+          if (defaultCatId === "__new__") { showModalError("finish adding that new tag first, or pick an existing one"); return; }
+          var built = buildImportRows(parsed, currentMapping());
+          var validRows = built.filter(function (r) { return r.valid; });
+          if (!validRows.length) { showModalError("no valid rows to import — check your column choices"); return; }
+          var needsDefault = validRows.some(function (r) { return !r.categoryName && !r.suggestedCatId; });
+          if (needsDefault && !defaultCatId) { showModalError("some rows have no tag — pick a default tag to use for them"); return; }
+          validRows.forEach(function (r) {
+            r.catId = importRowCatId(r, defaultCatId);
+            r.autoTagged = !r.categoryName && !!r.suggestedCatId;
+          });
+          renderImportReview(validRows);
+        });
+      }
+
+      function importRowTagOptionsHTML(r) {
+        var html = "";
+        if (r.catId && r.catId.indexOf("new:") === 0) html += '<option value="' + escapeHtml(r.catId) + '" selected>' + escapeHtml(r.catId.slice(4)) + ' (new)</option>';
+        state.categories.forEach(function (c) {
+          html += '<option value="' + c.id + '"' + (c.id === r.catId ? " selected" : "") + '>' + escapeHtml(c.name) + '</option>';
+        });
+        return html;
+      }
+
+      function renderImportReview(rows) {
+        var pending = rows.slice();
+        var body = document.getElementById("mImportBody");
+
+        function summaryText() {
+          var dupCount = pending.filter(function (r) { return r.duplicate; }).length;
+          var delayCount = pending.filter(function (r) { return r.delayedPayment; }).length;
+          var autoCount = pending.filter(function (r) { return r.autoTagged; }).length;
+          var bits = [pending.length + " spend" + (pending.length === 1 ? "" : "s") + " ready to add"];
+          if (autoCount) bits.push(autoCount + " tagged from your past spends");
+          if (dupCount) bits.push(dupCount + " possible duplicate" + (dupCount === 1 ? "" : "s"));
+          if (delayCount) bits.push(delayCount + " delayed payment" + (delayCount === 1 ? "" : "s"));
+          return bits.join("  ·  ");
+        }
+
+        function renderList() {
+          var listHtml = pending.map(function (r) {
+            var badges = "";
+            if (r.duplicate) badges += '<span class="dup-chip">possible duplicate</span>';
+            if (r.delayedPayment) badges += '<span class="delay-chip">delayed payment</span>';
+            return '<div class="import-review-row">' +
+              '<div class="irr-main">' +
+              '<div class="irr-top"><span class="irr-date">' + r.date + '</span><span class="irr-amt">' + formatIn(r.amount, r.currency || state.currency.code) + '</span></div>' +
+              '<div class="irr-sub">' + (r.note ? escapeHtml(r.note) : "(no note)") + '</div>' +
+              '<div class="irr-tag"><select data-row-tag="' + r._id + '">' + importRowTagOptionsHTML(r) + '</select>' +
+              (r.autoTagged ? '<span class="learn-chip" title="you usually tag this shop like this">learned</span>' : "") + '</div>' +
+              (badges ? '<div class="irr-badges">' + badges + '</div>' : "") +
+              '</div>' +
+              '<button class="row-del" type="button" title="remove" data-remove="' + r._id + '">✕</button>' +
+              '</div>';
+          }).join("");
+          body.querySelector("#mReviewList").innerHTML = listHtml || '<div class="empty-state" style="padding:16px 0;">nothing left to import</div>';
+          body.querySelector("#mReviewSummary").textContent = summaryText();
+          var confirmBtn = body.querySelector("#mImportConfirm");
+          confirmBtn.textContent = "Add " + pending.length + " spend" + (pending.length === 1 ? "" : "s");
+          confirmBtn.disabled = pending.length === 0;
+          body.querySelectorAll("[data-remove]").forEach(function (btn) {
+            btn.addEventListener("click", function () {
+              pending = pending.filter(function (r) { return r._id !== btn.getAttribute("data-remove"); });
+              renderList();
+            });
+          });
+          body.querySelectorAll("[data-row-tag]").forEach(function (sel) {
+            sel.addEventListener("change", function () {
+              var row = pending.find(function (r) { return r._id === sel.getAttribute("data-row-tag"); });
+              if (!row) return;
+              row.catId = sel.value; row.autoTagged = false; row.userTagged = true;
+              // re-tagging one shop re-tags its other rows too, unless you've set those by hand
+              var others = 0;
+              if (row.merchantKey) pending.forEach(function (r) {
+                if (r !== row && r.merchantKey === row.merchantKey && !r.userTagged && !r.categoryName && r.catId !== row.catId) { r.catId = row.catId; r.autoTagged = false; others++; }
+              });
+              if (others) { renderList(); toast("also re-tagged " + others + " other " + merchantDisplayName(row.merchantKey) + " row" + (others === 1 ? "" : "s")); }
+              else body.querySelector("#mReviewSummary").textContent = summaryText();
+            });
+          });
+        }
+
+        body.innerHTML =
+          '<p class="helper-text" id="mReviewSummary"></p>' +
+          '<div class="import-review-list" id="mReviewList"></div>' +
+          '<div class="modal-actions"><button class="btn-text primary" id="mImportConfirm" type="button" style="flex:2;">Add spends</button><button class="btn-text" type="button" data-modal-cancel>Cancel</button></div>';
+        renderList();
+
+        document.getElementById("mImportConfirm").addEventListener("click", function () {
+          if (!pending.length) return;
+          var added = commitImportRows(pending);
+          renderAnalytics(true); renderHistory(); renderReports(); renderAdvice();
+          closeModal();
+          toast("imported " + added + " spend" + (added === 1 ? "" : "s"));
+        });
+      }
+
+      function openImportSpendsModal() {
+        var html =
+          '<div class="modal-head"><h3>Import spends</h3><button class="modal-close" type="button">&times;</button></div>' +
+          '<div class="modal-error" id="mError"></div>' +
+          '<p class="modal-sub">Upload a CSV or Excel export — we’ll try to match the columns automatically, flag likely duplicates and delayed payments, and let you review every row before anything is added.</p>' +
+          '<div class="modal-field"><label>File (.csv, .xlsx, .xls)</label><input type="file" id="mFile" accept=".csv,.xlsx,.xls"></div>' +
+          '<div id="mImportBody"></div>';
+        openModal(html);
+        var fileInput = document.getElementById("mFile");
+        fileInput.addEventListener("change", function () {
+          var file = fileInput.files[0];
+          if (!file) return;
+          document.getElementById("mImportBody").innerHTML = '<p class="helper-text">reading file…</p>';
+          var isExcel = /\.xlsx?$/i.test(file.name);
+          if (isExcel) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+              ensureSheetJs().then(function () {
+                try {
+                  renderImportMapping(parseXLSXArrayBuffer(e.target.result));
+                } catch (err) {
+                  document.getElementById("mImportBody").innerHTML = "";
+                  showModalError("couldn't read that file — try exporting as CSV instead");
+                }
+              }).catch(function () {
+                document.getElementById("mImportBody").innerHTML = "";
+                showModalError("couldn't load the Excel parser — check your connection, or try a CSV file instead");
+              });
+            };
+            reader.readAsArrayBuffer(file);
+          } else {
+            var reader2 = new FileReader();
+            reader2.onload = function (e) {
+              try {
+                renderImportMapping(parseCSV(String(e.target.result)));
+              } catch (err) {
+                document.getElementById("mImportBody").innerHTML = "";
+                showModalError("couldn't read that file");
+              }
+            };
+            reader2.readAsText(file);
+          }
+        });
+      }
+      document.getElementById("openImportBtn").addEventListener("click", openImportSpendsModal);
 
       /* ---------- history ---------- */
       var historyList = document.getElementById("historyList");
@@ -2381,7 +4239,7 @@
           var st = cycleStartForDate(dateFromISO(s.date), state.salaryDay);
           var key = isoOfDate(st);
           if (!byId[key]) byId[key] = { start: st, total: 0, count: 0 };
-          byId[key].total += s.amount;
+          byId[key].total += toMain(s.amount, s.currency);
           byId[key].count += 1;
         });
         var list = Object.keys(byId).map(function (k) { return byId[k]; }).sort(function (a, b) { return b.start - a.start; });
@@ -2401,7 +4259,765 @@
         });
       }
 
+      /* ---------- wish list + smart decision engine ---------- */
+      var wishListBox = document.getElementById("wishList");
+
+      // no salary on record yet? fall back to a flat "this counts as expensive" line per currency
+      var CURRENCY_EXPENSIVE_FALLBACK = {
+        KWD: 20, BHD: 20, OMR: 20,
+        JPY: 6000,
+        SAR: 150, AED: 150, QAR: 150, EGP: 800,
+        USD: 50, EUR: 50, GBP: 45, INR: 3500
+      };
+      var WISH_NICE_LINES = [
+        "Small price for a little joy — go for it.",
+        "That's a guilt-free treat, enjoy it.",
+        "Cheap enough to just get it and smile.",
+        "Barely a dent in the budget — treat yourself.",
+        "Worth every penny for something this small."
+      ];
+      function hashStr(s) { var h = 0; for (var i = 0; i < s.length; i++) { h = (h * 31 + s.charCodeAt(i)) | 0; } return Math.abs(h); }
+
+      function decisionForWish(item) {
+        var salary = latestKnownSalary();
+        var threshold = (salary && salary > 0) ? salary * 0.15 : (CURRENCY_EXPENSIVE_FALLBACK[state.currency.code] || 50);
+        var price = item.price;
+        if (price > threshold) {
+          var n = price <= threshold * 3 ? 3 : (price <= threshold * 8 ? 6 : 12);
+          var per = price / n;
+          return { expensive: true, text: "Best option: " + n + " installments of " + money(per) + " over " + n + " month" + (n === 1 ? "" : "s") + "." };
+        }
+        return { expensive: false, text: WISH_NICE_LINES[hashStr(item.id) % WISH_NICE_LINES.length] };
+      }
+
+      function renderWishlist() {
+        wishListBox.innerHTML = "";
+        if (state.wishlist.length === 0) {
+          wishListBox.innerHTML = '<div class="empty-state"><span class="glyph">◌</span>nothing on your wish list yet — add something above</div>';
+          return;
+        }
+        var items = state.wishlist.slice().sort(function (a, b) { return b.createdAt - a.createdAt; });
+        items.forEach(function (item) {
+          var d = decisionForWish(item);
+          var card = document.createElement("div");
+          card.className = "wish-card";
+          card.innerHTML =
+            '<div class="wish-top"><div class="wish-name">' + escapeHtml(item.name) + '</div><div class="wish-price">' + money(item.price) + '</div></div>' +
+            '<div class="wish-decision ' + (d.expensive ? "plan" : "nice") + '"><span class="g">' + (d.expensive ? "📊" : "✨") + '</span><span>' + escapeHtml(d.text) + '</span></div>' +
+            '<div class="wish-actions">' +
+            '<button class="btn-text primary" data-act="bought">I bought it</button>' +
+            '<button class="btn-text" data-act="edit">Edit</button>' +
+            '<button class="btn-text danger" data-act="remove">Remove</button>' +
+            '</div>';
+          card.querySelector('[data-act="edit"]').addEventListener("click", function () { openEditWishModal(item); });
+          card.querySelector('[data-act="bought"]').addEventListener("click", function () { openMarkBoughtModal(item); });
+          card.querySelector('[data-act="remove"]').addEventListener("click", function () {
+            var idx = state.wishlist.indexOf(item);
+            state.wishlist = state.wishlist.filter(function (w) { return w.id !== item.id; });
+            save();
+            renderWishlist();
+            toast("“" + item.name + "” removed", function () {
+              state.wishlist.splice(Math.min(idx, state.wishlist.length), 0, item);
+              save();
+              renderWishlist();
+            });
+          });
+          wishListBox.appendChild(card);
+        });
+      }
+
+      function openAddWishModal() {
+        var html =
+          '<div class="modal-head"><h3>Add to wish list</h3><button class="modal-close" type="button">&times;</button></div>' +
+          '<div class="modal-error" id="mError"></div>' +
+          '<div class="modal-field"><label>What is it?</label><input type="text" id="mName" placeholder="e.g. Huawei FreeClip 2" maxlength="60"></div>' +
+          '<div class="modal-field"><label>Price</label><input type="number" id="mPrice" placeholder="0.00" step="0.01" min="0"></div>' +
+          '<div class="modal-actions"><button class="btn-text primary" id="mSave" type="button" style="flex:2;">Add</button><button class="btn-text" type="button" data-modal-cancel>Cancel</button></div>';
+        openModal(html);
+        var nameInput = document.getElementById("mName"), priceInput = document.getElementById("mPrice");
+        function submit() {
+          var name = sanitizeLabel(nameInput.value, 60);
+          var price = sanitizeAmount(priceInput.value);
+          if (!name) { showModalError("give it a real name"); nameInput.focus(); return; }
+          if (price === null) { showModalError("enter a valid price (0 – " + MAX_LOG_AMOUNT.toLocaleString() + ")"); priceInput.focus(); return; }
+          state.wishlist.push({ id: uid(), name: name, price: price, createdAt: Date.now() });
+          save();
+          renderWishlist();
+          closeModal();
+          toast("added to your wish list");
+        }
+        document.getElementById("mSave").addEventListener("click", submit);
+        [nameInput, priceInput].forEach(function (el) { el.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); submit(); } }); });
+      }
+      document.getElementById("openAddWishBtn").addEventListener("click", openAddWishModal);
+
+      function openEditWishModal(item) {
+        var html =
+          '<div class="modal-head"><h3>Edit wish</h3><button class="modal-close" type="button">&times;</button></div>' +
+          '<div class="modal-error" id="mError"></div>' +
+          '<div class="modal-field"><label>What is it?</label><input type="text" id="mName" maxlength="60" value="' + escapeHtml(item.name) + '"></div>' +
+          '<div class="modal-field"><label>Price</label><input type="number" id="mPrice" step="0.01" min="0" value="' + item.price + '"></div>' +
+          '<div class="modal-actions"><button class="btn-text primary" id="mSave" type="button" style="flex:2;">Save</button><button class="btn-text danger" id="mDelete" type="button">Delete</button></div>';
+        openModal(html);
+        var nameInput = document.getElementById("mName"), priceInput = document.getElementById("mPrice");
+        function submit() {
+          var name = sanitizeLabel(nameInput.value, 60);
+          var price = sanitizeAmount(priceInput.value);
+          if (!name) { showModalError("give it a real name"); nameInput.focus(); return; }
+          if (price === null) { showModalError("enter a valid price (0 – " + MAX_LOG_AMOUNT.toLocaleString() + ")"); priceInput.focus(); return; }
+          item.name = name; item.price = price;
+          save();
+          renderWishlist();
+          closeModal();
+          toast("wish updated");
+        }
+        document.getElementById("mSave").addEventListener("click", submit);
+        document.getElementById("mDelete").addEventListener("click", function () {
+          state.wishlist = state.wishlist.filter(function (w) { return w.id !== item.id; });
+          save(); renderWishlist(); closeModal();
+          toast("“" + item.name + "” removed");
+        });
+        [nameInput, priceInput].forEach(function (el) { el.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); submit(); } }); });
+      }
+
+      function openMarkBoughtModal(item) {
+        var curStart = viewingCycleStart || cycleStartForDate(new Date(), state.salaryDay);
+        var end = cycleEndForStart(curStart, state.salaryDay);
+        var minISO = isoOfDate(curStart), maxISO = isoOfDate(end);
+        var t = todayISO();
+        var defaultDate = (t >= minISO && t <= maxISO) ? t : maxISO;
+        var html =
+          '<div class="modal-head"><h3>Mark as bought</h3><button class="modal-close" type="button">&times;</button></div>' +
+          '<p class="modal-sub">Logs “' + escapeHtml(item.name) + '” (' + money(item.price) + ') as a spend in Analytics and takes it off your wish list.</p>' +
+          '<div class="modal-error" id="mError"></div>' +
+          '<div class="modal-field"><label>Tag</label><select id="mCat">' + categoryOptionsHTML(null) + '</select></div>' +
+          '<div class="new-cat-row" id="mNewCatRow"><input type="text" id="mNewCatName" placeholder="new tag name…" maxlength="20"><button class="btn-add" type="button">✓</button></div>' +
+          quickTagsHTML() +
+          '<div class="modal-field"><label>Date</label><input type="date" id="mDate" min="' + minISO + '" max="' + maxISO + '" value="' + defaultDate + '"></div>' +
+          '<div class="modal-actions"><button class="btn-text primary" id="mSave" type="button" style="flex:2;">Log purchase</button><button class="btn-text" type="button" data-modal-cancel>Cancel</button></div>';
+        openModal(html);
+        var catSel = document.getElementById("mCat"), dateInput = document.getElementById("mDate");
+        wireModalCategorySelect(catSel, document.getElementById("mNewCatRow"), document.getElementById("mNewCatName"));
+        wireQuickTags(catSel, dateInput);
+        document.getElementById("mSave").addEventListener("click", function () {
+          var catId = catSel.value;
+          var dateVal = sanitizeDateInRange(dateInput.value, minISO, maxISO);
+          if (catId === "__new__" || !catId) { showModalError("give it a tag first"); return; }
+          if (!dateVal) { showModalError("pick a date within this cycle (" + minISO + " – " + maxISO + ")"); return; }
+          state.spendings.push({ id: uid(), categoryId: catId, amount: item.price, note: item.name, date: dateVal, createdAt: Date.now() });
+          state.wishlist = state.wishlist.filter(function (w) { return w.id !== item.id; });
+          save();
+          renderWishlist(); renderAnalytics(false); renderHistory();
+          closeModal();
+          toast("nice — logged as a spend");
+        });
+      }
+
+      /* ---------- subscriptions ---------- */
+      var subListBox = document.getElementById("subList");
+
+      function nextRenewalDateMonthly(billingDay, fromDate) {
+        var y = fromDate.getFullYear(), m = fromDate.getMonth();
+        var cand = new Date(y, m, Math.min(billingDay, daysInMonth(y, m)));
+        cand.setHours(0, 0, 0, 0);
+        if (cand.getTime() >= fromDate.getTime()) return cand;
+        var nm = m + 1, ny = y; if (nm > 11) { nm = 0; ny++; }
+        var next = new Date(ny, nm, Math.min(billingDay, daysInMonth(ny, nm)));
+        next.setHours(0, 0, 0, 0);
+        return next;
+      }
+      function nextRenewalDateYearly(billingMonth, billingDay, fromDate) {
+        var y = fromDate.getFullYear(), mIdx = billingMonth - 1;
+        var cand = new Date(y, mIdx, Math.min(billingDay, daysInMonth(y, mIdx)));
+        cand.setHours(0, 0, 0, 0);
+        if (cand.getTime() >= fromDate.getTime()) return cand;
+        var ny = y + 1;
+        var next = new Date(ny, mIdx, Math.min(billingDay, daysInMonth(ny, mIdx)));
+        next.setHours(0, 0, 0, 0);
+        return next;
+      }
+      function renewalDateFor(sub, fromDate) {
+        fromDate = fromDate || new Date();
+        var f0 = new Date(fromDate); f0.setHours(0, 0, 0, 0);
+        return sub.billingCycle === "yearly"
+          ? nextRenewalDateYearly(sub.billingMonth, sub.billingDay, f0)
+          : nextRenewalDateMonthly(sub.billingDay, f0);
+      }
+      function sanitizeBillingDay(raw) {
+        var v = parseInt(raw, 10);
+        if (isNaN(v) || v < 1 || v > 31) return null;
+        return v;
+      }
+      function sanitizeBillingMonth(raw) {
+        var v = parseInt(raw, 10);
+        if (isNaN(v) || v < 1 || v > 12) return null;
+        return v;
+      }
+      // per-billing-event amount, converted to the main currency
+      function subMainAmount(sub) { return toMain(sub.price, sub.currency); }
+      function subMonthlyEquivalent(sub) { var m = subMainAmount(sub); return sub.billingCycle === "yearly" ? m / 12 : m; }
+      function subYearlyEquivalent(sub) { var m = subMainAmount(sub); return sub.billingCycle === "yearly" ? m : m * 12; }
+      function monthOptionsHTML(selected) {
+        return MO.map(function (name, i) {
+          return '<option value="' + (i + 1) + '"' + (i + 1 === selected ? " selected" : "") + '>' + name + '</option>';
+        }).join("");
+      }
+
+      function renderSubscriptions() {
+        subListBox.innerHTML = "";
+        var subs = state.subscriptions.slice();
+        var monthlyTotal = subs.reduce(function (s, x) { return s + subMonthlyEquivalent(x); }, 0);
+        var yearlyTotal = subs.reduce(function (s, x) { return s + subYearlyEquivalent(x); }, 0);
+        document.getElementById("subMonthlyTotalStat").textContent = money(monthlyTotal);
+        document.getElementById("subYearlyTotalStat").textContent = money(yearlyTotal);
+
+        var today = new Date(); today.setHours(0, 0, 0, 0);
+        var withRenewal = subs.map(function (s) { return { sub: s, renewal: renewalDateFor(s, today) }; })
+          .sort(function (a, b) { return a.renewal - b.renewal; });
+
+        var nextBox = document.getElementById("subNextBox");
+        if (withRenewal.length) {
+          var first = withRenewal[0];
+          var days0 = Math.round((first.renewal - today) / 86400000);
+          document.getElementById("subNextStat").textContent = first.sub.name + (days0 === 0 ? " · today" : days0 === 1 ? " · tomorrow" : " · " + days0 + "d");
+          nextBox.classList.toggle("warn", days0 <= 2);
+        } else {
+          document.getElementById("subNextStat").textContent = "—";
+          nextBox.classList.remove("warn");
+        }
+
+        if (subs.length === 0) {
+          subListBox.innerHTML = '<div class="empty-state"><span class="glyph">◌</span>no subscriptions tracked yet — add your first one above</div>';
+          return;
+        }
+
+        withRenewal.forEach(function (entry) {
+          var item = entry.sub;
+          var days = Math.round((entry.renewal - today) / 86400000);
+          var renewalClass = days === 0 ? "today" : (days <= 3 ? "soon" : "");
+          var renewalText = days === 0 ? "renews today" : days === 1 ? "renews tomorrow" : "renews in " + days + " days";
+          var dLabel = MO[entry.renewal.getMonth()] + " " + entry.renewal.getDate();
+          var cycleDetail = item.billingCycle === "yearly" ? (dLabel + " · yearly") : (dLabel + " (day " + item.billingDay + ")");
+          var foreign = item.currency && item.currency !== state.currency.code;
+          var curChip = foreign ? '<span class="cur-chip">' + item.currency + '</span>' : '';
+          var unit = item.billingCycle === "yearly" ? "/yr" : "/mo";
+          var card = document.createElement("div");
+          card.className = "wish-card";
+          card.innerHTML =
+            '<div class="wish-top"><div class="wish-name">' + escapeHtml(item.name) + curChip + '</div><div class="wish-price">' + formatIn(item.price, item.currency || state.currency.code) + unit + '</div></div>' +
+            '<div class="sub-renewal ' + renewalClass + '"><span class="dot"></span>' + renewalText + ' · ' + cycleDetail + '</div>' +
+            '<div class="wish-actions">' +
+            '<button class="btn-text primary" data-act="log">Log this charge</button>' +
+            '<button class="btn-text" data-act="edit">Edit</button>' +
+            '<button class="btn-text danger" data-act="remove">Remove</button>' +
+            '</div>';
+          card.querySelector('[data-act="edit"]').addEventListener("click", function () { openEditSubscriptionModal(item); });
+          card.querySelector('[data-act="log"]').addEventListener("click", function () { openLogSubscriptionModal(item); });
+          card.querySelector('[data-act="remove"]').addEventListener("click", function () {
+            var idx = state.subscriptions.indexOf(item);
+            state.subscriptions = state.subscriptions.filter(function (x) { return x.id !== item.id; });
+            save();
+            renderSubscriptions();
+            toast("“" + item.name + "” removed", function () {
+              state.subscriptions.splice(Math.min(idx, state.subscriptions.length), 0, item);
+              save();
+              renderSubscriptions();
+            });
+          });
+          subListBox.appendChild(card);
+        });
+      }
+
+      function subscriptionModalFieldsHTML(sub) {
+        var cycle = (sub && sub.billingCycle) || "monthly";
+        var day = sub ? sub.billingDay : "";
+        var month = sub ? (sub.billingMonth || (new Date()).getMonth() + 1) : (new Date()).getMonth() + 1;
+        return (
+          '<div class="modal-field"><label>Name</label><input type="text" id="mName" placeholder="e.g. Netflix" maxlength="40" value="' + (sub ? escapeHtml(sub.name) : "") + '"></div>' +
+          '<div class="modal-field"><label>Billing cycle</label><select id="mCycle"><option value="monthly"' + (cycle === "monthly" ? " selected" : "") + '>Monthly</option><option value="yearly"' + (cycle === "yearly" ? " selected" : "") + '>Yearly</option></select></div>' +
+          '<div class="modal-field" id="mMonthlyRow" style="display:' + (cycle === "yearly" ? "none" : "") + ';"><label>Billing day of month</label><input type="number" id="mDay" placeholder="e.g. 17" min="1" max="31" step="1" value="' + (cycle === "monthly" && day ? day : "") + '"></div>' +
+          '<div class="modal-field" id="mYearlyRow" style="display:' + (cycle === "yearly" ? "" : "none") + ';"><label>Renews on</label><div style="display:flex; gap:8px;"><select id="mMonth" style="flex:1;">' + monthOptionsHTML(month) + '</select><input type="number" id="mYearDay" placeholder="day" min="1" max="31" step="1" style="width:80px;" value="' + (cycle === "yearly" && day ? day : "") + '"></div></div>' +
+          '<div class="modal-field"><label id="mPriceLabel">Price / ' + (cycle === "yearly" ? "year" : "month") + '</label><input type="number" id="mPrice" placeholder="0.00" step="0.01" min="0" value="' + (sub ? sub.price : "") + '"></div>' +
+          (availableCurrencyCodes().length > 1 ? '<div class="modal-field"><label>Currency</label><select id="mCur">' + currencySelectOptionsHTML(sub ? sub.currency : null) + '</select></div>' : '')
+        );
+      }
+      function wireSubscriptionCycleToggle() {
+        var cycleSel = document.getElementById("mCycle");
+        var monthlyRow = document.getElementById("mMonthlyRow"), yearlyRow = document.getElementById("mYearlyRow");
+        var priceLabel = document.getElementById("mPriceLabel");
+        cycleSel.addEventListener("change", function () {
+          var yearly = cycleSel.value === "yearly";
+          monthlyRow.style.display = yearly ? "none" : "";
+          yearlyRow.style.display = yearly ? "" : "none";
+          priceLabel.textContent = "Price / " + (yearly ? "year" : "month");
+        });
+      }
+      function readSubscriptionForm() {
+        var cycleSel = document.getElementById("mCycle");
+        var cycle = cycleSel.value;
+        var curSel = document.getElementById("mCur");
+        var curCode = curSel ? curSel.value : state.currency.code;
+        var name = sanitizeLabel(document.getElementById("mName").value, 40);
+        var price = sanitizeAmountInCurrency(document.getElementById("mPrice").value, curCode);
+        var day, month = null;
+        if (cycle === "yearly") {
+          day = sanitizeBillingDay(document.getElementById("mYearDay").value);
+          month = sanitizeBillingMonth(document.getElementById("mMonth").value);
+        } else {
+          day = sanitizeBillingDay(document.getElementById("mDay").value);
+        }
+        return { cycle: cycle, name: name, price: price, day: day, month: month, currency: curCode === state.currency.code ? null : curCode };
+      }
+
+      function openAddSubscriptionModal() {
+        var html =
+          '<div class="modal-head"><h3>Add a subscription</h3><button class="modal-close" type="button">&times;</button></div>' +
+          '<div class="modal-error" id="mError"></div>' +
+          subscriptionModalFieldsHTML(null) +
+          '<div class="modal-actions"><button class="btn-text primary" id="mSave" type="button" style="flex:2;">Add</button><button class="btn-text" type="button" data-modal-cancel>Cancel</button></div>';
+        openModal(html);
+        wireSubscriptionCycleToggle();
+        function submit() {
+          var f = readSubscriptionForm();
+          if (!f.name) { showModalError("give it a real name"); return; }
+          if (f.price === null) { showModalError("enter a valid price (0 – " + MAX_LOG_AMOUNT.toLocaleString() + ")"); return; }
+          if (f.day === null) { showModalError("billing day must be between 1 and 31"); return; }
+          if (f.cycle === "yearly" && f.month === null) { showModalError("pick a renewal month"); return; }
+          var sub = { id: uid(), name: f.name, price: f.price, currency: f.currency, billingCycle: f.cycle, billingDay: f.day, createdAt: Date.now() };
+          if (f.cycle === "yearly") sub.billingMonth = f.month;
+          state.subscriptions.push(sub);
+          save();
+          renderSubscriptions();
+          closeModal();
+          toast("“" + f.name + "” added");
+        }
+        document.getElementById("mSave").addEventListener("click", submit);
+      }
+      document.getElementById("openAddSubBtn").addEventListener("click", openAddSubscriptionModal);
+
+      function openEditSubscriptionModal(item) {
+        var html =
+          '<div class="modal-head"><h3>Edit subscription</h3><button class="modal-close" type="button">&times;</button></div>' +
+          '<div class="modal-error" id="mError"></div>' +
+          subscriptionModalFieldsHTML(item) +
+          '<div class="modal-actions"><button class="btn-text primary" id="mSave" type="button" style="flex:2;">Save</button><button class="btn-text danger" id="mDelete" type="button">Delete</button></div>';
+        openModal(html);
+        wireSubscriptionCycleToggle();
+        function submit() {
+          var f = readSubscriptionForm();
+          if (!f.name) { showModalError("give it a real name"); return; }
+          if (f.price === null) { showModalError("enter a valid price (0 – " + MAX_LOG_AMOUNT.toLocaleString() + ")"); return; }
+          if (f.day === null) { showModalError("billing day must be between 1 and 31"); return; }
+          if (f.cycle === "yearly" && f.month === null) { showModalError("pick a renewal month"); return; }
+          item.name = f.name; item.price = f.price; item.currency = f.currency; item.billingCycle = f.cycle; item.billingDay = f.day;
+          if (f.cycle === "yearly") item.billingMonth = f.month; else delete item.billingMonth;
+          save();
+          renderSubscriptions();
+          closeModal();
+          toast("subscription updated");
+        }
+        document.getElementById("mSave").addEventListener("click", submit);
+        document.getElementById("mDelete").addEventListener("click", function () {
+          state.subscriptions = state.subscriptions.filter(function (x) { return x.id !== item.id; });
+          save(); renderSubscriptions(); closeModal();
+          toast("“" + item.name + "” removed");
+        });
+      }
+
+      function openLogSubscriptionModal(item) {
+        var curStart = viewingCycleStart || cycleStartForDate(new Date(), state.salaryDay);
+        var end = cycleEndForStart(curStart, state.salaryDay);
+        var minISO = isoOfDate(curStart), maxISO = isoOfDate(end);
+        var t = todayISO();
+        var defaultDate = (t >= minISO && t <= maxISO) ? t : maxISO;
+        var html =
+          '<div class="modal-head"><h3>Log this charge</h3><button class="modal-close" type="button">&times;</button></div>' +
+          '<p class="modal-sub">Logs “' + escapeHtml(item.name) + '” (' + formatIn(item.price, item.currency || state.currency.code) + ') as a spend in Analytics.</p>' +
+          '<div class="modal-error" id="mError"></div>' +
+          '<div class="modal-field"><label>Tag</label><select id="mCat">' + categoryOptionsHTML(null) + '</select></div>' +
+          '<div class="new-cat-row" id="mNewCatRow"><input type="text" id="mNewCatName" placeholder="new tag name…" maxlength="20"><button class="btn-add" type="button">✓</button></div>' +
+          quickTagsHTML() +
+          '<div class="modal-field"><label>Date</label><input type="date" id="mDate" min="' + minISO + '" max="' + maxISO + '" value="' + defaultDate + '"></div>' +
+          '<div class="modal-actions"><button class="btn-text primary" id="mSave" type="button" style="flex:2;">Log spend</button><button class="btn-text" type="button" data-modal-cancel>Cancel</button></div>';
+        openModal(html);
+        var catSel = document.getElementById("mCat"), dateInput = document.getElementById("mDate");
+        wireModalCategorySelect(catSel, document.getElementById("mNewCatRow"), document.getElementById("mNewCatName"));
+        wireQuickTags(catSel, dateInput);
+        document.getElementById("mSave").addEventListener("click", function () {
+          var catId = catSel.value;
+          var dateVal = sanitizeDateInRange(dateInput.value, minISO, maxISO);
+          if (catId === "__new__" || !catId) { showModalError("give it a tag first"); return; }
+          if (!dateVal) { showModalError("pick a date within this cycle (" + minISO + " – " + maxISO + ")"); return; }
+          state.spendings.push({ id: uid(), categoryId: catId, amount: item.price, currency: item.currency, note: item.name, date: dateVal, createdAt: Date.now() });
+          save();
+          renderAnalytics(false); renderHistory();
+          closeModal();
+          toast("logged as a spend");
+        });
+      }
+
+      /* ---------- reports ---------- */
+      var reportRangeSel = document.getElementById("reportRange");
+      var reportCategorySel = document.getElementById("reportCategory");
+
+      function reportCycleList(rangeVal) {
+        var curStart = cycleStartForDate(new Date(), state.salaryDay);
+        var list = [];
+        if (rangeVal === "all") {
+          var earliestISO = null;
+          state.spendings.forEach(function (s) { if (!earliestISO || s.date < earliestISO) earliestISO = s.date; });
+          Object.keys(state.salaryByCycle).forEach(function (k) { if (!earliestISO || k < earliestISO) earliestISO = k; });
+          var cursor = earliestISO ? cycleStartForDate(dateFromISO(earliestISO), state.salaryDay) : curStart;
+          var guard = 0;
+          while (isoOfDate(cursor) <= isoOfDate(curStart) && guard < 240) {
+            list.push(cursor);
+            cursor = nextCycleStart(cursor, state.salaryDay);
+            guard++;
+          }
+        } else {
+          var n = parseInt(rangeVal, 10) || 1;
+          var c = curStart;
+          for (var i = 0; i < n; i++) { list.unshift(c); c = prevCycleStart(c, state.salaryDay); }
+        }
+        return list.length ? list : [curStart];
+      }
+
+      function renderReportCategoryOptions() {
+        var cur = reportCategorySel.value;
+        reportCategorySel.innerHTML = '<option value="all">All tags</option>';
+        state.categories.forEach(function (c) {
+          var opt = document.createElement("option");
+          opt.value = c.id; opt.textContent = c.name;
+          reportCategorySel.appendChild(opt);
+        });
+        if (cur && Array.prototype.some.call(reportCategorySel.options, function (o) { return o.value === cur; })) reportCategorySel.value = cur;
+      }
+      reportRangeSel.addEventListener("change", renderReports);
+      reportCategorySel.addEventListener("change", renderReports);
+
+      function renderReports() {
+        var rangeVal = reportRangeSel.value;
+        var catFilter = reportCategorySel.value;
+        var cycles = reportCycleList(rangeVal);
+
+        var rangeStartISO = isoOfDate(cycles[0]);
+        var rangeEndISO = isoOfDate(cycleEndForStart(cycles[cycles.length - 1], state.salaryDay));
+
+        var inRange = state.spendings.filter(function (s) { return s.date >= rangeStartISO && s.date <= rangeEndISO; });
+        var filtered = catFilter === "all" ? inRange : inRange.filter(function (s) { return s.categoryId === catFilter; });
+
+        var total = filtered.reduce(function (s, x) { return s + toMain(x.amount, x.currency); }, 0);
+        document.getElementById("reportTotalStat").textContent = money(total);
+        document.getElementById("reportAvgStat").textContent = money(total / cycles.length);
+
+        var savedVals = [];
+        cycles.forEach(function (c) {
+          var sal = salaryForCycle(c);
+          if (sal === null) return;
+          var cMin = isoOfDate(c), cMax = isoOfDate(cycleEndForStart(c, state.salaryDay));
+          var cSpent = state.spendings.filter(function (s) { return s.date >= cMin && s.date <= cMax; }).reduce(function (s, x) { return s + toMain(x.amount, x.currency); }, 0);
+          savedVals.push(sal - cSpent);
+        });
+        var savedBox = document.getElementById("reportSavedBox");
+        if (savedVals.length) {
+          var avgSaved = savedVals.reduce(function (a, b) { return a + b; }, 0) / savedVals.length;
+          document.getElementById("reportSavedStat").textContent = money(avgSaved);
+          savedBox.classList.toggle("warn", avgSaved < 0);
+          savedBox.classList.toggle("good", avgSaved >= 0);
+        } else {
+          document.getElementById("reportSavedStat").textContent = "—";
+          savedBox.classList.remove("warn"); savedBox.classList.remove("good");
+        }
+
+        // spend-by-cycle bar chart — single series (magnitude), respects the tag filter
+        var cycleBarChart = document.getElementById("cycleBarChart");
+        cycleBarChart.innerHTML = "";
+        var cycleTotals = cycles.map(function (c) {
+          var cMin = isoOfDate(c), cMax = isoOfDate(cycleEndForStart(c, state.salaryDay));
+          var spends = state.spendings.filter(function (s) { return s.date >= cMin && s.date <= cMax && (catFilter === "all" || s.categoryId === catFilter); });
+          return { start: c, total: spends.reduce(function (s, x) { return s + toMain(x.amount, x.currency); }, 0) };
+        });
+        var maxCycleTotal = Math.max.apply(null, cycleTotals.map(function (c) { return c.total; }).concat([0.01]));
+        cycleTotals.forEach(function (c) {
+          var col = document.createElement("div");
+          col.className = "bar-col";
+          var h = Math.max(3, Math.round((c.total / maxCycleTotal) * 140));
+          var end = cycleEndForStart(c.start, state.salaryDay);
+          col.innerHTML = '<div class="bar-group"><div class="bar" style="height:' + h + 'px;background:var(--accent);" title="' + escapeHtml(cycleLabel(c.start, end)) + ': ' + money(c.total) + '"></div></div><div class="bar-label">' + MO[c.start.getMonth()] + ' ' + c.start.getDate() + '</div>';
+          cycleBarChart.appendChild(col);
+        });
+
+        // salary vs. spent — whole-budget view, ignores the tag filter on purpose
+        var salarySpendChart = document.getElementById("salarySpendChart");
+        salarySpendChart.innerHTML = "";
+        var maxPair = 0.01;
+        var pairs = cycles.map(function (c) {
+          var cMin = isoOfDate(c), cMax = isoOfDate(cycleEndForStart(c, state.salaryDay));
+          var spentTotal = state.spendings.filter(function (s) { return s.date >= cMin && s.date <= cMax; }).reduce(function (s, x) { return s + toMain(x.amount, x.currency); }, 0);
+          var sal = salaryForCycle(c);
+          maxPair = Math.max(maxPair, spentTotal, sal || 0);
+          return { start: c, spent: spentTotal, salary: sal };
+        });
+        pairs.forEach(function (p) {
+          var col = document.createElement("div");
+          col.className = "bar-col";
+          var spentH = Math.max(3, Math.round((p.spent / maxPair) * 140));
+          var salH = p.salary !== null ? Math.max(3, Math.round((p.salary / maxPair) * 140)) : 0;
+          var group = '<div class="bar-group">' +
+            '<div class="bar" style="height:' + salH + 'px;background:var(--ink-faint);" title="salary: ' + (p.salary !== null ? money(p.salary) : "not set") + '"></div>' +
+            '<div class="bar" style="height:' + spentH + 'px;background:var(--accent);" title="spent: ' + money(p.spent) + '"></div>' +
+            '</div>';
+          col.innerHTML = group + '<div class="bar-label">' + MO[p.start.getMonth()] + ' ' + p.start.getDate() + '</div>';
+          salarySpendChart.appendChild(col);
+        });
+
+        // by-tag donut — always the full mix for context, independent of the tag filter above
+        var totalsByCat = {};
+        inRange.forEach(function (s) { totalsByCat[s.categoryId] = (totalsByCat[s.categoryId] || 0) + toMain(s.amount, s.currency); });
+        var donutTotal = inRange.reduce(function (s, x) { return s + toMain(x.amount, x.currency); }, 0);
+        var entries = Object.keys(totalsByCat).map(function (id) {
+          var cat = categoryById(id);
+          return { id: id, name: cat ? cat.name : "unknown", color: cat ? cat.color : "#999", amount: totalsByCat[id] };
+        }).sort(function (a, b) { return b.amount - a.amount; });
+        var r = 78, cx = 95, cy = 95, circ = 2 * Math.PI * r;
+        var svgParts = ['<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="#f0ede4" stroke-width="20"/>'];
+        var offsetAcc = 0;
+        entries.forEach(function (e) {
+          var frac = donutTotal > 0 ? e.amount / donutTotal : 0;
+          var len = frac * circ;
+          svgParts.push('<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="' + e.color + '" stroke-width="20" stroke-dasharray="' + len.toFixed(2) + ' ' + (circ - len).toFixed(2) + '" stroke-dashoffset="' + (-offsetAcc).toFixed(2) + '" transform="rotate(-90 ' + cx + ' ' + cy + ')" stroke-linecap="butt"/>');
+          offsetAcc += len;
+        });
+        document.getElementById("reportDonutSvg").innerHTML = svgParts.join("");
+        document.getElementById("reportDonutAmt").textContent = money(donutTotal);
+        var reportLegendBox = document.getElementById("reportLegendBox");
+        reportLegendBox.innerHTML = "";
+        if (entries.length === 0) reportLegendBox.innerHTML = '<div class="empty-state" style="padding:6px 0;">◌ nothing in this range yet</div>';
+        entries.forEach(function (e) {
+          var pct = donutTotal > 0 ? Math.round((e.amount / donutTotal) * 100) : 0;
+          var row = document.createElement("div");
+          row.className = "legend-row";
+          row.innerHTML = '<span class="sw" style="background:' + e.color + '"></span><span class="name">' + escapeHtml(e.name) + '</span><span class="pct">' + pct + '%</span><span class="amt">' + money(e.amount) + '</span>';
+          reportLegendBox.appendChild(row);
+        });
+      }
+
+      /* ---------- home / friendly budget advice ---------- */
+      function computeAdvice() {
+        var today = new Date(); today.setHours(0, 0, 0, 0);
+        function daysAgoISO(n) { var d = new Date(today); d.setDate(d.getDate() - n); return isoOfDate(d); }
+        var last7Start = daysAgoISO(6), last7End = isoOfDate(today);
+        var prev7Start = daysAgoISO(13), prev7End = daysAgoISO(7);
+
+        var last7 = state.spendings.filter(function (s) { return s.date >= last7Start && s.date <= last7End; })
+          .reduce(function (sum, s) { return sum + toMain(s.amount, s.currency); }, 0);
+        var prev7 = state.spendings.filter(function (s) { return s.date >= prev7Start && s.date <= prev7End; })
+          .reduce(function (sum, s) { return sum + toMain(s.amount, s.currency); }, 0);
+
+        var curStart = cycleStartForDate(new Date(), state.salaryDay);
+        var curEnd = cycleEndForStart(curStart, state.salaryDay);
+        var cMin = isoOfDate(curStart), cMax = isoOfDate(curEnd);
+        var cycleSpent = state.spendings.filter(function (s) { return s.date >= cMin && s.date <= cMax; })
+          .reduce(function (sum, s) { return sum + toMain(s.amount, s.currency); }, 0);
+        var cycleSalary = salaryForCycle(curStart);
+        var remaining = (cycleSalary !== null) ? (cycleSalary - cycleSpent) : null;
+        var daysLeftInCycle = Math.max(0, Math.round((curEnd.getTime() - today.getTime()) / 86400000) + 1);
+        var daysLine = daysLeftInCycle + " day" + (daysLeftInCycle === 1 ? "" : "s") + " left in this cycle";
+
+        var hasAnyData = state.spendings.length > 0;
+        var weekDeltaPct = prev7 > 0 ? ((last7 - prev7) / prev7) * 100 : null;
+        var weekLine = "This week: " + money(last7) + "  ·  last week: " + money(prev7);
+
+        var glyph, tone, headline, detail;
+        if (!hasAnyData) {
+          glyph = "👋"; tone = "neutral";
+          headline = "Nothing logged yet — let's get started.";
+          detail = "Once you log a few spends, I'll keep you posted on how your week and month are trending. " + daysLine + ".";
+        } else if (remaining !== null && remaining < 0) {
+          glyph = "⚠️"; tone = "warn";
+          headline = "You're over budget for this cycle — let's rein it in until the next one starts.";
+          detail = money(Math.abs(remaining)) + " past your " + money(cycleSalary) + " budget so far  ·  " + daysLine + ". " + weekLine;
+        } else if (weekDeltaPct !== null && weekDeltaPct >= 15) {
+          glyph = "📈"; tone = "warn";
+          headline = "Spending was higher this past week — let's keep it lighter this week to balance it out.";
+          detail = weekLine + "  ·  up " + Math.round(weekDeltaPct) + "%  ·  " + daysLine;
+        } else if (weekDeltaPct !== null && weekDeltaPct <= -15) {
+          glyph = "🎉"; tone = "good";
+          headline = "You're doing great — spending's down, there's room for savings this month.";
+          detail = weekLine + "  ·  down " + Math.round(Math.abs(weekDeltaPct)) + "%  ·  " + daysLine;
+        } else if (remaining !== null && cycleSalary > 0 && (remaining / cycleSalary) >= 0.3) {
+          glyph = "🌿"; tone = "good";
+          headline = "You're in a healthy spot this cycle — plenty of room left, keep it steady.";
+          detail = money(remaining) + " left of " + money(cycleSalary) + "  ·  " + daysLine + ". " + weekLine;
+        } else {
+          glyph = "🙂"; tone = "neutral";
+          headline = "Spending's been steady lately — nothing alarming, just keep an eye on it.";
+          detail = weekLine + "  ·  " + daysLine;
+        }
+        return { glyph: glyph, tone: tone, headline: headline, detail: detail, daysLeftInCycle: daysLeftInCycle, cycleSpent: cycleSpent, curStart: curStart };
+      }
+
+      function renderHomeQuickStats(advice) {
+        var daysElapsed = Math.max(1, Math.round((new Date().setHours(0, 0, 0, 0) - advice.curStart.getTime()) / 86400000) + 1);
+        document.getElementById("homeDaysLeftStat").textContent = advice.daysLeftInCycle + (advice.daysLeftInCycle === 1 ? " day" : " days");
+        document.getElementById("homeDailyAvgStat").textContent = money(advice.cycleSpent / daysElapsed);
+
+        var today0 = new Date(); today0.setHours(0, 0, 0, 0);
+        var subsWithRenewal = state.subscriptions.map(function (s) { return { sub: s, renewal: renewalDateFor(s, today0) }; })
+          .sort(function (a, b) { return a.renewal - b.renewal; });
+        var nextRenewEl = document.getElementById("homeNextRenewStat");
+        if (subsWithRenewal.length) {
+          var first = subsWithRenewal[0];
+          var d = Math.round((first.renewal - today0) / 86400000);
+          nextRenewEl.textContent = first.sub.name + (d === 0 ? " · today" : d === 1 ? " · tomorrow" : " · " + d + "d");
+        } else {
+          nextRenewEl.textContent = "—";
+        }
+      }
+
+      /* ---------- home / this cycle's story: top shops + a few friendly comparisons with last cycle ---------- */
+      function summarizeSpends(minISO, maxISO) {
+        var byMerchant = {}, byCat = {}, total = 0;
+        state.spendings.forEach(function (s) {
+          if (s.date < minISO || s.date > maxISO) return;
+          var amt = toMain(s.amount, s.currency);
+          total += amt;
+          byCat[s.categoryId] = (byCat[s.categoryId] || 0) + amt;
+          var k = merchantKey(s.note);
+          if (!k) return;
+          var m = byMerchant[k] || (byMerchant[k] = { key: k, name: merchantDisplayName(k), visits: 0, total: 0 });
+          m.visits++; m.total += amt;
+        });
+        var ranked = Object.keys(byMerchant).map(function (k) { return byMerchant[k]; })
+          .sort(function (a, b) { return b.visits - a.visits || b.total - a.total; });
+        return { byMerchant: byMerchant, ranked: ranked, byCat: byCat, total: total };
+      }
+      function visitsWord(n) { return n + " visit" + (n === 1 ? "" : "s"); }
+
+      function computeCycleStory() {
+        var today = dateFromISO(todayISO());
+        var cur = cycleBoundsForDate(today, state.salaryDay);
+        var prevStart = prevCycleStart(cur.start, state.salaryDay), prev = cycleBoundsForDate(prevStart, state.salaryDay);
+        var curMin = isoOfDate(cur.start), todayStr = isoOfDate(today);
+        var cycleLen = Math.round((cur.end - cur.start) / 86400000) + 1;
+        var daysElapsed = Math.max(1, Math.round((today - cur.start) / 86400000) + 1);
+        var daysLeft = Math.max(0, cycleLen - daysElapsed);
+        // "same point last cycle" keeps a half-finished cycle from looking artificially thrifty
+        var prevSamePointISO = isoOfDate(addDays(prev.start, daysElapsed - 1));
+        if (prevSamePointISO > isoOfDate(prev.end)) prevSamePointISO = isoOfDate(prev.end);
+
+        var now = summarizeSpends(curMin, todayStr);
+        var last = summarizeSpends(isoOfDate(prev.start), isoOfDate(prev.end));
+        var lastSoFar = summarizeSpends(isoOfDate(prev.start), prevSamePointISO);
+        var lines = [], whatIf = null;
+        var top = now.ranked[0];
+        var hasPrev = last.total > 0;
+
+        if (top && hasPrev) {
+          var lastTop = last.ranked[0];
+          if (lastTop && lastTop.key === top.key) lines.push({ g: "🏆", t: top.name + " is still your #1 — " + visitsWord(top.visits) + ", " + money(top.total) });
+          else lines.push({ g: "🏆", t: top.name + " is your #1 this cycle — " + visitsWord(top.visits) + ", " + money(top.total) });
+
+          // a regular from last cycle that's showing up a lot less, compared at the same point in the cycle
+          var backedDown = last.ranked.slice(0, 3).filter(function (m) {
+            var then = lastSoFar.byMerchant[m.key], nowM = now.byMerchant[m.key];
+            var thenVisits = then ? then.visits : 0, nowVisits = nowM ? nowM.visits : 0;
+            return thenVisits >= 3 && nowVisits <= thenVisits * 0.6;
+          })[0];
+          if (backedDown) {
+            var bdNow = now.byMerchant[backedDown.key], bdThen = lastSoFar.byMerchant[backedDown.key];
+            lines.push({ g: "🌱", t: backedDown.name + " backed down: " + visitsWord(bdNow ? bdNow.visits : 0) + " vs " + bdThen.visits + " by this point last cycle" });
+          }
+
+          var newFav = now.ranked.slice(0, 5).filter(function (m) {
+            var then = last.byMerchant[m.key];
+            return m.visits >= 2 && (!then || then.visits <= 1);
+          })[0];
+          if (newFav) lines.push({ g: "✨", t: "New favourite: " + newFav.name + " (" + visitsWord(newFav.visits) + ")" });
+        }
+
+        if (hasPrev && lines.length < 4) {
+          // the tag with the biggest swing vs the same point last cycle
+          var swing = null;
+          Object.keys(now.byCat).forEach(function (catId) {
+            var cat = categoryById(catId), was = lastSoFar.byCat[catId] || 0, is = now.byCat[catId];
+            if (!cat || was <= 0 || is < now.total * 0.05) return;
+            var pct = Math.round(((is - was) / was) * 100);
+            if (Math.abs(pct) >= 20 && (!swing || Math.abs(pct) > Math.abs(swing.pct))) swing = { name: cat.name, pct: pct };
+          });
+          if (swing && swing.pct > 0) lines.push({ g: "📈", t: "You enjoyed more " + swing.name + " this cycle (+" + swing.pct + "% vs this point last cycle)" });
+          else if (swing) lines.push({ g: "👏", t: "You've spent less on " + swing.name + " than at this point last cycle (" + swing.pct + "%)" });
+        }
+
+        if (lines.length < 4 && now.total > 0) {
+          var bigCat = null;
+          Object.keys(now.byCat).forEach(function (catId) { if (categoryById(catId) && (!bigCat || now.byCat[catId] > now.byCat[bigCat])) bigCat = catId; });
+          var share = bigCat ? Math.round((now.byCat[bigCat] / now.total) * 100) : 0;
+          if (bigCat && share >= 15 && share < 100) lines.push({ g: "🥧", t: categoryById(bigCat).name + " is " + share + "% of your spending" });
+        }
+
+        // what if: one fewer visit to your top habit, priced at its average
+        if (top && top.visits >= 3) {
+          var avg = top.total / top.visits, perDay = top.visits / daysElapsed;
+          if (perDay >= 0.7) {
+            whatIf = "One fewer " + top.name + " a day ≈ " + money(avg * cycleLen) + " saved per cycle" +
+              (daysLeft > 0 ? " — or " + money(avg * daysLeft) + " over the " + daysLeft + " days left" : "");
+          } else {
+            whatIf = "One fewer " + top.name + " a week ≈ " + money(avg * cycleLen / 7) + " saved per cycle";
+          }
+        }
+
+        return { cur: cur, now: now, hasPrev: hasPrev, lines: lines.slice(0, 4), whatIf: whatIf };
+      }
+
+      function renderCycleStory() {
+        var st = computeCycleStory();
+        var body = document.getElementById("cycleStoryBody");
+        document.getElementById("cycleStoryRange").textContent = cycleLabel(st.cur.start, st.cur.end);
+        if (!st.now.total) {
+          body.innerHTML = '<div class="empty-state" style="padding:10px 0 4px;">◌ nothing logged this cycle yet — add a few spends with a shop name and your cycle story shows up here</div>';
+          return;
+        }
+        var html = "";
+        if (st.now.ranked.length) {
+          html += '<div class="story-top">' + st.now.ranked.slice(0, 3).map(function (m, i) {
+            return '<div class="story-merchant"><span class="rank">' + (i + 1) + '</span><span class="name">' + escapeHtml(m.name) + '</span>' +
+              '<span class="visits">' + visitsWord(m.visits) + '</span><span class="amt">' + money(m.total) + '</span></div>';
+          }).join("") + '</div>';
+        }
+        var items = st.lines.map(function (l) { return '<li><span class="g">' + l.g + '</span><span>' + escapeHtml(l.t) + '</span></li>'; });
+        if (!st.hasPrev) items.push('<li class="muted"><span class="g">◌</span><span>No spends from last cycle to compare with yet — next cycle I\'ll show you how this one stacks up.</span></li>');
+        else if (!st.now.ranked.length) items.push('<li class="muted"><span class="g">◌</span><span>Add a note (like the shop name) when you log spends and I\'ll spot your favourite places.</span></li>');
+        if (st.whatIf) items.push('<li class="whatif"><span class="g">💡</span><span>' + escapeHtml(st.whatIf) + '</span></li>');
+        if (items.length) html += '<ul class="story-lines">' + items.join("") + '</ul>';
+        body.innerHTML = html;
+      }
+
+      function renderAdvice() {
+        var a = computeAdvice();
+        var card = document.getElementById("adviceCard");
+        card.className = "advice-card " + a.tone;
+        document.getElementById("adviceGlyph").textContent = a.glyph;
+        document.getElementById("adviceHeadline").textContent = a.headline;
+        document.getElementById("adviceDetail").textContent = a.detail;
+        renderHomeQuickStats(a);
+        renderCycleStory();
+
+        document.getElementById("homeHeading").textContent = state.username ? ("Welcome back, " + state.username) : "Welcome back";
+        document.getElementById("homeSubNote").textContent = "› here's where things stand";
+      }
+
       /* ---------- settings ---------- */
+      var usernameInput = document.getElementById("usernameInput");
+      usernameInput.addEventListener("change", function () {
+        var name = sanitizeLabel(usernameInput.value, 40) || "";
+        state.username = name;
+        usernameInput.value = name;
+        save();
+        var greeting = state.username ? ("hey " + state.username + " — ") : "";
+        todayStrEl.textContent = "› " + greeting + new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }).toLowerCase() + " — checks reset every new day";
+      });
+
       var currencySelect = document.getElementById("currencySelect");
       CURRENCIES.forEach(function (c) {
         var opt = document.createElement("option");
@@ -2410,8 +5026,92 @@
       });
       currencySelect.addEventListener("change", function () {
         var c = CURRENCIES.find(function (x) { return x.code === currencySelect.value; });
-        if (c) { state.currency = c; save(); renderChecklist(); renderAnalytics(false); renderHistory(); }
+        if (c) {
+          state.currency = c;
+          state.extraCurrencies = state.extraCurrencies.filter(function (ec) { return ec.code !== c.code; });
+          save();
+          renderChecklist(); renderAnalytics(false); renderHistory(); renderSubscriptions(); renderWishlist(); renderReports();
+          renderExtraCurrencies();
+        }
       });
+
+      /* ---------- extra (secondary) currencies ---------- */
+      var extraCurrencyList = document.getElementById("extraCurrencyList");
+      function renderExtraCurrencies() {
+        extraCurrencyList.innerHTML = "";
+        state.extraCurrencies.forEach(function (ec) {
+          var row = document.createElement("div");
+          row.className = "currency-row";
+          row.innerHTML =
+            '<div><div class="code">' + ec.code + '</div><div class="rate">1 ' + ec.code + ' = ' + ec.rate + ' ' + state.currency.symbol + '</div></div>' +
+            '<div class="actions"><button class="btn-text" data-act="edit">Edit</button><button class="btn-text danger" data-act="remove">Remove</button></div>';
+          row.querySelector('[data-act="edit"]').addEventListener("click", function () { openEditCurrencyModal(ec); });
+          row.querySelector('[data-act="remove"]').addEventListener("click", function () {
+            state.extraCurrencies = state.extraCurrencies.filter(function (x) { return x.code !== ec.code; });
+            save();
+            renderExtraCurrencies();
+            toast(ec.code + " removed");
+          });
+          extraCurrencyList.appendChild(row);
+        });
+      }
+
+      function currencyCodePickerHTML(excludeCodes) {
+        return CURRENCIES.filter(function (c) { return excludeCodes.indexOf(c.code) === -1; })
+          .map(function (c) { return '<option value="' + c.code + '">' + c.code + '  ·  ' + c.symbol + '</option>'; }).join("");
+      }
+
+      function openAddCurrencyModal() {
+        var used = [state.currency.code].concat(state.extraCurrencies.map(function (c) { return c.code; }));
+        var options = currencyCodePickerHTML(used);
+        if (!options) { toast("every supported currency is already added"); return; }
+        var html =
+          '<div class="modal-head"><h3>Add a currency</h3><button class="modal-close" type="button">&times;</button></div>' +
+          '<div class="modal-error" id="mError"></div>' +
+          '<div class="modal-field"><label>Currency</label><select id="mCode">' + options + '</select></div>' +
+          '<div class="modal-field"><label>Exchange rate — 1 unit = how many ' + state.currency.symbol + '?</label><input type="number" id="mRate" placeholder="e.g. 0.307" step="0.000001" min="0"></div>' +
+          '<div class="modal-actions"><button class="btn-text primary" id="mSave" type="button" style="flex:2;">Add</button><button class="btn-text" type="button" data-modal-cancel>Cancel</button></div>';
+        openModal(html);
+        var codeSel = document.getElementById("mCode"), rateInput = document.getElementById("mRate");
+        function submit() {
+          var rate = sanitizeRate(rateInput.value);
+          if (rate === null) { showModalError("enter a valid exchange rate greater than 0"); rateInput.focus(); return; }
+          state.extraCurrencies.push({ code: codeSel.value, rate: rate });
+          save();
+          renderExtraCurrencies();
+          closeModal();
+          toast(codeSel.value + " added");
+        }
+        document.getElementById("mSave").addEventListener("click", submit);
+        rateInput.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); submit(); } });
+      }
+      document.getElementById("openAddCurrencyBtn").addEventListener("click", openAddCurrencyModal);
+
+      function openEditCurrencyModal(ec) {
+        var html =
+          '<div class="modal-head"><h3>Edit ' + ec.code + ' rate</h3><button class="modal-close" type="button">&times;</button></div>' +
+          '<div class="modal-error" id="mError"></div>' +
+          '<div class="modal-field"><label>Exchange rate — 1 ' + ec.code + ' = how many ' + state.currency.symbol + '?</label><input type="number" id="mRate" step="0.000001" min="0" value="' + ec.rate + '"></div>' +
+          '<div class="modal-actions"><button class="btn-text primary" id="mSave" type="button" style="flex:2;">Save</button><button class="btn-text danger" id="mDelete" type="button">Remove</button></div>';
+        openModal(html);
+        var rateInput = document.getElementById("mRate");
+        function submit() {
+          var rate = sanitizeRate(rateInput.value);
+          if (rate === null) { showModalError("enter a valid exchange rate greater than 0"); rateInput.focus(); return; }
+          ec.rate = rate;
+          save();
+          renderExtraCurrencies();
+          closeModal();
+          toast(ec.code + " rate updated");
+        }
+        document.getElementById("mSave").addEventListener("click", submit);
+        document.getElementById("mDelete").addEventListener("click", function () {
+          state.extraCurrencies = state.extraCurrencies.filter(function (x) { return x.code !== ec.code; });
+          save(); renderExtraCurrencies(); closeModal();
+          toast(ec.code + " removed");
+        });
+        rateInput.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); submit(); } });
+      }
 
       var salaryDayInput = document.getElementById("salaryDayInput");
       salaryDayInput.addEventListener("change", function () {
@@ -2490,6 +5190,8 @@
       var billingLock = document.getElementById("billingLock");
       var lockUpgradeBtn = document.getElementById("lockUpgradeBtn");
       var lockRecheckBtn = document.getElementById("lockRecheckBtn");
+      var lockSignOutBtn = document.getElementById("lockSignOutBtn");
+      lockSignOutBtn.addEventListener("click", function () { if (cloudEnabled && auth) auth.signOut(); });
       var billingCard = document.getElementById("billingCard");
       var planBox = document.getElementById("planBox");
 
@@ -2576,12 +5278,25 @@
             state.subscribed = fresh.subscribed;
             save();
             renderBilling();
-            toast(state.subscribed ? "you're on Pro — thank you!" : "still on trial/free — webhooks can take a minute after payment");
+            showSubscriptionResultModal(state.subscribed);
           }
         }).catch(function () { toast("couldn't check right now, try again shortly"); });
       }
+
+      function showSubscriptionResultModal(subscribed) {
+        var html = subscribed
+          ? ('<div class="modal-head"><h3>🎉 Yes, you did!</h3><button class="modal-close" type="button">&times;</button></div>' +
+            '<p class="modal-sub">We can see an active Pro subscription on your account — everything’s unlocked and syncing. Thanks for supporting Everything Budgeted.</p>' +
+            '<div class="modal-actions"><button class="btn-text primary" type="button" data-modal-cancel style="flex:1;">Nice, let’s go</button></div>')
+          : ('<div class="modal-head"><h3>Not yet</h3><button class="modal-close" type="button">&times;</button></div>' +
+            '<p class="modal-sub">We don’t see an active subscription yet. If you just paid, confirmation can take a minute or two — otherwise, upgrade below and we’ll unlock things the moment it clears.</p>' +
+            '<div class="modal-actions"><a class="btn-text primary" href="' + upgradeUrl() + '" target="_blank" rel="noopener" style="flex:1; text-align:center;">Upgrade — $5/mo</a><button class="btn-text" type="button" data-modal-cancel>Close</button></div>');
+        openModal(html);
+      }
       lockRecheckBtn.addEventListener("click", recheckSubscription);
       var authGate = document.getElementById("authGate");
+      var authName = document.getElementById("authName");
+      var authNameField = document.getElementById("authNameField");
       var authEmail = document.getElementById("authEmail");
       var authPassword = document.getElementById("authPassword");
       var authError = document.getElementById("authError");
@@ -2599,11 +5314,13 @@
           authToggleText.textContent = "Don't have an account?";
           authToggleBtn.textContent = "Create one";
           authSub.textContent = "\u203a sign in to sync your data across devices";
+          authNameField.style.display = "none";
         } else {
           authSubmitBtn.textContent = "Create account";
           authToggleText.textContent = "Already have an account?";
           authToggleBtn.textContent = "Sign in";
           authSub.textContent = "\u203a create an account to start syncing";
+          authNameField.style.display = "";
         }
       }
       authToggleBtn.addEventListener("click", function () { setAuthMode(authMode === "signin" ? "signup" : "signin"); });
@@ -2630,20 +5347,31 @@
       };
       function friendlyAuthError(err) { return AUTH_ERROR_MAP[err.code] || err.message || "something went wrong"; }
 
+      var pendingSignupName = "";
       authSubmitBtn.addEventListener("click", function () {
         var email = authEmail.value.trim();
         var pass = authPassword.value;
         if (!email || !pass) { showAuthError("enter both email and password"); return; }
+        var name = "";
+        if (authMode === "signup") {
+          name = sanitizeLabel(authName.value, 40) || "";
+          if (!name) { showAuthError("tell us what to call you"); authName.focus(); return; }
+        }
         authSubmitBtn.disabled = true;
         var origText = authSubmitBtn.textContent;
         authSubmitBtn.textContent = "…";
         var done = function () { authSubmitBtn.disabled = false; authSubmitBtn.textContent = origText; };
-        var action = authMode === "signin"
-          ? auth.signInWithEmailAndPassword(email, pass)
-          : auth.createUserWithEmailAndPassword(email, pass);
-        action.then(function () { done(); }).catch(function (err) { done(); showAuthError(friendlyAuthError(err)); });
+        if (authMode === "signup") {
+          pendingSignupName = name;
+          auth.createUserWithEmailAndPassword(email, pass).then(function (cred) {
+            done();
+            if (cred && cred.user && cred.user.updateProfile) cred.user.updateProfile({ displayName: name });
+          }).catch(function (err) { done(); showAuthError(friendlyAuthError(err)); });
+        } else {
+          auth.signInWithEmailAndPassword(email, pass).then(function () { done(); }).catch(function (err) { done(); showAuthError(friendlyAuthError(err)); });
+        }
       });
-      [authEmail, authPassword].forEach(function (el) {
+      [authName, authEmail, authPassword].forEach(function (el) {
         el.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); authSubmitBtn.click(); } });
       });
 
@@ -2658,15 +5386,22 @@
       function initAppUI() {
         ensureDailyReset();
         viewingCycleStart = cycleStartForDate(new Date(), state.salaryDay);
-        todayStrEl.textContent = "\u203a " + new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }).toLowerCase() + " — checks reset every new day";
+        var greeting = state.username ? ("hey " + state.username + " — ") : "";
+        todayStrEl.textContent = "\u203a " + greeting + new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }).toLowerCase() + " — checks reset every new day";
         currencySelect.value = state.currency.code;
         salaryDayInput.value = state.salaryDay;
+        usernameInput.value = state.username || "";
+        renderExtraCurrencies();
         applyAccentColor(state.accentColor);
         renderSwatches();
-        refreshAllCategorySelects();
         renderChecklist();
         renderAnalytics(false);
         renderHistory();
+        renderSubscriptions();
+        renderWishlist();
+        renderReportCategoryOptions();
+        renderReports();
+        renderAdvice();
         renderAccountCard();
         renderBilling();
         footerTip.textContent = cloudEnabled
@@ -2705,6 +5440,7 @@
                 if (!state.trialStart) { state.trialStart = Date.now(); save(); }
               } else {
                 state = loadLocalState();
+                state.username = pendingSignupName || user.displayName || state.username || "";
                 state.trialStart = Date.now();
                 state.subscribed = false;
                 db.collection("users").doc(user.uid).set(state);
@@ -2722,7 +5458,7 @@
             authGate.classList.add("show");
             billingLock.classList.remove("show");
             trialBanner.classList.remove("show");
-            authEmail.value = ""; authPassword.value = "";
+            authName.value = ""; authEmail.value = ""; authPassword.value = "";
             hideBootLoader();
           }
         });
