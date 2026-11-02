@@ -3810,14 +3810,217 @@
         return sheetJsLoading;
       }
 
+      /* ---------- universal statement reading: nothing here knows about a particular bank. We find the table
+         wherever it sits in the file and work out date order, number format and spend direction from the data. ---------- */
       var IMPORT_MAX_ROWS = 2000;
-      var DATE_HEADERS = ["date", "transaction date", "posted date", "when"];
-      var AMOUNT_HEADERS = ["amount", "price", "cost", "value", "total", "debit"];
-      var CATEGORY_HEADERS = ["category", "tag", "type"];
-      var NOTE_HEADERS = ["note", "notes", "description", "memo", "merchant", "details"];
-      var CURRENCY_HEADERS = ["currency", "cur", "ccy"];
+      var IMPORT_HEADER_SCAN_ROWS = 60;
+      // in priority order; matched against normalized header text, exact first, then as whole words ("Amount (KWD)" -> "amount")
+      var DATE_HEADERS = ["transaction date", "trans date", "txn date", "date", "posted date", "posting date", "post date", "booking date", "value date", "when", "datum", "fecha", "buchungstag", "تاريخ العملية", "التاريخ", "تاريخ"];
+      var AMOUNT_HEADERS = ["amount", "debit amount", "debit", "withdrawal amount", "withdrawals", "withdrawal", "money out", "paid out", "spent", "price", "cost", "value", "total", "montant", "betrag", "importe", "المبلغ", "القيمة", "مدين", "سحب"];
+      var CREDIT_HEADERS = ["credit amount", "credit", "deposit amount", "deposits", "deposit", "money in", "paid in", "دائن", "إيداع"];
+      var CATEGORY_HEADERS = ["category", "tag", "label", "الفئة"];
+      var NOTE_HEADERS = ["note", "notes", "description", "transaction details", "details", "narration", "narrative", "particulars", "memo", "merchant", "payee", "transaction", "reference", "libelle", "concepto", "verwendungszweck", "البيان", "الوصف", "التفاصيل"];
+      var CURRENCY_HEADERS = ["currency", "cur", "ccy", "العملة"];
+      var AMOUNT_HEADER_EXCLUDE = /balance|credit|deposit|date|رصيد|دائن/;
+      var NOTE_HEADER_EXCLUDE = /date|amount|balance|\btype\b|\bid\b|number|\bno\b/;
+      var OUTFLOW_HEADER_RE = /debit|withdraw|paid out|money out|spent|مدين|سحب/;
+      var NON_TRANSACTION_NOTE_RE = /^(opening|closing|brought forward|carried forward|balance|total|sub ?total)\b/i;
+      var CREDIT_VALUE_RE = /^(cr|c|credit|deposit|دائن)$/i;
+      var DIRECTION_VALUE_RE = /^(dr|cr|d|c|db|debit|credit|withdrawal|deposit|مدين|دائن)$/i;
+      var MONTH_NAMES = { jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6, jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12 };
 
+      function cellText(v) { return v === null || typeof v === "undefined" ? "" : String(v).trim(); }
+      function normalizeDigits(s) {
+        return String(s).replace(/[\u0660-\u0669]/g, function (c) { return c.charCodeAt(0) - 0x0660; })
+          .replace(/[\u06f0-\u06f9]/g, function (c) { return c.charCodeAt(0) - 0x06f0; })
+          .replace(/\u066b/g, ".").replace(/\u066c/g, ",");
+      }
+      function normalizeHeader(h) {
+        var s = cellText(h).toLowerCase();
+        if (s.normalize) s = s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").normalize("NFC");
+        return s.replace(/[^a-z0-9\u0600-\u06ff]+/g, " ").trim();
+      }
+
+      /* --- dates --- */
+      function isoFromParts(y, m, d) {
+        if (y < 100) y += 2000;
+        if (y < 1990 || y > 2100 || m < 1 || m > 12 || d < 1 || d > daysInMonth(y, m - 1)) return null;
+        return y + "-" + pad(m) + "-" + pad(d);
+      }
+      var AMBIGUOUS_DATE_RE = /^(\d{1,2})[-\/. ](\d{1,2})[-\/. ](\d{4}|\d{2})(\D|$)/;
+      function parseLooseDate(raw, order) {
+        var s = normalizeDigits(cellText(raw)).toLowerCase();
+        if (!s) return null;
+        var m;
+        if ((m = s.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})(\D|$)/))) return isoFromParts(+m[1], +m[2], +m[3]);
+        if ((m = s.match(/^(\d{4})(\d{2})(\d{2})$/))) return isoFromParts(+m[1], +m[2], +m[3]);
+        if ((m = s.match(AMBIGUOUS_DATE_RE))) return order === "mdy" ? isoFromParts(+m[3], +m[1], +m[2]) : isoFromParts(+m[3], +m[2], +m[1]);
+        if ((m = s.match(/^\d{5}(\.\d+)?$/)) && +s >= 30000 && +s <= 60000) { // an Excel serial number that lost its date format
+          var serial = new Date(Date.UTC(1899, 11, 30) + Math.floor(+s) * 86400000);
+          return isoFromParts(serial.getUTCFullYear(), serial.getUTCMonth() + 1, serial.getUTCDate());
+        }
+        s = s.replace(/^(mon|tue|tues|wed|thu|thur|thurs|fri|sat|sun)[a-z]*\.?,?\s+/, ""); // drop a leading weekday
+        if ((m = s.match(/^(\d{1,2})(?:st|nd|rd|th)?[-\/. ]*([a-z]{3,})\.?[-\/., ]*(\d{4}|\d{2})(\D|$)/)) && MONTH_NAMES[m[2].slice(0, 3)]) return isoFromParts(+m[3], MONTH_NAMES[m[2].slice(0, 3)], +m[1]);
+        if ((m = s.match(/^([a-z]{3,})\.?[-\/. ]*(\d{1,2})(?:st|nd|rd|th)?,?[-\/. ]*(\d{4}|\d{2})(\D|$)/)) && MONTH_NAMES[m[1].slice(0, 3)]) return isoFromParts(+m[3], MONTH_NAMES[m[1].slice(0, 3)], +m[2]);
+        return null;
+      }
+      // 13/10/2026 can only be day-first and 10/13/2026 only month-first. When every date fits both,
+      // prefer the reading with no future dates and the tighter date range, since statements cover one stretch of time.
+      function detectDateOrder(values) {
+        var dayFirst = 0, monthFirst = 0, ambiguous = [];
+        values.forEach(function (v) {
+          var m = normalizeDigits(cellText(v)).match(AMBIGUOUS_DATE_RE);
+          if (!m) return;
+          if (+m[1] > 12) dayFirst++;
+          else if (+m[2] > 12) monthFirst++;
+          else ambiguous.push(v);
+        });
+        if (dayFirst || monthFirst) return monthFirst > dayFirst ? "mdy" : "dmy";
+        function score(order) {
+          var dates = ambiguous.map(function (v) { return parseLooseDate(v, order); }).filter(Boolean).sort();
+          var today = todayISO();
+          return {
+            future: dates.filter(function (d) { return d > today; }).length,
+            span: dates.length ? dateFromISO(dates[dates.length - 1]) - dateFromISO(dates[0]) : 0
+          };
+        }
+        var a = score("dmy"), b = score("mdy");
+        if (b.future !== a.future) return b.future < a.future ? "mdy" : "dmy";
+        return b.span < a.span ? "mdy" : "dmy";
+      }
+
+      /* --- amounts --- */
+      // the decimal separator for a whole column: "1.234,50" or "12,50" anywhere means commas are decimals
+      function detectDecimalSeparator(values) {
+        var comma = 0, dot = 0;
+        values.forEach(function (v) {
+          var s = normalizeDigits(cellText(v)), c = s.lastIndexOf(","), d = s.lastIndexOf(".");
+          if (c !== -1 && d !== -1) { if (c > d) comma++; else dot++; }
+          else if (c !== -1 && !/,\d{3}(\D|$)/.test(s)) comma++;
+          else if (d !== -1 && s.indexOf(".") === d) dot++;
+        });
+        return comma > dot ? "," : ".";
+      }
+      function parseLooseNumber(raw, decimalSep) {
+        var s = normalizeDigits(cellText(raw)).replace(/[\s'\u2019\u00a0]/g, "");
+        if (!/^[^\d]{0,6}[\d.,]*\d[\d.,]*[^\d]{0,6}$/.test(s)) return NaN;
+        var negative = /^\(.*\)$/.test(s) || /[-\u2212]/.test(s);
+        var digits = s.replace(/[^\d.,]/g, "");
+        digits = decimalSep === "," ? digits.replace(/\./g, "").replace(",", ".") : digits.replace(/,/g, "");
+        var n = parseFloat(digits);
+        return negative ? -n : n;
+      }
+      function hasCreditSuffix(raw) { return /(^|[\s\d])cr\.?\s*$/i.test(cellText(raw)); }
+
+      /* --- finding the table --- */
+      function looksLikeDate(v) { return !!(parseLooseDate(v, "dmy") || parseLooseDate(v, "mdy")); }
+      function isBlankRow(r) {
+        if (!r) return true;
+        for (var i = 0; i < r.length; i++) { if (cellText(r[i])) return false; }
+        return true;
+      }
+      function nextDataRows(grid, fromIdx, count) {
+        var out = [];
+        for (var i = fromIdx; i < grid.length && out.length < count; i++) { if (!isBlankRow(grid[i])) out.push(grid[i]); }
+        return out;
+      }
+      function columnsMatching(rows, test) {
+        var width = rows.reduce(function (w, r) { return Math.max(w, r.length); }, 0), hits = [];
+        for (var c = 0; c < width; c++) {
+          var n = rows.filter(function (r) { return cellText(r[c]) && test(r[c]); }).length;
+          if (n >= Math.max(2, Math.ceil(rows.length * 0.6)) || (rows.length < 2 && n === rows.length)) hits.push(c);
+        }
+        return hits;
+      }
+      function looksLikeHeaderRow(grid, i) {
+        var dateIdx = guessColumnIndex(grid[i], DATE_HEADERS);
+        var amountIdx = guessColumnIndex(grid[i], AMOUNT_HEADERS, AMOUNT_HEADER_EXCLUDE);
+        if (dateIdx === -1 || amountIdx === -1) return false;
+        var below = nextDataRows(grid, i + 1, 8);
+        if (!below.length) return true;
+        // a merged header cell can sit a column or two left of its data
+        return below.filter(function (r) {
+          return looksLikeDate(r[dateIdx]) || looksLikeDate(r[dateIdx + 1]) || looksLikeDate(r[dateIdx + 2]);
+        }).length >= Math.ceil(below.length / 2);
+      }
+      // drop empty spacer columns, and line a header up with its data when a merged cell left them a column apart
+      function compactTable(headers, rows) {
+        var width = rows.reduce(function (w, r) { return Math.max(w, r.length); }, headers.length);
+        var hasData = [];
+        for (var c = 0; c < width; c++) hasData[c] = rows.some(function (r) { return !!cellText(r[c]); });
+        var names = [];
+        for (c = 0; c < width; c++) names[c] = cellText(headers[c]);
+        for (c = 0; c < width; c++) {
+          if (!names[c] || hasData[c]) continue;
+          for (var k = c + 1; k < width && k <= c + 2 && !names[k]; k++) {
+            if (hasData[k]) { names[k] = names[c]; names[c] = ""; break; }
+          }
+        }
+        var keep = [];
+        for (c = 0; c < width; c++) { if (names[c] || hasData[c]) keep.push(c); }
+        return {
+          headers: keep.map(function (i) { return names[i]; }),
+          rows: rows.map(function (r) { return keep.map(function (i) { return r[i]; }); })
+        };
+      }
+      function tableFromGrid(grid) {
+        var limit = Math.min(grid.length, IMPORT_HEADER_SCAN_ROWS), headerIdx = -1, firstDataIdx = -1, i;
+        for (i = 0; i < limit && headerIdx === -1; i++) { if (!isBlankRow(grid[i]) && looksLikeHeaderRow(grid, i)) headerIdx = i; }
+        if (headerIdx !== -1) firstDataIdx = headerIdx + 1;
+        else {
+          // no header we recognize (another language, or none at all): look for where dates and numbers start lining up
+          for (i = 0; i < limit && firstDataIdx === -1; i++) {
+            if (isBlankRow(grid[i])) continue;
+            var window = nextDataRows(grid, i, 8);
+            if (!parseableRow(grid[i])) continue;
+            if (columnsMatching(window, looksLikeDate).length && columnsMatching(window, isPlainNumber).length) firstDataIdx = i;
+          }
+          if (firstDataIdx !== -1) {
+            for (i = firstDataIdx - 1; i >= 0 && headerIdx === -1; i--) { if (!isBlankRow(grid[i])) headerIdx = i; }
+            // only treat the row above as headers if it reads like column names rather than a line of account details
+            if (headerIdx !== -1 && grid[headerIdx].filter(function (v) { return !!cellText(v); }).length < 2) headerIdx = -1;
+          }
+        }
+        if (firstDataIdx === -1) {
+          for (i = 0; i < grid.length && headerIdx === -1; i++) { if (!isBlankRow(grid[i])) headerIdx = i; }
+          if (headerIdx === -1) return { headers: [], rows: [], found: false };
+          firstDataIdx = headerIdx + 1;
+        }
+        var rows = grid.slice(firstDataIdx).filter(function (r) { return !isBlankRow(r); }).slice(0, IMPORT_MAX_ROWS);
+        var table = compactTable(headerIdx !== -1 ? grid[headerIdx] : [], rows);
+        table.found = firstDataIdx !== -1 && rows.some(function (r) { return r.some(looksLikeDate); });
+        return table;
+      }
+      function isPlainNumber(v) { return !looksLikeDate(v) && !isNaN(parseLooseNumber(v)); }
+      function parseableRow(r) { return r.some(looksLikeDate); }
+
+      /* --- reading files --- */
+      function decodeTextFile(buf) {
+        var b = new Uint8Array(buf);
+        if (b[0] === 0xff && b[1] === 0xfe) return new TextDecoder("utf-16le").decode(buf);
+        if (b[0] === 0xfe && b[1] === 0xff) return new TextDecoder("utf-16be").decode(buf);
+        try { return new TextDecoder("utf-8", { fatal: true }).decode(buf); }
+        catch (e) { return new TextDecoder("windows-1252").decode(buf); }
+      }
+      // the separator that splits the most lines into the same number of fields
+      function detectDelimiter(text) {
+        var lines = text.split("\n").filter(function (l) { return l.trim(); }).slice(0, 40), best = ",", bestScore = 0;
+        [",", ";", "\t", "|"].forEach(function (d) {
+          var counts = {};
+          lines.forEach(function (l) {
+            var n = l.replace(/"[^"]*"/g, "").split(d).length - 1;
+            if (n) counts[n] = (counts[n] || 0) + 1;
+          });
+          Object.keys(counts).forEach(function (n) {
+            var score = counts[n] * Math.sqrt(+n);
+            if (score > bestScore) { bestScore = score; best = d; }
+          });
+        });
+        return best;
+      }
       function parseCSV(text) {
+        text = text.replace(/^\ufeff/, "").replace(/\r\n?/g, "\n");
+        var delimiter = detectDelimiter(text);
         var rows = [], row = [], field = "", inQuotes = false;
         for (var i = 0; i < text.length; i++) {
           var ch = text[i];
@@ -3826,46 +4029,73 @@
               if (text[i + 1] === '"') { field += '"'; i++; } else { inQuotes = false; }
             } else field += ch;
           } else if (ch === '"') { inQuotes = true; }
-          else if (ch === ",") { row.push(field); field = ""; }
-          else if (ch === "\r") { /* skip */ }
+          else if (ch === delimiter) { row.push(field); field = ""; }
           else if (ch === "\n") { row.push(field); rows.push(row); row = []; field = ""; }
           else field += ch;
         }
         row.push(field);
-        if (!(row.length === 1 && row[0] === "")) rows.push(row);
-        rows = rows.filter(function (r) { return !(r.length === 1 && r[0].trim() === ""); });
-        if (!rows.length) return { headers: [], rows: [] };
-        return { headers: rows[0], rows: rows.slice(1, 1 + IMPORT_MAX_ROWS) };
+        rows.push(row);
+        return tableFromGrid(rows);
+      }
+      // read cells directly: real date cells become ISO dates and numbers keep their full value, whatever the display format
+      function sheetCellValue(cell) {
+        if (!cell || cell.v === null || typeof cell.v === "undefined") return "";
+        if (cell.t === "n" && cell.z && XLSX.SSF.is_date(cell.z)) {
+          var p = XLSX.SSF.parse_date_code(cell.v);
+          if (p) return p.y + "-" + pad(p.m) + "-" + pad(p.d);
+        }
+        return cellText(cell.v);
+      }
+      function sheetToGrid(sheet) {
+        if (!sheet["!ref"]) return [];
+        var range = XLSX.utils.decode_range(sheet["!ref"]), grid = [];
+        for (var r = range.s.r; r <= range.e.r; r++) {
+          var row = [];
+          for (var c = range.s.c; c <= range.e.c; c++) row.push(sheetCellValue(sheet[XLSX.utils.encode_cell({ r: r, c: c })]));
+          grid.push(row);
+        }
+        return grid;
       }
       function parseXLSXArrayBuffer(buf) {
-        var wb = XLSX.read(buf, { type: "array", cellDates: true });
-        var sheet = wb.Sheets[wb.SheetNames[0]];
-        var rows2d = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false, dateNF: "yyyy-mm-dd" });
-        var headers = (rows2d[0] || []).map(function (h) { return h === null || typeof h === "undefined" ? "" : String(h); });
-        return { headers: headers, rows: rows2d.slice(1, 1 + IMPORT_MAX_ROWS) };
+        var wb = XLSX.read(buf, { type: "array", cellNF: true, raw: true });
+        var first = null;
+        for (var i = 0; i < wb.SheetNames.length; i++) {
+          var table = tableFromGrid(sheetToGrid(wb.Sheets[wb.SheetNames[i]]));
+          if (table.found) return table;
+          if (!first) first = table;
+        }
+        return first || { headers: [], rows: [], found: false };
       }
 
-      function guessColumnIndex(headers, candidates) {
-        var lower = headers.map(function (h) { return (h || "").toString().trim().toLowerCase(); });
-        for (var c = 0; c < candidates.length; c++) {
-          var idx = lower.indexOf(candidates[c]);
-          if (idx !== -1) return idx;
+      function guessColumnIndex(headers, candidates, excludeRe) {
+        var lower = Array.prototype.map.call(headers, function (h) { return normalizeHeader(h); });
+        var c, i;
+        for (c = 0; c < candidates.length; c++) {
+          i = lower.indexOf(candidates[c]);
+          if (i !== -1) return i;
+        }
+        for (c = 0; c < candidates.length; c++) {
+          for (i = 0; i < lower.length; i++) {
+            if (excludeRe && excludeRe.test(lower[i])) continue;
+            if ((" " + lower[i] + " ").indexOf(" " + candidates[c] + " ") !== -1) return i;
+          }
         }
         return -1;
       }
-      function parseLooseNumber(raw) {
-        if (raw === null || typeof raw === "undefined") return NaN;
-        var s = String(raw).replace(/[^0-9.\-]/g, "");
-        return parseFloat(s);
+      // for files with no recognizable headers: pick columns from their contents
+      function guessColumnFromData(rows, test, skipLast) {
+        var sample = rows.slice(0, 50), hits = columnsMatching(sample, test);
+        if (skipLast && hits.length > 1) hits = hits.slice(0, -1); // the last numeric column is usually the running balance
+        return hits.length ? hits[0] : -1;
       }
-      function parseLooseDate(raw) {
-        if (!raw && raw !== 0) return null;
-        var s = String(raw).trim();
-        if (!s) return null;
-        if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
-        var d = new Date(s);
-        if (!isNaN(d.getTime())) return isoOfDate(d);
-        return null;
+      function detectDirectionColumn(parsed, usedIdxs) {
+        var width = parsed.headers.length;
+        for (var c = 0; c < width; c++) {
+          if (usedIdxs.indexOf(c) !== -1) continue;
+          var vals = parsed.rows.map(function (r) { return cellText(r[c]); }).filter(Boolean);
+          if (vals.length >= 2 && vals.filter(function (v) { return DIRECTION_VALUE_RE.test(v); }).length >= vals.length * 0.8) return c;
+        }
+        return -1;
       }
 
       /* ---------- merchant memory: learn each shop's usual tag from the spends you've already logged ---------- */
@@ -3936,9 +4166,47 @@
       }
       // messy bank/card descriptions ("SQ *STARBUCKS #4821 SEATTLE WA") -> a clean store name for the note
       var STORE_NAME_STRIP_RE = /^(SQ\s*\*|TST\s*\*|PAYPAL\s*\*|POS\s+(DEBIT|PURCHASE)?\s*-?\s*|PURCHASE\s+(AT|FROM)?\s*|PAYMENT\s+TO\s*|DEBIT\s+CARD\s+PURCHASE\s*-?\s*|ACH\s+DEBIT\s*-?\s*|CARD\s+PURCHASE\s*-?\s*|WWW\.)/i;
-      function extractStoreName(rawText) {
+      // the phrase a statement repeats before the real shop ("CARD PURCHASE ...", "UTap KNET POS ..."), learned from the file itself.
+      // It has to precede many different names, so a chain with a few branches ("Ananas Adailiya", "Ananas Mishref") is left alone.
+      function detectStatementPrefixes(notes) {
+        var groups = {}, prefixes = [];
+        notes.forEach(function (n) {
+          var words = cellText(n).split(/\s+/);
+          if (words[0] && words.length > 1) (groups[words[0].toLowerCase()] = groups[words[0].toLowerCase()] || []).push(words);
+        });
+        Object.keys(groups).forEach(function (k) {
+          var rows = groups[k], depth = 1;
+          if (rows.length < Math.max(5, notes.length * 0.1)) return;
+          while (depth < 5) {
+            var next = {}, topCount = 0;
+            rows.forEach(function (w) { var t = (w[depth] || "").toLowerCase(); next[t] = (next[t] || 0) + 1; if (next[t] > topCount) topCount = next[t]; });
+            if (topCount < rows.length * 0.9) break;
+            depth++;
+          }
+          var tails = {};
+          rows.forEach(function (w) { tails[w.slice(depth).join(" ").toLowerCase().replace(/\d+/g, "")] = true; });
+          var distinct = Object.keys(tails).length;
+          if (distinct >= 5 && distinct >= rows.length * 0.15) prefixes.push(rows[0].slice(0, depth).join(" ").toLowerCase());
+        });
+        return prefixes;
+      }
+      function extractStoreName(rawText, prefixes) {
         if (!rawText) return "";
-        var s = String(rawText).trim();
+        var s = String(rawText).trim(), m;
+        var collapsed = s.replace(/\s+/g, " ");
+        (prefixes || []).some(function (p) {
+          if (collapsed.toLowerCase().indexOf(p + " ") !== 0) return false;
+          collapsed = collapsed.slice(p.length + 1);
+          s = collapsed;
+          return true;
+        });
+        // card metadata before an embedded date: "VISA POS,12/3/26,SHOP"
+        s = s.replace(/^.*?\b\d{1,2}[\/.-]\d{1,2}[\/.-]\d{2,4}[\s,;:|-]+(?=\S)/, "");
+        // the conventions statements use to mark the shop: "POS @SHOP", "GATEWAY | SHOP", "SQ *SHOP"
+        if ((m = s.match(/(?:^|\s)@\s*(\S.*)$/))) s = m[1];
+        if ((m = s.match(/\|\s*([^|]*[^\s\d|\-][^\s\d|\-][^|]*)$/))) s = m[1];
+        if ((m = s.match(/^[^*]{1,20}\*\s*(\S.*)$/))) s = m[1];
+        s = s.replace(/^[\s\-|*.,:;_?]+/, "").replace(/[\s\-|*.,:;_?]+$/, "");
         s = s.replace(STORE_NAME_STRIP_RE, "");
         s = s.replace(/\s*#\d+.*$/, "");
         s = s.replace(/\s+\d{3,}.*$/, "");
@@ -3949,10 +4217,33 @@
         return s.slice(0, 60);
       }
 
+      // 0 = every row is a spend (whatever its sign); -1 / +1 = only rows with that sign are spends.
+      // Bank accounts show spends as negative, card statements as positive: spends are whichever sign most rows have.
+      function importSpendSign(parsed, mapping, amountValues, decimalSep) {
+        if (mapping.amountIdx < 0 || mapping.dirIdx >= 0) return 0;
+        if (OUTFLOW_HEADER_RE.test(normalizeHeader(parsed.headers[mapping.amountIdx]))) return 0;
+        var neg = 0, pos = 0;
+        amountValues.forEach(function (v) {
+          var n = parseLooseNumber(v, decimalSep);
+          if (n < 0) neg++; else if (n > 0) pos++;
+        });
+        if (!neg || !pos) return 0;
+        if (mapping.spendSign === "negative") return -1;
+        if (mapping.spendSign === "positive") return 1;
+        return pos > neg ? 1 : -1;
+      }
+
       function buildImportRows(parsed, mapping) {
         var existing = existingFingerprints();
         var seenInBatch = {};
         var memo = merchantTagMemory();
+        function column(idx) { return idx >= 0 ? parsed.rows.map(function (r) { return r[idx]; }) : []; }
+        var dateOrder = mapping.dateOrder && mapping.dateOrder !== "auto" ? mapping.dateOrder : detectDateOrder(column(mapping.dateIdx));
+        var amountValues = column(mapping.amountIdx);
+        var decimalSep = detectDecimalSeparator(amountValues);
+        var creditDecimalSep = detectDecimalSeparator(column(mapping.creditIdx));
+        var spendSign = importSpendSign(parsed, mapping, amountValues, decimalSep);
+        var notePrefixes = detectStatementPrefixes(column(mapping.noteIdx));
         return parsed.rows.map(function (r) {
           var dateRaw = mapping.dateIdx >= 0 ? r[mapping.dateIdx] : null;
           var amountRaw = mapping.amountIdx >= 0 ? r[mapping.amountIdx] : null;
@@ -3960,21 +4251,30 @@
           var noteRaw = mapping.noteIdx >= 0 ? r[mapping.noteIdx] : null;
           var curRaw = mapping.curIdx >= 0 ? r[mapping.curIdx] : null;
 
-          var dateISO = parseLooseDate(dateRaw);
-          var rawAmount = parseLooseNumber(amountRaw);
-          var currency = null, valid = dateISO !== null && !isNaN(rawAmount) && rawAmount > 0;
+          var dateISO = parseLooseDate(dateRaw, dateOrder);
+          var rawAmount = parseLooseNumber(amountRaw, decimalSep);
+          var dirRaw = mapping.dirIdx >= 0 ? cellText(r[mapping.dirIdx]) : "";
+          var creditRaw = mapping.creditIdx >= 0 ? parseLooseNumber(r[mapping.creditIdx], creditDecimalSep) : NaN;
+          var income = dateISO !== null && (
+            (isNaN(rawAmount) || rawAmount === 0 ? creditRaw > 0 || creditRaw < 0 : false) ||
+            CREDIT_VALUE_RE.test(dirRaw) || hasCreditSuffix(amountRaw) ||
+            (spendSign !== 0 && rawAmount * spendSign < 0));
+          var nonTransaction = NON_TRANSACTION_NOTE_RE.test(cellText(noteRaw));
+          if (!isNaN(rawAmount)) rawAmount = Math.abs(rawAmount);
+          var currency = null, otherCurrency = false;
+          var valid = dateISO !== null && !income && !nonTransaction && !isNaN(rawAmount) && rawAmount > 0;
           if (curRaw) {
             var code = String(curRaw).trim().toUpperCase();
-            if (code && code !== state.currency.code) {
+            if (code && code !== state.currency.code && code !== String(state.currency.symbol).toUpperCase()) {
               if (availableCurrencyCodes().indexOf(code) !== -1) currency = code;
-              else valid = false;
+              else { if (valid) otherCurrency = true; valid = false; }
             }
           }
           var amount = valid ? sanitizeAmountInCurrency(rawAmount, currency || state.currency.code) : null;
           if (amount === null) valid = false;
 
           var noteText = noteRaw ? String(noteRaw).trim() : "";
-          var note = extractStoreName(noteText);
+          var note = extractStoreName(noteText, notePrefixes);
           var mKey = merchantKey(note);
           var duplicate = false;
           if (valid) {
@@ -3986,6 +4286,8 @@
           return {
             _id: uid(),
             valid: valid,
+            income: income && !nonTransaction,
+            otherCurrency: otherCurrency,
             duplicate: duplicate,
             delayedPayment: detectDelayedPayment(noteText),
             date: dateISO,
@@ -4025,6 +4327,13 @@
         return added;
       }
 
+      // an unnamed column is easier to recognize by what's in it than as "Column 7"
+      function columnSampleLabel(parsed, i) {
+        var sample = "";
+        parsed.rows.some(function (r) { sample = cellText(r[i]); return !!sample; });
+        return "Column " + (i + 1) + (sample ? " (e.g. " + sample.slice(0, 24) + ")" : "");
+      }
+
       function renderImportMapping(parsed) {
         var body = document.getElementById("mImportBody");
         if (!parsed.headers.length || !parsed.rows.length) {
@@ -4032,22 +4341,33 @@
           return;
         }
         var dateIdx = guessColumnIndex(parsed.headers, DATE_HEADERS);
-        var amountIdx = guessColumnIndex(parsed.headers, AMOUNT_HEADERS);
+        var amountIdx = guessColumnIndex(parsed.headers, AMOUNT_HEADERS, AMOUNT_HEADER_EXCLUDE);
+        var creditIdx = guessColumnIndex(parsed.headers, CREDIT_HEADERS, /balance|date|رصيد/);
         var catIdx = guessColumnIndex(parsed.headers, CATEGORY_HEADERS);
-        var noteIdx = guessColumnIndex(parsed.headers, NOTE_HEADERS);
+        var noteIdx = guessColumnIndex(parsed.headers, NOTE_HEADERS, NOTE_HEADER_EXCLUDE);
         var curIdx = guessColumnIndex(parsed.headers, CURRENCY_HEADERS);
+        if (dateIdx === -1) dateIdx = guessColumnFromData(parsed.rows, looksLikeDate);
+        if (amountIdx === -1) amountIdx = guessColumnFromData(parsed.rows, isPlainNumber, true);
+        if (noteIdx === -1) noteIdx = guessColumnFromData(parsed.rows, function (v) { return !looksLikeDate(v) && isNaN(parseLooseNumber(v)) && cellText(v).length > 2; });
+        var dirIdx = detectDirectionColumn(parsed, [dateIdx, amountIdx, creditIdx, catIdx, noteIdx, curIdx]);
+        var detectedOrder = detectDateOrder(parsed.rows.map(function (r) { return r[dateIdx]; }));
 
         function colOptions(selected, allowNone) {
           var html = allowNone ? '<option value="-1">(none)</option>' : "";
           parsed.headers.forEach(function (h, i) {
-            html += '<option value="' + i + '"' + (i === selected ? " selected" : "") + '>' + escapeHtml(h || ("Column " + (i + 1))) + '</option>';
+            html += '<option value="' + i + '"' + (i === selected ? " selected" : "") + '>' + escapeHtml(h || columnSampleLabel(parsed, i)) + '</option>';
           });
           return html;
         }
 
         body.innerHTML =
           '<div class="modal-field"><label>Date column</label><select id="mColDate">' + colOptions(dateIdx, false) + '</select></div>' +
+          '<div class="modal-field"><label>Date format</label><select id="mDateOrder">' +
+          '<option value="auto">Detected: ' + (detectedOrder === "mdy" ? "month first (MM/DD)" : "day first (DD/MM)") + '</option>' +
+          '<option value="dmy">Day first (DD/MM/YYYY)</option><option value="mdy">Month first (MM/DD/YYYY)</option></select></div>' +
           '<div class="modal-field"><label>Amount column</label><select id="mColAmount">' + colOptions(amountIdx, false) + '</select></div>' +
+          '<div class="modal-field" id="mSpendSignRow" style="display:none;"><label>This file has + and \u2212 amounts. Your spends are…</label><select id="mSpendSign">' +
+          '<option value="auto">Detected from the file</option><option value="negative">the \u2212 amounts</option><option value="positive">the + amounts</option></select></div>' +
           '<div class="modal-field"><label>Tag column (optional)</label><select id="mColCat">' + colOptions(catIdx, true) + '</select></div>' +
           '<div class="modal-field"><label>Note / description column (optional)</label><select id="mColNote">' + colOptions(noteIdx, true) + '</select></div>' +
           (availableCurrencyCodes().length > 1 ? '<div class="modal-field"><label>Currency column (optional)</label><select id="mColCur">' + colOptions(curIdx, true) + '</select></div>' : "") +
@@ -4061,7 +4381,8 @@
 
         var selDate = document.getElementById("mColDate"), selAmount = document.getElementById("mColAmount"),
           selCat = document.getElementById("mColCat"), selNote = document.getElementById("mColNote"),
-          selCur = document.getElementById("mColCur");
+          selCur = document.getElementById("mColCur"), selDateOrder = document.getElementById("mDateOrder"),
+          selSpendSign = document.getElementById("mSpendSign");
 
         function currentMapping() {
           return {
@@ -4069,18 +4390,33 @@
             amountIdx: parseInt(selAmount.value, 10),
             catIdx: selCat ? parseInt(selCat.value, 10) : -1,
             noteIdx: selNote ? parseInt(selNote.value, 10) : -1,
-            curIdx: selCur ? parseInt(selCur.value, 10) : -1
+            curIdx: selCur ? parseInt(selCur.value, 10) : -1,
+            creditIdx: creditIdx,
+            dirIdx: dirIdx,
+            dateOrder: selDateOrder.value,
+            spendSign: selSpendSign.value
           };
         }
         function updateSummary() {
-          var built = buildImportRows(parsed, currentMapping());
+          var mapping = currentMapping();
+          var built = buildImportRows(parsed, mapping);
           var validCount = built.filter(function (r) { return r.valid; }).length;
           var dupCount = built.filter(function (r) { return r.valid && r.duplicate; }).length;
-          var truncatedNote = parsed.rows.length >= IMPORT_MAX_ROWS ? (" (first " + IMPORT_MAX_ROWS + " rows only)") : "";
-          document.getElementById("mMappingSummary").textContent =
-            validCount + " of " + built.length + " rows look valid" + (dupCount ? " · " + dupCount + " possible duplicate" + (dupCount === 1 ? "" : "s") : "") + truncatedNote + ".";
+          var incomeCount = built.filter(function (r) { return r.income; }).length;
+          var otherCurCount = built.filter(function (r) { return r.otherCurrency; }).length;
+          var ignoredCount = built.length - validCount - incomeCount - otherCurCount;
+          var values = parsed.rows.map(function (r) { return r[mapping.amountIdx]; });
+          var mixedSigns = !OUTFLOW_HEADER_RE.test(normalizeHeader(parsed.headers[mapping.amountIdx])) && mapping.dirIdx < 0 && importSpendSign(parsed, mapping, values, detectDecimalSeparator(values)) !== 0;
+          document.getElementById("mSpendSignRow").style.display = mixedSigns ? "" : "none";
+          var bits = [validCount + " spend" + (validCount === 1 ? "" : "s") + " found"];
+          if (dupCount) bits.push(dupCount + " possible duplicate" + (dupCount === 1 ? "" : "s"));
+          if (incomeCount) bits.push(incomeCount + " income row" + (incomeCount === 1 ? "" : "s") + " skipped");
+          if (otherCurCount) bits.push(otherCurCount + " in a currency you haven't added");
+          if (ignoredCount) bits.push(ignoredCount + " other line" + (ignoredCount === 1 ? "" : "s") + " ignored");
+          if (parsed.rows.length >= IMPORT_MAX_ROWS) bits.push("first " + IMPORT_MAX_ROWS + " rows only");
+          document.getElementById("mMappingSummary").textContent = bits.join("  ·  ") + ".";
         }
-        [selDate, selAmount, selCat, selNote].concat(selCur ? [selCur] : []).forEach(function (el) {
+        [selDate, selAmount, selCat, selNote, selDateOrder, selSpendSign].concat(selCur ? [selCur] : []).forEach(function (el) {
           el.addEventListener("change", updateSummary);
         });
         updateSummary();
@@ -4188,7 +4524,7 @@
           '<div class="modal-head"><h3>Import spends</h3><button class="modal-close" type="button">&times;</button></div>' +
           '<div class="modal-error" id="mError"></div>' +
           '<p class="modal-sub">Upload a CSV or Excel export — we’ll try to match the columns automatically, flag likely duplicates and delayed payments, and let you review every row before anything is added.</p>' +
-          '<div class="modal-field"><label>File (.csv, .xlsx, .xls)</label><input type="file" id="mFile" accept=".csv,.xlsx,.xls"></div>' +
+          '<div class="modal-field"><label>File (.csv, .xlsx, .xls, .tsv, .txt)</label><input type="file" id="mFile" accept=".csv,.xlsx,.xls,.tsv,.txt"></div>' +
           '<div id="mImportBody"></div>';
         openModal(html);
         var fileInput = document.getElementById("mFile");
@@ -4196,7 +4532,7 @@
           var file = fileInput.files[0];
           if (!file) return;
           document.getElementById("mImportBody").innerHTML = '<p class="helper-text">reading file…</p>';
-          var isExcel = /\.xlsx?$/i.test(file.name);
+          var isExcel = /\.xls[xmb]?$/i.test(file.name);
           if (isExcel) {
             var reader = new FileReader();
             reader.onload = function (e) {
@@ -4217,13 +4553,13 @@
             var reader2 = new FileReader();
             reader2.onload = function (e) {
               try {
-                renderImportMapping(parseCSV(String(e.target.result)));
+                renderImportMapping(parseCSV(decodeTextFile(e.target.result)));
               } catch (err) {
                 document.getElementById("mImportBody").innerHTML = "";
                 showModalError("couldn't read that file");
               }
             };
-            reader2.readAsText(file);
+            reader2.readAsArrayBuffer(file);
           }
         });
       }
