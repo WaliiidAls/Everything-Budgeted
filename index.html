@@ -1892,6 +1892,63 @@
       background: rgba(226, 88, 74, 0.12);
     }
 
+    .dup-chip.soft {
+      color: var(--ink-soft);
+      background: var(--line-soft);
+    }
+
+    .spend-item .dup-chip {
+      margin-left: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      vertical-align: 1px;
+    }
+
+    .chip-x {
+      background: none;
+      border: none;
+      padding: 0 0 0 2px;
+      font-size: 11px;
+      line-height: 1;
+      color: inherit;
+      cursor: pointer;
+    }
+
+    .dup-banner,
+    .dup-notice {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 10px 12px;
+      margin: 12px 0 4px;
+      border-radius: 10px;
+      font-size: 12.5px;
+      color: var(--danger);
+      background: rgba(226, 88, 74, 0.08);
+      border: 1px solid rgba(226, 88, 74, 0.22);
+    }
+
+    .dup-notice {
+      margin: 0 0 10px;
+      color: var(--ink-soft);
+      background: var(--line-soft);
+      border-color: var(--line);
+    }
+
+    .link-btn {
+      background: none;
+      border: none;
+      padding: 0;
+      font: inherit;
+      font-weight: 600;
+      color: var(--accent-ink);
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
     .delay-chip {
       color: var(--amber);
       background: rgba(217, 154, 43, 0.14);
@@ -2510,6 +2567,7 @@
             <button class="sort-btn" id="sortByPriceBtn" type="button" data-dir="desc">price <span class="arrow"></span></button>
           </div>
 
+          <div class="dup-banner" id="dupBanner" style="display:none;"></div>
           <div class="spend-log" id="spendLog"></div>
         </div>
       </section>
@@ -3623,6 +3681,9 @@
         });
 
         spendLog.innerHTML = "";
+        var dupOf = findDuplicateSpends(state.spendings);
+        var cycleDups = inCycle.filter(function (s) { return dupOf[s.id]; });
+        renderDuplicateBanner(cycleDups, isCurrent ? "this cycle" : "in " + cycleLabel(start, end));
         var sorted = inCycle.slice().sort(function (a, b) {
           var res = spendSort.key === "price" ? (toMain(a.amount, a.currency) - toMain(b.amount, b.currency)) : (a.date === b.date ? a.createdAt - b.createdAt : (a.date < b.date ? -1 : 1));
           return spendSort.dir === "desc" ? -res : res;
@@ -3637,14 +3698,21 @@
           var foreign = s.currency && s.currency !== state.currency.code;
           var curChip = foreign ? '<span class="cur-chip" title="logged as ' + formatIn(s.amount, s.currency) + '">' + s.currency + '</span>' : '';
           var delayChip = s.delayedPayment ? '<span class="delay-chip" title="flagged as a delayed payment on import">delayed</span>' : '';
+          var dupChip = dupOf[s.id] ? '<span class="dup-chip" title="same day, amount and shop as another spend you logged">possible duplicate<button class="chip-x" type="button" title="not a duplicate — hide this">×</button></span>' : '';
           row.innerHTML =
             '<span class="sw" style="background:' + (cat ? cat.color : "#999") + '"></span>' +
-            '<span class="lab">' + sourceBadge + escapeHtml(cat ? cat.name : "unknown") + (s.note ? ' <span style="color:var(--ink-faint)">— ' + escapeHtml(s.note) + '</span>' : '') + curChip + delayChip + '</span>' +
+            '<span class="lab">' + sourceBadge + escapeHtml(cat ? cat.name : "unknown") + (s.note ? ' <span style="color:var(--ink-faint)">— ' + escapeHtml(s.note) + '</span>' : '') + curChip + delayChip + dupChip + '</span>' +
             '<span class="date">' + d.toLocaleDateString(undefined, { month: "short", day: "numeric" }) + '</span>' +
             '<span class="amt">' + money(toMain(s.amount, s.currency)) + '</span>' +
             '<button class="row-edit" title="edit">✎</button>' +
             '<button class="row-del" title="remove">✕</button>';
           row.querySelector(".row-edit").addEventListener("click", function () { openEditSpendModal(s); });
+          if (dupOf[s.id]) row.querySelector(".chip-x").addEventListener("click", function () {
+            s.notDuplicate = true;
+            save();
+            renderAnalytics(false);
+            toast("ok, not a duplicate", function () { delete s.notDuplicate; save(); renderAnalytics(false); });
+          });
           row.querySelector(".row-del").addEventListener("click", function () {
             var idx = state.spendings.indexOf(s);
             state.spendings = state.spendings.filter(function (x) { return x.id !== s.id; });
@@ -3664,6 +3732,31 @@
             });
           });
           spendLog.appendChild(row);
+        });
+      }
+
+      var dupBanner = document.getElementById("dupBanner");
+      function renderDuplicateBanner(dups, whenLabel) {
+        if (!dups.length) { dupBanner.style.display = "none"; dupBanner.innerHTML = ""; return; }
+        var total = dups.reduce(function (sum, s) { return sum + toMain(s.amount, s.currency); }, 0);
+        dupBanner.style.display = "";
+        dupBanner.innerHTML = '<span>⚠ ' + dups.length + ' possible duplicate' + (dups.length === 1 ? "" : "s") + ' ' + whenLabel + ' (' + money(total) + ')</span>' +
+          '<button class="btn-text danger" type="button">Remove ' + (dups.length === 1 ? "it" : "all " + dups.length) + '</button>';
+        dupBanner.querySelector("button").addEventListener("click", function () { removeSpends(dups); });
+      }
+      // remove several spends at once (the copies, never the originals), with one undo
+      function removeSpends(list) {
+        var ids = {}, before = state.spendings.slice(), unlinked = [];
+        list.forEach(function (s) { ids[s.id] = true; });
+        state.spendings = state.spendings.filter(function (s) { return !ids[s.id]; });
+        state.checklist.forEach(function (i) { if (i.linkedSpendId && ids[i.linkedSpendId]) { unlinked.push({ item: i, spendId: i.linkedSpendId }); i.checked = false; i.linkedSpendId = null; } });
+        save();
+        renderAnalytics(false); renderHistory(); renderChecklist();
+        toast("removed " + list.length + " duplicate" + (list.length === 1 ? "" : "s"), function () {
+          state.spendings = before;
+          unlinked.forEach(function (u) { u.item.checked = true; u.item.linkedSpendId = u.spendId; });
+          save();
+          renderAnalytics(false); renderHistory(); renderChecklist();
         });
       }
 
@@ -4154,6 +4247,34 @@
         state.spendings.forEach(function (s) { addFingerprint(map, spendFingerprint(s.date, s.amount, s.currency), merchantKey(s.note)); });
         return map;
       }
+      /* possible duplicates already in your log: the same day, amount and shop entered separately, such as the same
+         statement imported twice, or an import plus a spend you logged by hand. Repeats inside one import are left alone,
+         because a statement listing two identical coffees means you bought two. Hand-logged spends count as one batch,
+         for the same reason. Returns { duplicateSpendId: originalSpendId }. */
+      function findDuplicateSpends(spends) {
+        var legacyBatch = {}, lastAt = null, batchNo = 0;
+        // imports from before batches were recorded: rows saved within a couple of seconds of each other came in together
+        spends.filter(function (s) { return s.fromImport && !s.importBatch; })
+          .sort(function (a, b) { return (a.createdAt || 0) - (b.createdAt || 0); })
+          .forEach(function (s) {
+            if (lastAt === null || (s.createdAt || 0) - lastAt > 2000) batchNo++;
+            lastAt = s.createdAt || 0;
+            legacyBatch[s.id] = "legacy-" + batchNo;
+          });
+        function batchOf(s) { return s.importBatch || legacyBatch[s.id] || "by-hand"; }
+        var groups = {}, dupOf = {};
+        spends.slice().sort(function (a, b) { return (a.createdAt || 0) - (b.createdAt || 0); }).forEach(function (s) {
+          var fp = spendFingerprint(s.date, s.amount, s.currency), key = merchantKey(s.note), batch = batchOf(s);
+          var list = groups[fp] || (groups[fp] = []);
+          var match = s.notDuplicate ? null : list.find(function (o) {
+            return o.batch !== batch && !o.claimedBy[batch] && (!o.key || !key || o.key === key);
+          });
+          // each original can stand behind one copy per batch, so a third import of the same statement is caught too
+          if (match) { match.claimedBy[batch] = true; dupOf[s.id] = match.spend.id; }
+          else list.push({ spend: s, key: key, batch: batch, claimedBy: {} });
+        });
+        return dupOf;
+      }
       function addFingerprint(map, fp, key) { (map[fp] = map[fp] || []).push(key || ""); }
       function hasFingerprint(map, fp, key) {
         return (map[fp] || []).some(function (k) { return !k || !key || k === key; });
@@ -4279,7 +4400,7 @@
           var duplicate = false;
           if (valid) {
             var fp = spendFingerprint(dateISO, amount, currency);
-            duplicate = hasFingerprint(existing, fp, mKey) || hasFingerprint(seenInBatch, fp, mKey);
+            duplicate = hasFingerprint(existing, fp, mKey) ? "logged" : hasFingerprint(seenInBatch, fp, mKey) ? "file" : false;
             addFingerprint(seenInBatch, fp, mKey);
           }
 
@@ -4309,7 +4430,7 @@
         return r.suggestedCatId || defaultCatId;
       }
       function commitImportRows(rows) {
-        var added = 0, catCache = {};
+        var added = 0, catCache = {}, batch = uid();
         rows.forEach(function (r) {
           var catId = r.catId;
           if (catId && catId.indexOf("new:") === 0) {
@@ -4318,8 +4439,9 @@
             catId = catCache[key];
           }
           if (!catId || !categoryById(catId)) return;
-          var spend = { id: uid(), categoryId: catId, amount: r.amount, currency: r.currency, note: r.note, date: r.date, createdAt: Date.now(), fromImport: true };
+          var spend = { id: uid(), categoryId: catId, amount: r.amount, currency: r.currency, note: r.note, date: r.date, createdAt: Date.now(), fromImport: true, importBatch: batch };
           if (r.delayedPayment) spend.delayedPayment = true;
+          if (r.duplicate === "file") spend.notDuplicate = true; // a repeat within this statement is a real second purchase
           state.spendings.push(spend);
           added++;
         });
@@ -4447,8 +4569,28 @@
       }
 
       function renderImportReview(rows) {
-        var pending = rows.slice();
+        // rows you've already logged start out left out, so a statement imported twice can't double a cycle
+        var leftOut = rows.filter(function (r) { return r.duplicate === "logged"; });
+        var pending = rows.filter(function (r) { return r.duplicate !== "logged"; });
         var body = document.getElementById("mImportBody");
+
+        function renderLeftOut() {
+          var box = body.querySelector("#mDupNotice");
+          var inPending = pending.filter(function (r) { return r.duplicate === "logged"; }).length;
+          if (leftOut.length) {
+            box.innerHTML = '<span>' + leftOut.length + ' spend' + (leftOut.length === 1 ? " is" : "s are") + ' already in your log, so ' + (leftOut.length === 1 ? "it was" : "they were") + ' left out.</span>' +
+              '<button class="link-btn" type="button" id="mDupToggle">add ' + (leftOut.length === 1 ? "it" : "them") + ' anyway</button>';
+          } else if (inPending) {
+            box.innerHTML = '<span>' + inPending + ' possible duplicate' + (inPending === 1 ? "" : "s") + ' of spends already in your log.</span>' +
+              '<button class="link-btn" type="button" id="mDupToggle">leave ' + (inPending === 1 ? "it" : "them") + ' out</button>';
+          } else { box.innerHTML = ""; box.style.display = "none"; return; }
+          box.style.display = "";
+          box.querySelector("#mDupToggle").addEventListener("click", function () {
+            if (leftOut.length) { pending = pending.concat(leftOut).sort(function (a, b) { return rows.indexOf(a) - rows.indexOf(b); }); leftOut = []; }
+            else { leftOut = pending.filter(function (r) { return r.duplicate === "logged"; }); pending = pending.filter(function (r) { return r.duplicate !== "logged"; }); }
+            renderList();
+          });
+        }
 
         function summaryText() {
           var dupCount = pending.filter(function (r) { return r.duplicate; }).length;
@@ -4464,7 +4606,8 @@
         function renderList() {
           var listHtml = pending.map(function (r) {
             var badges = "";
-            if (r.duplicate) badges += '<span class="dup-chip">possible duplicate</span>';
+            if (r.duplicate === "logged") badges += '<span class="dup-chip" title="same day, amount and shop as a spend already in your log">already logged</span>';
+            if (r.duplicate === "file") badges += '<span class="dup-chip soft" title="this file lists it more than once; usually a real second purchase">repeated in file</span>';
             if (r.delayedPayment) badges += '<span class="delay-chip">delayed payment</span>';
             return '<div class="import-review-row">' +
               '<div class="irr-main">' +
@@ -4479,12 +4622,14 @@
           }).join("");
           body.querySelector("#mReviewList").innerHTML = listHtml || '<div class="empty-state" style="padding:16px 0;">nothing left to import</div>';
           body.querySelector("#mReviewSummary").textContent = summaryText();
+          renderLeftOut();
           var confirmBtn = body.querySelector("#mImportConfirm");
           confirmBtn.textContent = "Add " + pending.length + " spend" + (pending.length === 1 ? "" : "s");
           confirmBtn.disabled = pending.length === 0;
           body.querySelectorAll("[data-remove]").forEach(function (btn) {
             btn.addEventListener("click", function () {
               pending = pending.filter(function (r) { return r._id !== btn.getAttribute("data-remove"); });
+              leftOut = leftOut.filter(function (r) { return r._id !== btn.getAttribute("data-remove"); });
               renderList();
             });
           });
@@ -4506,6 +4651,7 @@
 
         body.innerHTML =
           '<p class="helper-text" id="mReviewSummary"></p>' +
+          '<div class="dup-notice" id="mDupNotice" style="display:none;"></div>' +
           '<div class="import-review-list" id="mReviewList"></div>' +
           '<div class="modal-actions"><button class="btn-text primary" id="mImportConfirm" type="button" style="flex:2;">Add spends</button><button class="btn-text" type="button" data-modal-cancel>Cancel</button></div>';
         renderList();
