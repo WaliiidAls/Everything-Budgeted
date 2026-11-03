@@ -1938,6 +1938,63 @@
       border-color: var(--line);
     }
 
+    .past-imports-link {
+      display: block;
+      margin: 10px auto 0;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--ink-soft);
+    }
+
+    .import-batch-list {
+      max-height: 340px;
+      overflow-y: auto;
+      border-top: 1px dashed var(--line);
+    }
+
+    .import-batch-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding: 12px 2px;
+      border-bottom: 1px dashed var(--line);
+    }
+
+    .ib-main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .ib-top {
+      font-size: 13px;
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .ib-when,
+    .ib-sub {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 400;
+      color: var(--ink-faint);
+    }
+
+    .ib-sub {
+      margin-top: 3px;
+    }
+
+    .ib-confirm {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--danger);
+    }
+
     .link-btn {
       background: none;
       border: none;
@@ -2560,6 +2617,7 @@
           <span class="field-label">Spending log</span>
           <button class="add-trigger-btn" id="openAddSpendBtn" type="button">+ log a spend</button>
           <button class="add-trigger-btn" id="openImportBtn" type="button" style="margin-top:8px;">⇪ import from CSV / Excel</button>
+          <button class="link-btn past-imports-link" id="openPastImportsBtn" type="button">↺ past imports · undo an import</button>
 
           <div class="sort-row" id="spendSortRow">
             <span>sort:</span>
@@ -3745,19 +3803,66 @@
         dupBanner.querySelector("button").addEventListener("click", function () { removeSpends(dups); });
       }
       // remove several spends at once (the copies, never the originals), with one undo
-      function removeSpends(list) {
+      function removeSpends(list, what, onUndo) {
         var ids = {}, before = state.spendings.slice(), unlinked = [];
         list.forEach(function (s) { ids[s.id] = true; });
         state.spendings = state.spendings.filter(function (s) { return !ids[s.id]; });
         state.checklist.forEach(function (i) { if (i.linkedSpendId && ids[i.linkedSpendId]) { unlinked.push({ item: i, spendId: i.linkedSpendId }); i.checked = false; i.linkedSpendId = null; } });
         save();
         renderAnalytics(false); renderHistory(); renderChecklist();
-        toast("removed " + list.length + " duplicate" + (list.length === 1 ? "" : "s"), function () {
+        toast("removed " + list.length + " " + (what || "duplicate") + (list.length === 1 ? "" : "s"), function () {
           state.spendings = before;
           unlinked.forEach(function (u) { u.item.checked = true; u.item.linkedSpendId = u.spendId; });
           save();
           renderAnalytics(false); renderHistory(); renderChecklist();
+          if (onUndo) onUndo();
         });
+      }
+
+      /* ---------- undo an import: remove everything one import added, hand-logged spends stay ---------- */
+      function importWhenLabel(at) {
+        if (!at) return "an earlier import";
+        var d = new Date(at);
+        return d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) + ", " + d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+      }
+      function shortDateLabel(iso) { var d = dateFromISO(iso); return MO[d.getMonth()] + " " + d.getDate(); }
+      function openPastImportsModal() {
+        var html =
+          '<div class="modal-head"><h3>Past imports</h3><button class="modal-close" type="button">&times;</button></div>' +
+          '<p class="modal-sub">Undo an import to remove every spend it added. Spends you logged yourself are never touched.</p>' +
+          '<div class="import-batch-list" id="mImportBatches"></div>';
+        openModal(html);
+        var box = document.getElementById("mImportBatches"), confirming = null;
+        function render() {
+          var batches = listImports();
+          if (!batches.length) { box.innerHTML = '<div class="empty-state" style="padding:12px 0;">◌ no imports yet</div>'; return; }
+          box.innerHTML = batches.map(function (b) {
+            var head = '<div class="ib-main"><div class="ib-top">' + escapeHtml(b.fileName || "Imported") + ' <span class="ib-when">' + escapeHtml(importWhenLabel(b.at)) + '</span></div>' +
+              '<div class="ib-sub">' + b.spends.length + ' spend' + (b.spends.length === 1 ? "" : "s") + ' · ' + money(b.total) + ' · ' +
+              shortDateLabel(b.firstDate) + (b.firstDate !== b.lastDate ? " – " + shortDateLabel(b.lastDate) : "") + '</div></div>';
+            var actions = confirming === b.key
+              ? '<div class="ib-confirm"><span>Remove these ' + b.spends.length + '?</span><button class="btn-text danger" type="button" data-undo-confirm="' + b.key + '">Remove</button><button class="btn-text" type="button" data-undo-cancel>Keep</button></div>'
+              : '<button class="btn-text" type="button" data-undo="' + b.key + '">Undo import</button>';
+            return '<div class="import-batch-row">' + head + actions + '</div>';
+          }).join("");
+          box.querySelectorAll("[data-undo]").forEach(function (btn) {
+            btn.addEventListener("click", function () { confirming = btn.getAttribute("data-undo"); render(); });
+          });
+          box.querySelectorAll("[data-undo-cancel]").forEach(function (btn) {
+            btn.addEventListener("click", function () { confirming = null; render(); });
+          });
+          box.querySelectorAll("[data-undo-confirm]").forEach(function (btn) {
+            btn.addEventListener("click", function () {
+              var batch = batches.find(function (b) { return b.key === btn.getAttribute("data-undo-confirm"); });
+              confirming = null;
+              if (!batch) return;
+              removeSpends(batch.spends, "imported spend", function () { renderReports(); renderAdvice(); if (box.isConnected) render(); });
+              renderReports(); renderAdvice();
+              render();
+            });
+          });
+        }
+        render();
       }
 
       // fill the tag from the note when it names a shop you've logged before — until you pick a tag yourself
@@ -4251,17 +4356,39 @@
          statement imported twice, or an import plus a spend you logged by hand. Repeats inside one import are left alone,
          because a statement listing two identical coffees means you bought two. Hand-logged spends count as one batch,
          for the same reason. Returns { duplicateSpendId: originalSpendId }. */
-      function findDuplicateSpends(spends) {
-        var legacyBatch = {}, lastAt = null, batchNo = 0;
-        // imports from before batches were recorded: rows saved within a couple of seconds of each other came in together
-        spends.filter(function (s) { return s.fromImport && !s.importBatch; })
+      // { spendId: batchKey } for every imported spend. Imports from before batch ids were recorded are grouped by
+      // save time: rows saved within a couple of seconds of each other came in together.
+      function importBatchKeys(spends) {
+        var keys = {}, lastAt = null, batchNo = 0;
+        spends.filter(function (s) { return s.fromImport; })
           .sort(function (a, b) { return (a.createdAt || 0) - (b.createdAt || 0); })
           .forEach(function (s) {
+            if (s.importBatch) { keys[s.id] = s.importBatch; return; }
             if (lastAt === null || (s.createdAt || 0) - lastAt > 2000) batchNo++;
             lastAt = s.createdAt || 0;
-            legacyBatch[s.id] = "legacy-" + batchNo;
+            keys[s.id] = "legacy-" + batchNo;
           });
-        function batchOf(s) { return s.importBatch || legacyBatch[s.id] || "by-hand"; }
+        return keys;
+      }
+      // past imports, newest first: [{ key, spends, at, fileName, total, firstDate, lastDate }]
+      function listImports() {
+        var keys = importBatchKeys(state.spendings), byKey = {};
+        state.spendings.forEach(function (s) {
+          var k = keys[s.id];
+          if (!k) return;
+          var b = byKey[k] || (byKey[k] = { key: k, spends: [], at: s.importedAt || s.createdAt || 0, fileName: s.importFile || "", total: 0, firstDate: s.date, lastDate: s.date });
+          b.spends.push(s);
+          b.at = Math.min(b.at, s.importedAt || s.createdAt || 0);
+          b.total += toMain(s.amount, s.currency);
+          if (s.date < b.firstDate) b.firstDate = s.date;
+          if (s.date > b.lastDate) b.lastDate = s.date;
+        });
+        return Object.keys(byKey).map(function (k) { return byKey[k]; }).sort(function (a, b) { return b.at - a.at; });
+      }
+
+      function findDuplicateSpends(spends) {
+        var batchKeys = importBatchKeys(spends);
+        function batchOf(s) { return batchKeys[s.id] || "by-hand"; }
         var groups = {}, dupOf = {};
         spends.slice().sort(function (a, b) { return (a.createdAt || 0) - (b.createdAt || 0); }).forEach(function (s) {
           var fp = spendFingerprint(s.date, s.amount, s.currency), key = merchantKey(s.note), batch = batchOf(s);
@@ -4429,8 +4556,8 @@
         }
         return r.suggestedCatId || defaultCatId;
       }
-      function commitImportRows(rows) {
-        var added = 0, catCache = {}, batch = uid();
+      function commitImportRows(rows, fileName) {
+        var added = 0, catCache = {}, batch = uid(), importedAt = Date.now();
         rows.forEach(function (r) {
           var catId = r.catId;
           if (catId && catId.indexOf("new:") === 0) {
@@ -4439,7 +4566,8 @@
             catId = catCache[key];
           }
           if (!catId || !categoryById(catId)) return;
-          var spend = { id: uid(), categoryId: catId, amount: r.amount, currency: r.currency, note: r.note, date: r.date, createdAt: Date.now(), fromImport: true, importBatch: batch };
+          var spend = { id: uid(), categoryId: catId, amount: r.amount, currency: r.currency, note: r.note, date: r.date, createdAt: Date.now(), fromImport: true, importBatch: batch, importedAt: importedAt };
+          if (fileName) spend.importFile = fileName.slice(0, 80);
           if (r.delayedPayment) spend.delayedPayment = true;
           if (r.duplicate === "file") spend.notDuplicate = true; // a repeat within this statement is a real second purchase
           state.spendings.push(spend);
@@ -4658,13 +4786,14 @@
 
         document.getElementById("mImportConfirm").addEventListener("click", function () {
           if (!pending.length) return;
-          var added = commitImportRows(pending);
+          var added = commitImportRows(pending, importFileName);
           renderAnalytics(true); renderHistory(); renderReports(); renderAdvice();
           closeModal();
           toast("imported " + added + " spend" + (added === 1 ? "" : "s"));
         });
       }
 
+      var importFileName = "";
       function openImportSpendsModal() {
         var html =
           '<div class="modal-head"><h3>Import spends</h3><button class="modal-close" type="button">&times;</button></div>' +
@@ -4677,6 +4806,7 @@
         fileInput.addEventListener("change", function () {
           var file = fileInput.files[0];
           if (!file) return;
+          importFileName = file.name;
           document.getElementById("mImportBody").innerHTML = '<p class="helper-text">reading file…</p>';
           var isExcel = /\.xls[xmb]?$/i.test(file.name);
           if (isExcel) {
@@ -4710,6 +4840,7 @@
         });
       }
       document.getElementById("openImportBtn").addEventListener("click", openImportSpendsModal);
+      document.getElementById("openPastImportsBtn").addEventListener("click", openPastImportsModal);
 
       /* ---------- history ---------- */
       var historyList = document.getElementById("historyList");
