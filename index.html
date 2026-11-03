@@ -1784,10 +1784,82 @@
     }
 
     .import-review-list {
-      max-height: 300px;
-      overflow-y: auto;
-      margin: 2px 0 10px;
+      margin: 0;
       border-top: 1px dashed var(--line);
+    }
+
+    /* review header and Add button stay on screen while the (long) list scrolls inside the modal */
+    .ir-head {
+      position: sticky;
+      top: -22px;
+      z-index: 2;
+      margin: 0 -22px;
+      padding: 12px 22px 10px;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .ir-cycle {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--accent-ink);
+    }
+
+    .ir-count {
+      font-size: 14px;
+      margin-top: 3px;
+    }
+
+    .ir-tools {
+      display: flex;
+      gap: 14px;
+      margin-top: 6px;
+      font-size: 12px;
+    }
+
+    .ir-notes {
+      margin-top: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 12px;
+      color: var(--ink-soft);
+    }
+
+    .ir-foot {
+      position: sticky;
+      bottom: -20px;
+      z-index: 2;
+      display: flex;
+      gap: 8px;
+      margin: 0 -22px -20px;
+      padding: 12px 22px 16px;
+      background: var(--bg-card);
+      border-top: 1px solid var(--line);
+    }
+
+    .ir-foot .btn-text.primary {
+      flex: 1;
+    }
+
+    .import-review-row.off .irr-main {
+      opacity: .45;
+    }
+
+    .irr-check {
+      display: flex;
+      align-items: center;
+      padding: 2px 2px 0 0;
+      cursor: pointer;
+    }
+
+    .irr-check input {
+      width: 18px;
+      height: 18px;
+      margin: 0;
+      accent-color: var(--accent);
     }
 
     .import-review-row {
@@ -1855,6 +1927,11 @@
       width: auto;
       margin: 0;
       accent-color: var(--accent);
+    }
+
+    .learn-chip.soft {
+      color: var(--ink-soft);
+      background: var(--line-soft);
     }
 
     .learn-chip {
@@ -3968,6 +4045,7 @@
           if (amount === null) { showModalError("enter a valid amount (0 – " + MAX_LOG_AMOUNT.toLocaleString() + ")"); amountInput.focus(); return; }
           if (!dateVal) { showModalError("pick a date within that spend's cycle (" + minISO + " – " + maxISO + ")"); return; }
           applyAlwaysTag(catId);
+          if (s.fromImport && s.categoryId !== catId) s.tagSource = "user";
           s.categoryId = catId; s.amount = amount; s.currency = curCode === state.currency.code ? null : curCode; s.date = dateVal; s.note = note;
           if (s.fromChecklist) {
             var linkedItem = state.checklist.find(function (i) { return i.linkedSpendId === s.id; });
@@ -4320,11 +4398,15 @@
       }
       // { merchantKey: categoryId } — the tag you've used most for each shop, with "always tag X as Y" overrides on top.
       // Derived from state.spendings, so re-tagging a spend updates it automatically.
+      // imported spends only count once their tag came from you (picked in review, edited later, learned from you, or a
+      // tag column in the file). Rows that just got the default or a keyword guess would otherwise teach the guess back.
+      var TRUSTED_TAG_SOURCES = { user: true, learned: true, file: true };
       function merchantTagMemory() {
         var counts = {};
         state.spendings.forEach(function (s) {
           var k = merchantKey(s.note);
           if (!k || !categoryById(s.categoryId)) return;
+          if (s.fromImport && !TRUSTED_TAG_SOURCES[s.tagSource]) return;
           counts[k] = counts[k] || {};
           counts[k][s.categoryId] = (counts[k][s.categoryId] || 0) + 1;
         });
@@ -4336,6 +4418,37 @@
         });
         Object.keys(state.merchantTags || {}).forEach(function (k) { if (categoryById(state.merchantTags[k])) memo[k] = state.merchantTags[k]; });
         return memo;
+      }
+      /* first-time shops: a built-in guess from words in the description. Uses your tag when one has a matching name
+         (or a broader one: Coffee falls back to Food, Fuel and Parking to Car/Transport), otherwise offers a new tag. */
+      var KEYWORD_TAGS = [
+        { tag: "Coffee", names: ["coffee", "cafe", "cafes", "coffee shops"], broader: ["food", "eating out", "dining"],
+          words: ["coffee", "cafe", "café", "roastery", "roasters", "espresso", "starbucks", "costa", "tim hortons", "caribou", "ananas", "oldi", "juice", "roast"] },
+        { tag: "Pets", names: ["pets", "pet"], broader: [], words: ["petzone", "pet zone", "pet", "pets", "vet", "veterinary"] },
+        { tag: "Food", names: ["food", "restaurants", "eating out", "dining", "food & drink"], broader: [],
+          words: ["restaurant", "burger", "burgers", "canes", "raising canes", "mcdonalds", "wingstop", "kfc", "hardees", "subway", "pizza", "shawarma", "grill", "kitchen", "sushi", "bakery", "donuts", "keeta", "talabat", "deliveroo", "jahez", "carriage", "chicken", "diner", "bistro",
+            "food", "rest", "bites", "chocolate", "chocolatier", "sweets", "desserts", "ice cream"] },
+        { tag: "Groceries", names: ["groceries", "grocery", "supermarket"], broader: [],
+          words: ["co op", "coop", "cooperative", "co operative", "co perative", "sultan center", "tsc", "market", "supermarket", "hypermarket", "lulu", "carrefour", "grocery"] },
+        { tag: "Fuel", names: ["fuel", "petrol", "gas"], broader: ["car", "transport", "transportation"],
+          words: ["knpc", "oula", "alfa", "soor", "fuel", "petrol", "fuel station", "petrol station", "gas station"] },
+        { tag: "Parking", names: ["parking"], broader: ["car", "transport", "transportation"], words: ["parking", "car park", "car par"] },
+        { tag: "Car", names: ["car", "car care"], broader: ["transport", "transportation"], words: ["garage", "tyre", "tyres", "tire", "tires", "car wash", "auto", "service center"] },
+        { tag: "Home", names: ["home", "household", "house"], broader: [], words: ["ikea", "ace", "true value", "home centre", "home center", "pottery barn"] },
+        { tag: "Shopping", names: ["shopping", "clothes", "clothing"], broader: [],
+          words: ["zara", "asics", "decathlon", "xcite", "x cite", "intersport", "ntersport", "nike", "adidas", "h m", "eureka", "amazon", "noon", "shein", "tailor", "store", "shop", "mall"] },
+        { tag: "Health", names: ["health", "pharmacy", "medical"], broader: [], words: ["pharmacy", "clinic", "hospital", "medical", "dental", "nutrition", "iherb", "vitamin"] },
+        { tag: "Education", names: ["education", "learning", "school", "courses"], broader: [], words: ["education", "school", "academy", "university", "course", "courses", "tutoring"] },
+        { tag: "Transfers", names: ["transfers", "transfer"], broader: [], words: ["transfer"] }
+      ];
+      function keywordTagFor(text, amount) {
+        var t = " " + String(text || "").toLowerCase().replace(/['\u2019`]/g, "").replace(/[^a-z\u00e0-\u00ff]+/g, " ") + " ";
+        var rule = KEYWORD_TAGS.find(function (k) { return k.words.some(function (w) { return t.indexOf(" " + w + " ") !== -1; }); });
+        if (!rule && / real estate /.test(t) && amount <= 1) rule = KEYWORD_TAGS.find(function (k) { return k.tag === "Parking"; }); // car park ticket
+        if (!rule) return null;
+        function find(names) { return state.categories.find(function (c) { return names.indexOf(c.name.trim().toLowerCase()) !== -1; }); }
+        var cat = find(rule.names) || find(rule.broader);
+        return cat ? cat.id : "new:" + rule.tag;
       }
       function suggestTagFor(note, memo) {
         var k = merchantKey(note);
@@ -4543,6 +4656,7 @@
             currency: currency,
             categoryName: catRaw ? String(catRaw).trim() : "",
             suggestedCatId: memo[mKey] || null,
+            keywordCatId: memo[mKey] ? null : keywordTagFor(note + " " + noteText, amount || 0),
             merchantKey: mKey,
             note: note
           };
@@ -4554,7 +4668,7 @@
           var existing = state.categories.find(function (c) { return c.name.toLowerCase() === r.categoryName.toLowerCase(); });
           return existing ? existing.id : "new:" + r.categoryName;
         }
-        return r.suggestedCatId || defaultCatId;
+        return r.suggestedCatId || r.keywordCatId || defaultCatId;
       }
       function commitImportRows(rows, fileName) {
         var added = 0, catCache = {}, batch = uid(), importedAt = Date.now();
@@ -4566,7 +4680,7 @@
             catId = catCache[key];
           }
           if (!catId || !categoryById(catId)) return;
-          var spend = { id: uid(), categoryId: catId, amount: r.amount, currency: r.currency, note: r.note, date: r.date, createdAt: Date.now(), fromImport: true, importBatch: batch, importedAt: importedAt };
+          var spend = { id: uid(), categoryId: catId, amount: r.amount, currency: r.currency, note: r.note, date: r.date, createdAt: Date.now(), fromImport: true, importBatch: batch, importedAt: importedAt, tagSource: r.tagSource || "default" };
           if (fileName) spend.importFile = fileName.slice(0, 80);
           if (r.delayedPayment) spend.delayedPayment = true;
           if (r.duplicate === "file") spend.notDuplicate = true; // a repeat within this statement is a real second purchase
@@ -4677,116 +4791,129 @@
           var built = buildImportRows(parsed, currentMapping());
           var validRows = built.filter(function (r) { return r.valid; });
           if (!validRows.length) { showModalError("no valid rows to import — check your column choices"); return; }
-          var needsDefault = validRows.some(function (r) { return !r.categoryName && !r.suggestedCatId; });
-          if (needsDefault && !defaultCatId) { showModalError("some rows have no tag — pick a default tag to use for them"); return; }
+          if (!defaultCatId) defaultCatId = "new:Other"; // a brand-new account has no tags yet
           validRows.forEach(function (r) {
             r.catId = importRowCatId(r, defaultCatId);
-            r.autoTagged = !r.categoryName && !!r.suggestedCatId;
+            r.tagSource = r.categoryName ? "file" : r.suggestedCatId ? "learned" : r.keywordCatId ? "keyword" : "default";
           });
           renderImportReview(validRows);
         });
       }
 
-      function importRowTagOptionsHTML(r) {
-        var html = "";
-        if (r.catId && r.catId.indexOf("new:") === 0) html += '<option value="' + escapeHtml(r.catId) + '" selected>' + escapeHtml(r.catId.slice(4)) + ' (new)</option>';
+      function importRowTagOptionsHTML(r, rows) {
+        var html = "", newNames = {};
+        rows.forEach(function (x) { if (x.catId && x.catId.indexOf("new:") === 0) newNames[x.catId] = true; });
+        Object.keys(newNames).forEach(function (id) {
+          html += '<option value="' + escapeHtml(id) + '"' + (id === r.catId ? " selected" : "") + '>' + escapeHtml(id.slice(4)) + ' (new)</option>';
+        });
         state.categories.forEach(function (c) {
           html += '<option value="' + c.id + '"' + (c.id === r.catId ? " selected" : "") + '>' + escapeHtml(c.name) + '</option>';
         });
         return html;
       }
 
+      /* review: every row has a tick box (ticked = will be added). Rows outside the cycle you're viewing and rows already
+         in your log start out left out. Nothing is saved until you press Add. */
       function renderImportReview(rows) {
-        // rows you've already logged start out left out, so a statement imported twice can't double a cycle
-        var leftOut = rows.filter(function (r) { return r.duplicate === "logged"; });
-        var pending = rows.filter(function (r) { return r.duplicate !== "logged"; });
         var body = document.getElementById("mImportBody");
+        var cycle = cycleBoundsForDate(viewingCycleStart || new Date(), state.salaryDay);
+        var minISO = isoOfDate(cycle.start), maxISO = isoOfDate(cycle.end), cycleName = cycleLabel(cycle.start, cycle.end);
+        var includeOutside = false;
+        rows.forEach(function (r) { r.keep = r.duplicate !== "logged"; r.inCycle = r.date >= minISO && r.date <= maxISO; });
+        var outsideCount = rows.filter(function (r) { return !r.inCycle; }).length;
+        if (outsideCount === rows.length) includeOutside = true; // nothing in this cycle: show the file rather than an empty list
 
-        function renderLeftOut() {
-          var box = body.querySelector("#mDupNotice");
-          var inPending = pending.filter(function (r) { return r.duplicate === "logged"; }).length;
-          if (leftOut.length) {
-            box.innerHTML = '<span>' + leftOut.length + ' spend' + (leftOut.length === 1 ? " is" : "s are") + ' already in your log, so ' + (leftOut.length === 1 ? "it was" : "they were") + ' left out.</span>' +
-              '<button class="link-btn" type="button" id="mDupToggle">add ' + (leftOut.length === 1 ? "it" : "them") + ' anyway</button>';
-          } else if (inPending) {
-            box.innerHTML = '<span>' + inPending + ' possible duplicate' + (inPending === 1 ? "" : "s") + ' of spends already in your log.</span>' +
-              '<button class="link-btn" type="button" id="mDupToggle">leave ' + (inPending === 1 ? "it" : "them") + ' out</button>';
-          } else { box.innerHTML = ""; box.style.display = "none"; return; }
-          box.style.display = "";
-          box.querySelector("#mDupToggle").addEventListener("click", function () {
-            if (leftOut.length) { pending = pending.concat(leftOut).sort(function (a, b) { return rows.indexOf(a) - rows.indexOf(b); }); leftOut = []; }
-            else { leftOut = pending.filter(function (r) { return r.duplicate === "logged"; }); pending = pending.filter(function (r) { return r.duplicate !== "logged"; }); }
-            renderList();
-          });
+        function visible() { return rows.filter(function (r) { return includeOutside || r.inCycle; }); }
+        function kept() { return visible().filter(function (r) { return r.keep; }); }
+
+        function renderHead() {
+          var k = kept(), vis = visible();
+          var total = k.reduce(function (sum, r) { return sum + toMain(r.amount, r.currency); }, 0);
+          var dupTicked = vis.filter(function (r) { return r.duplicate === "logged" && r.keep; }).length;
+          var dupAll = vis.filter(function (r) { return r.duplicate === "logged"; }).length;
+          var notes = [];
+          if (outsideCount && !includeOutside) notes.push('<span>' + outsideCount + ' row' + (outsideCount === 1 ? " is" : "s are") + ' outside this cycle and ' + (outsideCount === 1 ? "was" : "were") + ' left out.</span> <button class="link-btn" type="button" data-ir="outside-on">include ' + (outsideCount === 1 ? "it" : "them") + '</button>');
+          else if (outsideCount && outsideCount < rows.length) notes.push('<span>Showing all dates, including ' + outsideCount + ' outside this cycle.</span> <button class="link-btn" type="button" data-ir="outside-off">this cycle only</button>');
+          else if (outsideCount) notes.push('<span>None of these dates are in ' + escapeHtml(cycleName) + ', so the whole file is shown.</span>');
+          if (dupAll) notes.push('<span>' + dupAll + ' already in your log' + (dupTicked ? ", " + dupTicked + " still ticked" : ", left unticked") + '.</span>' + (dupTicked ? ' <button class="link-btn" type="button" data-ir="untick-dups">untick them</button>' : ""));
+          body.querySelector("#mIrHead").innerHTML =
+            '<div class="ir-cycle">' + (includeOutside && outsideCount ? "All dates in the file" : "Cycle: " + escapeHtml(cycleName)) + '</div>' +
+            '<div class="ir-count"><strong>' + k.length + '</strong> of ' + vis.length + ' selected · <strong>' + money(total) + '</strong></div>' +
+            '<div class="ir-tools"><button class="link-btn" type="button" data-ir="all">select all</button><button class="link-btn" type="button" data-ir="none">select none</button></div>' +
+            (notes.length ? '<div class="ir-notes">' + notes.map(function (n) { return '<div>' + n + '</div>'; }).join("") + '</div>' : "");
+          var confirmBtn = body.querySelector("#mImportConfirm");
+          confirmBtn.textContent = k.length ? "Add " + k.length + " spend" + (k.length === 1 ? "" : "s") + " · " + money(total) : "Nothing selected";
+          confirmBtn.disabled = k.length === 0;
         }
 
-        function summaryText() {
-          var dupCount = pending.filter(function (r) { return r.duplicate; }).length;
-          var delayCount = pending.filter(function (r) { return r.delayedPayment; }).length;
-          var autoCount = pending.filter(function (r) { return r.autoTagged; }).length;
-          var bits = [pending.length + " spend" + (pending.length === 1 ? "" : "s") + " ready to add"];
-          if (autoCount) bits.push(autoCount + " tagged from your past spends");
-          if (dupCount) bits.push(dupCount + " possible duplicate" + (dupCount === 1 ? "" : "s"));
-          if (delayCount) bits.push(delayCount + " delayed payment" + (delayCount === 1 ? "" : "s"));
-          return bits.join("  ·  ");
+        function rowHTML(r) {
+          var badges = "";
+          if (r.duplicate === "logged") badges += '<span class="dup-chip" title="same day, amount and shop as a spend already in your log">already logged</span>';
+          if (r.duplicate === "file") badges += '<span class="dup-chip soft" title="this file lists it more than once; usually a real second purchase">repeated in file</span>';
+          if (r.delayedPayment) badges += '<span class="delay-chip">delayed payment</span>';
+          if (!r.inCycle) badges += '<span class="dup-chip soft">other cycle</span>';
+          var marker = r.tagSource === "learned" ? '<span class="learn-chip" title="you usually tag this shop like this">learned</span>'
+            : r.tagSource === "keyword" ? '<span class="learn-chip soft" title="a guess from the shop name; change it if it\'s wrong">auto</span>' : "";
+          return '<div class="import-review-row' + (r.keep ? "" : " off") + '" data-row="' + r._id + '">' +
+            '<label class="irr-check"><input type="checkbox" data-keep="' + r._id + '"' + (r.keep ? " checked" : "") + '></label>' +
+            '<div class="irr-main">' +
+            '<div class="irr-top"><span class="irr-date">' + shortDateLabel(r.date) + '</span><span class="irr-amt">' + formatIn(r.amount, r.currency || state.currency.code) + '</span></div>' +
+            '<div class="irr-sub">' + (r.note ? escapeHtml(r.note) : "(no note)") + '</div>' +
+            '<div class="irr-tag"><select data-row-tag="' + r._id + '">' + importRowTagOptionsHTML(r, rows) + '</select>' + marker + '</div>' +
+            (badges ? '<div class="irr-badges">' + badges + '</div>' : "") +
+            '</div></div>';
         }
 
         function renderList() {
-          var listHtml = pending.map(function (r) {
-            var badges = "";
-            if (r.duplicate === "logged") badges += '<span class="dup-chip" title="same day, amount and shop as a spend already in your log">already logged</span>';
-            if (r.duplicate === "file") badges += '<span class="dup-chip soft" title="this file lists it more than once; usually a real second purchase">repeated in file</span>';
-            if (r.delayedPayment) badges += '<span class="delay-chip">delayed payment</span>';
-            return '<div class="import-review-row">' +
-              '<div class="irr-main">' +
-              '<div class="irr-top"><span class="irr-date">' + r.date + '</span><span class="irr-amt">' + formatIn(r.amount, r.currency || state.currency.code) + '</span></div>' +
-              '<div class="irr-sub">' + (r.note ? escapeHtml(r.note) : "(no note)") + '</div>' +
-              '<div class="irr-tag"><select data-row-tag="' + r._id + '">' + importRowTagOptionsHTML(r) + '</select>' +
-              (r.autoTagged ? '<span class="learn-chip" title="you usually tag this shop like this">learned</span>' : "") + '</div>' +
-              (badges ? '<div class="irr-badges">' + badges + '</div>' : "") +
-              '</div>' +
-              '<button class="row-del" type="button" title="remove" data-remove="' + r._id + '">✕</button>' +
-              '</div>';
-          }).join("");
-          body.querySelector("#mReviewList").innerHTML = listHtml || '<div class="empty-state" style="padding:16px 0;">nothing left to import</div>';
-          body.querySelector("#mReviewSummary").textContent = summaryText();
-          renderLeftOut();
-          var confirmBtn = body.querySelector("#mImportConfirm");
-          confirmBtn.textContent = "Add " + pending.length + " spend" + (pending.length === 1 ? "" : "s");
-          confirmBtn.disabled = pending.length === 0;
-          body.querySelectorAll("[data-remove]").forEach(function (btn) {
-            btn.addEventListener("click", function () {
-              pending = pending.filter(function (r) { return r._id !== btn.getAttribute("data-remove"); });
-              leftOut = leftOut.filter(function (r) { return r._id !== btn.getAttribute("data-remove"); });
-              renderList();
-            });
-          });
-          body.querySelectorAll("[data-row-tag]").forEach(function (sel) {
-            sel.addEventListener("change", function () {
-              var row = pending.find(function (r) { return r._id === sel.getAttribute("data-row-tag"); });
-              if (!row) return;
-              row.catId = sel.value; row.autoTagged = false; row.userTagged = true;
-              // re-tagging one shop re-tags its other rows too, unless you've set those by hand
-              var others = 0;
-              if (row.merchantKey) pending.forEach(function (r) {
-                if (r !== row && r.merchantKey === row.merchantKey && !r.userTagged && !r.categoryName && r.catId !== row.catId) { r.catId = row.catId; r.autoTagged = false; others++; }
-              });
-              if (others) { renderList(); toast("also re-tagged " + others + " other " + merchantDisplayName(row.merchantKey) + " row" + (others === 1 ? "" : "s")); }
-              else body.querySelector("#mReviewSummary").textContent = summaryText();
-            });
-          });
+          var vis = visible();
+          body.querySelector("#mReviewList").innerHTML = vis.map(rowHTML).join("") || '<div class="empty-state" style="padding:16px 0;">nothing to import</div>';
+          renderHead();
         }
+        function rowById(id) { return rows.find(function (r) { return r._id === id; }); }
 
         body.innerHTML =
-          '<p class="helper-text" id="mReviewSummary"></p>' +
-          '<div class="dup-notice" id="mDupNotice" style="display:none;"></div>' +
+          '<div class="ir-head" id="mIrHead"></div>' +
           '<div class="import-review-list" id="mReviewList"></div>' +
-          '<div class="modal-actions"><button class="btn-text primary" id="mImportConfirm" type="button" style="flex:2;">Add spends</button><button class="btn-text" type="button" data-modal-cancel>Cancel</button></div>';
+          '<div class="ir-foot"><button class="btn-text primary" id="mImportConfirm" type="button">Add spends</button><button class="btn-text" type="button" data-modal-cancel>Cancel</button></div>';
+
+        // one delegated listener each, so re-rendering never stacks handlers
+        body.addEventListener("click", function (e) {
+          var btn = e.target.closest("[data-ir]");
+          if (!btn) return;
+          var act = btn.getAttribute("data-ir");
+          if (act === "all") visible().forEach(function (r) { r.keep = true; });
+          if (act === "none") visible().forEach(function (r) { r.keep = false; });
+          if (act === "untick-dups") visible().forEach(function (r) { if (r.duplicate === "logged") r.keep = false; });
+          if (act === "outside-on") includeOutside = true;
+          if (act === "outside-off") { includeOutside = false; rows.forEach(function (r) { if (!r.inCycle) r.keep = false; }); }
+          renderList();
+        });
+        body.addEventListener("change", function (e) {
+          var el = e.target;
+          if (el.hasAttribute("data-keep")) {
+            var r = rowById(el.getAttribute("data-keep"));
+            r.keep = el.checked;
+            el.closest(".import-review-row").classList.toggle("off", !r.keep);
+            renderHead();
+            return;
+          }
+          if (!el.hasAttribute("data-row-tag")) return;
+          var row = rowById(el.getAttribute("data-row-tag"));
+          row.catId = el.value; row.tagSource = "user"; row.userTagged = true;
+          // re-tagging one shop re-tags its other rows too, unless you've set those by hand
+          var others = 0;
+          if (row.merchantKey) rows.forEach(function (r) {
+            if (r !== row && r.merchantKey === row.merchantKey && !r.userTagged && !r.categoryName && r.catId !== row.catId) { r.catId = row.catId; r.tagSource = "user"; others++; }
+          });
+          if (others) { renderList(); toast("also tagged " + others + " other " + merchantDisplayName(row.merchantKey) + " row" + (others === 1 ? "" : "s")); }
+          else { el.parentNode.querySelectorAll(".learn-chip").forEach(function (c) { c.remove(); }); }
+        });
         renderList();
 
         document.getElementById("mImportConfirm").addEventListener("click", function () {
-          if (!pending.length) return;
-          var added = commitImportRows(pending, importFileName);
+          var k = kept();
+          if (!k.length) return;
+          var added = commitImportRows(k, importFileName);
           renderAnalytics(true); renderHistory(); renderReports(); renderAdvice();
           closeModal();
           toast("imported " + added + " spend" + (added === 1 ? "" : "s"));
