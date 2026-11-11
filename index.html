@@ -461,6 +461,7 @@
     input[type="date"],
     input[type="email"],
     input[type="password"],
+    textarea,
     select {
       width: 100%;
       background: var(--bg);
@@ -474,6 +475,7 @@
     }
 
     input:focus,
+    textarea:focus,
     select:focus {
       border-color: var(--accent);
       background: #fff;
@@ -2891,6 +2893,16 @@
           <p class="helper-text">Changes the accent used for highlights, progress, and charts throughout the app.</p>
         </div>
 
+        <div class="card" id="smsLinkCard">
+          <span class="field-label">Log from bank SMS (iPhone Shortcuts)</span>
+          <p class="helper-text" style="margin-top:0;">An iPhone Shortcuts automation can send each purchase SMS from your bank to this link, and the spend is logged straight away with the amount, the shop and its usual tag. The SMS is read in your browser, not on a server.</p>
+          <input type="text" id="smsLinkUrl" readonly>
+          <button class="add-trigger-btn" id="smsLinkCopyBtn" type="button">copy link</button>
+          <span class="field-label" style="margin-top:14px;">Test with a real SMS</span>
+          <textarea id="smsTestInput" rows="3" placeholder="paste a purchase SMS from your bank"></textarea>
+          <p class="helper-text" id="smsTestResult">› shows what would be logged; nothing is saved</p>
+        </div>
+
         <div class="card" id="accountCard">
           <span class="field-label">Account &amp; cloud sync</span>
           <p class="helper-text" id="accountBody">checking configuration…</p>
@@ -3116,15 +3128,17 @@
       }
 
       var cloudSyncTimer = null;
+      var cloudSavePending = false;
       function save() {
         saveLocal();
         if (cloudEnabled && currentUser) {
           setSyncDot("pending");
+          cloudSavePending = true;
           clearTimeout(cloudSyncTimer);
           cloudSyncTimer = setTimeout(function () {
             db.collection("users").doc(currentUser.uid).set(state)
-              .then(function () { setSyncDot("on"); })
-              .catch(function (err) { console.error(err); setSyncDot("off"); toast("cloud sync failed — saved locally"); });
+              .then(function () { cloudSavePending = false; setSyncDot("on"); })
+              .catch(function (err) { cloudSavePending = false; console.error(err); setSyncDot("off"); toast("cloud sync failed — saved locally"); });
           }, 800);
         }
       }
@@ -6115,6 +6129,230 @@
         el.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); authSubmitBtn.click(); } });
       });
 
+      /* ---------- log a spend from a link (bank SMS via iPhone Shortcuts, or any automation) ----------
+           ?sms=<the whole SMS text>                                      read here: amount, shop, date
+           ?amount=3.5&merchant=Ananas[&tag=Coffee][&date=2026-11-11][&currency=USD][&ref=<unique id>]
+         Read once per page load, in the browser; the params are removed from the address bar straight away so a
+         reload can't log the same spend twice. Each logged spend keeps a ref (the SMS's fingerprint), so the same
+         SMS sent twice is only logged once. */
+      var pendingLogLink = (function () {
+        var params;
+        try { params = new URLSearchParams(location.search); } catch (e) { return null; }
+        if (!params.has("sms") && !params.has("amount")) return null;
+        var link = {};
+        ["sms", "amount", "merchant", "note", "tag", "date", "currency", "ref"].forEach(function (k) { if (params.has(k)) link[k] = params.get(k); });
+        try { history.replaceState(null, "", location.pathname + location.hash); } catch (e) { /* ignore */ }
+        return link;
+      })();
+
+      var SMS_CURRENCY_RE = "(KWD|K\\.?D\\.?|USD|US\\$|EUR|GBP|SAR|AED|QAR|BHD|OMR|EGP|INR|JPY|د\\.?\\s?ك|دينار|\\$|€|£)";
+      var SMS_NUMBER_RE = "(\\d{1,3}(?:,\\d{3})+(?:\\.\\d+)?|\\d+(?:\\.\\d+)?)";
+      function smsCurrencyCode(token) {
+        var t = String(token || "").toUpperCase().replace(/\s+/g, "");
+        if (/^K\.?D\.?$|^KWD$|^د\.?ك$|^دينار$/.test(t)) return "KWD";
+        if (t === "$" || t === "US$") return "USD";
+        if (t === "€") return "EUR";
+        if (t === "£") return "GBP";
+        return t;
+      }
+      // a quick fingerprint so the same SMS sent to the link twice is only logged once
+      function textFingerprint(s) {
+        var h = 5381;
+        for (var i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
+        return (h >>> 0).toString(36);
+      }
+      function smsDate(text) {
+        var m, y, mo, d, iso;
+        if ((m = text.match(/\b(20\d{2})-(\d{1,2})-(\d{1,2})\b/))) { y = +m[1]; mo = +m[2]; d = +m[3]; }
+        else if ((m = text.match(/\b(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2}|\d{4})\b/))) { d = +m[1]; mo = +m[2]; y = +m[3]; if (y < 100) y += 2000; }
+        else {
+          var MONTHS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+          if ((m = text.match(/\b(\d{1,2})[\s-]*(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*[\s,-]*(\d{2}|\d{4})?\b/i))) {
+            d = +m[1]; mo = MONTHS.indexOf(m[2].toLowerCase()) + 1; y = m[3] ? +m[3] : new Date().getFullYear(); if (y < 100) y += 2000;
+          } else return null;
+        }
+        if (mo < 1 || mo > 12 || d < 1 || d > 31) return null;
+        iso = y + "-" + pad(mo) + "-" + pad(d);
+        var dt = dateFromISO(iso);
+        if (isNaN(dt.getTime()) || isoOfDate(dt) !== iso) return null;
+        return iso;
+      }
+      /* Reads a bank purchase SMS (English or Arabic). Returns
+           { ok: true, amount, currency, merchant, date }  or  { ok: false, reason, skipped: true|false }
+         skipped = it isn't a purchase (OTP, refund, salary, transfer, ATM, declined) and should be ignored quietly. */
+      function parseBankSms(raw) {
+        var text = String(raw || "")
+          .replace(/[٠-٩]/g, function (c) { return String(c.charCodeAt(0) - 0x0660); })
+          .replace(/[۰-۹]/g, function (c) { return String(c.charCodeAt(0) - 0x06F0); })
+          .replace(/٫/g, ".").replace(/٬/g, ",")
+          .replace(/\s+/g, " ").trim();
+        if (!text) return { ok: false, reason: "the SMS was empty" };
+        var low = text.toLowerCase();
+        if (/\b(otp|one[- ]time|verification code|passcode|activation code)\b|رمز التحقق|كلمة المرور|الرمز السري/.test(low)) return { ok: false, skipped: true, reason: "a one-time code, not a purchase" };
+        if (/\b(declined|rejected|unsuccessful|failed|insufficient)\b|مرفوض|رفض|غير ناجح|لم تتم/.test(low)) return { ok: false, skipped: true, reason: "a declined payment" };
+        if (/\b(refund(ed)?|reversal|reversed|cash ?back)\b|استرداد|استرجاع|عكس/.test(low)) return { ok: false, skipped: true, reason: "a refund" };
+        if (/\b(salary|payroll)\b|راتب/.test(low)) return { ok: false, skipped: true, reason: "a salary credit" };
+        if (/\b(credited|deposit(ed)?)\b|إيداع|ايداع|اضافة مبلغ|إضافة مبلغ/.test(low) && !/\b(debited|purchase|spent|paid)\b|خصم|شراء/.test(low)) return { ok: false, skipped: true, reason: "money coming in" };
+        if (/\b(transfer(red)?|trf)\b|تحويل/.test(low) && !/\b(purchase|pos)\b|شراء/.test(low)) return { ok: false, skipped: true, reason: "a transfer" };
+        if (/\batm\b|cash withdrawal|سحب نقدي|صراف/.test(low)) return { ok: false, skipped: true, reason: "a cash withdrawal" };
+
+        // amounts next to a currency, skipping the balance / limit the bank adds at the end
+        var re = new RegExp("(?:^|[^A-Za-z])" + SMS_CURRENCY_RE + "\\s*" + SMS_NUMBER_RE + "|" + SMS_NUMBER_RE + "\\s*" + SMS_CURRENCY_RE + "(?![A-Za-z])", "gi");
+        var m, found = null;
+        while ((m = re.exec(text))) {
+          var before = low.slice(Math.max(0, m.index - 30), m.index + 1);
+          if (/bal(ance)?\b|avail|limit|رصيد|المتاح|الحد/.test(before)) continue;
+          var token = m[1] || m[4], num = m[2] || m[3];
+          found = { amount: parseFloat(num.replace(/,/g, "")), currency: smsCurrencyCode(token) };
+          break;
+        }
+        if (!found || !(found.amount > 0)) return { ok: false, reason: "couldn't find the amount" };
+
+        // the shop: "at X", "@X", "merchant: X", "لدى X" — up to where the date/card/next sentence starts
+        var stop = "(?=\\s+(?:on|using|with|via|by|card|ending|dated?|for|was|has|is|ref)\\b|\\s+\\d{1,2}[\\/.-]\\d{1,2}|\\s+\\d{1,2}:\\d{2}|[,;|]|\\.\\s|\\.$|\\s+(?:بتاريخ|باستخدام|ببطاقة|بطاقة|في\\s+\\d|الساعة|رصيد)|$)";
+        var patterns = [
+          new RegExp("(?:merchant|store|shop|المتجر|التاجر|الجهة)\\s*(?:name)?\\s*[:：-]\\s*(.+?)" + stop, "i"),
+          new RegExp("(?:^|\\s)(?:(?:at|لدى|عند)\\s+|@\\s*)(.+?)" + stop, "i"),
+          new RegExp("(?:paid to|payment to|purchase from)\\s+(.+?)" + stop, "i")
+        ];
+        var merchant = "";
+        patterns.some(function (p) {
+          var mm = text.match(p);
+          if (!mm) return false;
+          var cand = mm[1].replace(new RegExp(SMS_CURRENCY_RE + "\\s*" + SMS_NUMBER_RE, "gi"), "").trim();
+          if (!/[A-Za-z؀-ۿ]{2}/.test(cand)) return false;
+          merchant = cand;
+          return true;
+        });
+        if (merchant) merchant = (/[A-Za-z]/.test(merchant) ? extractStoreName(merchant, []) : merchant).slice(0, 40);
+
+        var date = smsDate(text), t = todayISO();
+        // a date in the future, or weeks back, is more likely a card expiry or a misread than the purchase date
+        if (!date || date > t || date < isoOfDate(addDays(new Date(), -45))) date = t;
+        return { ok: true, amount: found.amount, currency: found.currency, merchant: merchant, date: date };
+      }
+
+      // the tag for a shop: the one you always use for it, then a guess from the name, then "Other"
+      function tagForLoggedShop(merchant, amount, tagName) {
+        if (tagName) return { catId: addCategory(tagName.slice(0, 20)), source: "user" };
+        var learned = suggestTagFor(merchant, merchantTagMemory());
+        if (learned && categoryById(learned)) return { catId: learned, source: "learned" };
+        var kw = merchant ? keywordTagFor(merchant, amount) : null;
+        if (kw) return { catId: kw.indexOf("new:") === 0 ? addCategory(kw.slice(4)) : kw, source: "keyword" };
+        return { catId: addCategory("Other"), source: "default" };
+      }
+
+      function openPrefilledSpendModal(amount, note, message) {
+        openAddSpendModal();
+        var a = document.getElementById("mAmount"), n = document.getElementById("mNote");
+        if (a && amount) a.value = amount;
+        if (n && note) { n.value = note; n.dispatchEvent(new Event("input")); }
+        if (message) showModalError(message);
+      }
+
+      function handleLogLink() {
+        var link = pendingLogLink;
+        pendingLogLink = null;
+        if (!link) return;
+        if (isLocked()) { toast("your trial has ended — that spend wasn't logged"); return; }
+
+        var amount, currency, merchant, date, ref, sms = (link.sms || "").slice(0, 1000);
+        if (sms) {
+          var p = parseBankSms(sms);
+          if (!p.ok) {
+            if (p.skipped) { toast("bank SMS skipped — " + p.reason); return; }
+            openPrefilledSpendModal(null, "", "couldn't read that SMS (" + p.reason + ") — fill it in here");
+            return;
+          }
+          amount = p.amount; currency = p.currency; merchant = p.merchant; date = p.date;
+          ref = "sms:" + textFingerprint(sms.replace(/\s+/g, " ").trim());
+        } else {
+          amount = parseFloat(String(link.amount).replace(/,/g, ""));
+          currency = (link.currency || "").toUpperCase().trim() || state.currency.code;
+          merchant = sanitizeLabel(link.merchant || link.note || "", 40) || "";
+          date = /^\d{4}-\d{2}-\d{2}$/.test(link.date || "") ? link.date.slice(0, 10) : todayISO();
+          ref = link.ref ? "link:" + String(link.ref).slice(0, 80) : null;
+        }
+        if (merchant) merchant = sanitizeLabel(merchant, 40) || "";
+        if (ref && state.spendings.some(function (s) { return s.ref === ref; })) { toast("already logged that one"); return; }
+
+        if (currency === state.currency.code) currency = null;
+        else if (availableCurrencyCodes().indexOf(currency) === -1) {
+          openPrefilledSpendModal(amount, merchant, "this spend was in " + currency + " — add " + currency + " under Settings → Other currencies to log these automatically");
+          return;
+        }
+        var clean = sanitizeAmountInCurrency(amount, currency || state.currency.code);
+        if (clean === null) { openPrefilledSpendModal(null, merchant, "couldn't read the amount — fill it in here"); return; }
+
+        var tag = tagForLoggedShop(merchant, clean, sanitizeLabel(link.tag || "", 20));
+        if (!tag.catId) { openPrefilledSpendModal(clean, merchant, "pick a tag for this spend"); return; }
+
+        // something with the same day, amount and shop already logged by hand? log anyway, but say so
+        var fp = spendFingerprint(date, clean, currency), key = merchantKey(merchant);
+        var twin = state.spendings.find(function (s) {
+          if (spendFingerprint(s.date, s.amount, s.currency) !== fp) return false;
+          var k = merchantKey(s.note);
+          return !k || !key || k === key;
+        });
+        var spend = { id: uid(), categoryId: tag.catId, amount: clean, currency: currency, note: merchant, date: date, createdAt: Date.now(), source: sms ? "sms" : "link", tagSource: tag.source };
+        if (ref) spend.ref = ref;
+        state.spendings.push(spend);
+        save();
+        renderAllPanels();
+        var cat = categoryById(tag.catId);
+        var msg = "logged " + formatIn(clean, currency || state.currency.code) + (merchant ? " · " + merchant : "") + " · " + (cat ? cat.name : "");
+        if (twin) msg += " — you'd already logged this amount" + (twin.note ? " at " + twin.note : "") + " that day";
+        toast(msg, function () {
+          state.spendings = state.spendings.filter(function (s) { return s.id !== spend.id; });
+          save();
+          renderAllPanels();
+          toast("spend removed");
+        });
+      }
+
+      // Settings card: the link to paste into Shortcuts, and a tester that shows how an SMS is read
+      var smsLinkUrl = document.getElementById("smsLinkUrl");
+      var smsTestInput = document.getElementById("smsTestInput");
+      var smsTestResult = document.getElementById("smsTestResult");
+      function smsLinkBase() { return location.origin + location.pathname + "?sms="; }
+      function renderSmsLinkCard() {
+        smsLinkUrl.value = smsLinkBase();
+        renderSmsTest();
+      }
+      function renderSmsTest() {
+        var v = smsTestInput.value.trim();
+        if (!v) { smsTestResult.textContent = "› shows what would be logged; nothing is saved"; return; }
+        var p = parseBankSms(v);
+        if (!p.ok) { smsTestResult.textContent = p.skipped ? "› would be skipped: " + p.reason : "› couldn't read it: " + p.reason + " (the app would open the log form instead)"; return; }
+        var tag = suggestTagFor(p.merchant, merchantTagMemory()), kw = !tag && p.merchant ? keywordTagFor(p.merchant, p.amount) : null;
+        var tagName = tag && categoryById(tag) ? categoryById(tag).name : kw ? (kw.indexOf("new:") === 0 ? kw.slice(4) + " (new tag)" : categoryById(kw).name) : "Other";
+        smsTestResult.textContent = "› would log " + formatIn(p.amount, p.currency) + " · " + (p.merchant || "no shop found") + " · " + tagName + " · " + p.date;
+      }
+      smsTestInput.addEventListener("input", renderSmsTest);
+      document.getElementById("smsLinkCopyBtn").addEventListener("click", function () {
+        var url = smsLinkBase();
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(url).then(function () { toast("link copied"); }, function () { smsLinkUrl.select(); toast("select and copy the link"); });
+        } else { smsLinkUrl.select(); toast("select and copy the link"); }
+      });
+
+      /* Signed in on two screens (Safari, where Shortcuts opens links, and the home-screen app)? Each keeps its own
+         copy in memory, and a save sends the whole copy. Re-read the account when the app comes back to the
+         front, so a spend logged from Safari isn't overwritten by an older copy here. */
+      document.addEventListener("visibilitychange", function () {
+        if (document.visibilityState !== "visible" || !cloudEnabled || !currentUser || !state || !db) return;
+        if (cloudSavePending || modalOverlay.classList.contains("show")) return;
+        var uidNow = currentUser.uid;
+        db.collection("users").doc(uidNow).get().then(function (doc) {
+          if (!doc.exists || !currentUser || currentUser.uid !== uidNow || cloudSavePending || modalOverlay.classList.contains("show")) return;
+          var fresh = normalizeState(doc.data());
+          if (JSON.stringify(fresh.spendings) === JSON.stringify(state.spendings) && JSON.stringify(fresh.checklist) === JSON.stringify(state.checklist)) return;
+          state = fresh;
+          saveLocal();
+          renderAllPanels();
+        }).catch(function () { /* offline: keep the local copy */ });
+      });
+
       /* ---------- app init ---------- */
       var appRoot = document.getElementById("appRoot");
 
@@ -6123,14 +6361,7 @@
         if (bl) bl.classList.add("hide");
       }
 
-      function initAppUI() {
-        ensureDailyReset();
-        viewingCycleStart = cycleStartForDate(new Date(), state.salaryDay);
-        var greeting = state.username ? ("hey " + state.username + " — ") : "";
-        todayStrEl.textContent = "\u203a " + greeting + new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }).toLowerCase() + " — checks reset every new day";
-        currencySelect.value = state.currency.code;
-        salaryDayInput.value = state.salaryDay;
-        usernameInput.value = state.username || "";
+      function renderAllPanels() {
         renderExtraCurrencies();
         applyAccentColor(state.accentColor);
         renderSwatches();
@@ -6144,12 +6375,25 @@
         renderAdvice();
         renderAccountCard();
         renderBilling();
+        renderSmsLinkCard();
+      }
+
+      function initAppUI() {
+        ensureDailyReset();
+        viewingCycleStart = cycleStartForDate(new Date(), state.salaryDay);
+        var greeting = state.username ? ("hey " + state.username + " — ") : "";
+        todayStrEl.textContent = "\u203a " + greeting + new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }).toLowerCase() + " — checks reset every new day";
+        currencySelect.value = state.currency.code;
+        salaryDayInput.value = state.salaryDay;
+        usernameInput.value = state.username || "";
+        renderAllPanels();
         footerTip.textContent = cloudEnabled
           ? (currentUser ? "synced to your account · also cached locally" : "stored locally in this browser")
           : "stored locally in this browser · nothing leaves your device";
         appRoot.classList.add("ready");
         authGate.classList.remove("show");
         hideBootLoader();
+        handleLogLink();
       }
 
       function startLocalOnly() {
