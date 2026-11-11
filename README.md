@@ -1,6 +1,6 @@
 # Everything Budgeted
 
-
+## Log purchases from bank SMS (iPhone Shortcuts)
 
 Every purchase SMS from your bank is sent to the app's link. The app reads the amount, the shop and the date, picks the shop's usual tag, and logs it. It happens in your browser; no server is involved.
 
